@@ -16,6 +16,7 @@ public class HGetMessageList {
 	
 	public static void main(String[] args) {
 		try {
+			// Test
 			InputStream responseBytes = HGetMessageList.invoke("GetMessageListRequest.xml");
 			System.out.println("Response: \n" + new String(responseBytes.readAllBytes()));
 		} catch (Exception e) {

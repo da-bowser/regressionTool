@@ -20,7 +20,7 @@ public class BGetMessageList {
 	
 	public static void main(String[] args) {
 		try {
-			// Test extraction of MessageKeys from Web Service resonse
+			// Test extraction of MessageKeys from Web Service response
 			InputStream responseBytes = HGetMessageList.invoke("GetMessageListRequest.xml");
 			
 			ArrayList<String> messageKeys = extractMessageKeysFromSingleResponseFile(responseBytes);
@@ -63,7 +63,6 @@ public class BGetMessageList {
 		ArrayList<String> objectKeys = new ArrayList<String>();
 		
 		try {
-			
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(responseBytes);
 			

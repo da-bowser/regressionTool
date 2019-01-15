@@ -132,13 +132,14 @@ public class BMultipartHandler {
 			    		
 			    		// Ensure we do not waste time fetching more data
 			    		fetchData = false;
+			    		eventReader.close();	// stop further processing
 			    	}
 			    	break;
 			    }
 			}
 			return messageId;
 		} catch (Exception e) {
-			String msg = "Error extracting SAP message Id from envelope.\n" + e.getMessage();
+			String msg = "Error extracting SAP Message Id from envelope.\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
 		} 

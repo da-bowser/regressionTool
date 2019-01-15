@@ -41,7 +41,6 @@ public class BGetMessageBytesJavaLangStringIntBoolean {
 	 */
 	public static ByteArrayInputStream createNewRequest(String messageKey, int version) throws Exception {
 		String SIGNATURE = "createNewRequest(String, int)";
-		
 		try {
 			StringWriter stringWriter = new StringWriter();
 			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
@@ -115,6 +114,31 @@ public class BGetMessageBytesJavaLangStringIntBoolean {
 		// Call Web Service
 		InputStream response = HGetMessageBytesJavaLangStringIntBoolean.invoke(requestFirst.readAllBytes());
 		
+		// Generate directory for placing the Web Service response
+		String directoryPath = generateDirectory(getFirstPayload, requestICOFileName);
+		
+		// Write Web Service response to file system
+		String WebServiceResponse = directoryPath + getFileName(messageKey, getFirstPayload);
+		Util.writeFileToFileSystem(WebServiceResponse, response.readAllBytes());
+		
+		// Log success
+		logger.writeDebug(LOCATION, SIGNATURE, "	# File with response payload (base64 encoded multipart) created: " + WebServiceResponse);
+		
+		// Extract the actual SAP PO payload from the Web Service response message and store it on file system
+		String sapPayloadFileName = BMultipartHandler.processSingle(WebServiceResponse, getFirstPayload, requestICOFileName);
+		
+		// Log success
+		logger.writeDebug(LOCATION, SIGNATURE, "	# File with SAP PO payload created: " + sapPayloadFileName);
+	}
+
+
+	/**
+	 * Generate directory (if missing) where Web Service response files are to be placed
+	 * @param getFirstPayload
+	 * @param requestICOFileName
+	 * @return
+	 */
+	private static String generateDirectory(boolean getFirstPayload, String requestICOFileName) {
 		// Generate directory path for Web Service response file using name of original request file
 		String directoryPath = "";
 		if (getFirstPayload) {
@@ -125,19 +149,7 @@ public class BGetMessageBytesJavaLangStringIntBoolean {
 		
 		// Make sure the new dynamic directory is created
 		FileStructure.createDirIfNotExists(directoryPath);
-		
-		// Write Web Service response to file system
-		String WebServiceResponse = directoryPath + getFileName(messageKey, getFirstPayload);
-		Util.writeFileToFileSystem(WebServiceResponse, response.readAllBytes());
-		
-		// Log success
-		logger.writeDebug(LOCATION, SIGNATURE, "	# File with response payload (multipart) created: " + WebServiceResponse);
-		
-		// Extract the actual SAP PO payload from the Multipart message and store it on file system also
-		String sapPayloadFileName = BMultipartHandler.processSingle(WebServiceResponse, getFirstPayload, requestICOFileName);
-		
-		// Log success
-		logger.writeDebug(LOCATION, SIGNATURE, "	# File with SAP PO payload created: " + sapPayloadFileName);
+		return directoryPath;
 	}
 	
 	
