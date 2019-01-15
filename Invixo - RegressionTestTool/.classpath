@@ -6,7 +6,7 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/jschjoedt/Data/Projects/Java JARS/jakarta.activation-1.2.1.jar"/>
-	<classpathentry kind="lib" path="C:/jschjoedt/Data/Projects/Java JARS/javax.mail.jar"/>
+	<classpathentry kind="lib" path="D:/dek/03. java/03. Java ressources/18. Javamail/jakarta.activation-1.2.1.jar"/>
+	<classpathentry kind="lib" path="D:/dek/03. java/03. Java ressources/18. Javamail/javax.mail.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
