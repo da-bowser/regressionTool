@@ -33,7 +33,7 @@ public class RequestGenerator {
 	private static final String TARGET_DIR_INJECTION	= FileStructure.DIR_REGRESSION_INPUT_INJECTION;
 	
 	private static final String ELEMENT_ENDPOINT		= "{urn:com.invixo.regressionTool}endpoint";
-	private static final String ELEMENT_INTERFACE		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}interface";
+	private static final String ELEMENT_INTERFACE		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderInterface";
 	private static final String ELEMENT_QOS				= "{urn:com.sap.aii.mdt.server.adapterframework.ws}qualityOfService";
 	private static final String ELEMENT_ITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";
 	private static final String ELEMENT_ITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";
@@ -46,7 +46,7 @@ public class RequestGenerator {
 	
 	
 	public static void main(String[] args) {
-		String icoRequestFile = FileStructure.FILE_BASE_LOCATION + "Test\\GetMessageList\\Requests\\GetMessageListRequest.xml";
+		String icoRequestFile = FileStructure.DIR_REGRESSION_INPUT_ICO + "NoScenario - Sys_QA3_011 oa_GoodsReceipt.xml";
 		String payloadFile = FileStructure.FILE_BASE_LOCATION + "Test\\Extracts\\f7667537-157b-11e9-c0b1-000000554e16.xml";
 		
 		generateInjectionFile(icoRequestFile, payloadFile);
@@ -108,9 +108,10 @@ public class RequestGenerator {
 			    switch(event.getEventType()) {
 			    case XMLStreamConstants.START_ELEMENT:
 			    	String currentElementName = event.asStartElement().getName().toString();
-			    	
+			    	System.out.println(currentElementName);
 			    	// interface start
 			    	if (ELEMENT_INTERFACE.equals(currentElementName)) {
+			    		System.out.println("hej");
 			    		fetchData = true;
 			    		
 			    	// Sender interface name
@@ -151,12 +152,15 @@ public class RequestGenerator {
 			    				    	
 			    	// Quality of Service
 			    	} else if (ELEMENT_QOS.equals(currentElementName)) {
+			    		System.out.println("hej");
 			    		if (eventReader.peek().isCharacters()) {
+			    			System.out.println("hej");
 			    			ir.setQualityOfService(eventReader.peek().asCharacters().getData());	
 			    		}
 			    	
 			    	// Endpoint
 			    	} else if (ELEMENT_ENDPOINT.equals(currentElementName)) {
+			    		System.out.println("hej 2");
 			    		if (eventReader.peek().isCharacters()) {
 			    			ir.setEndpoint(eventReader.peek().asCharacters().getData());
 			    		}
@@ -170,7 +174,7 @@ public class RequestGenerator {
 			    }
 			}
 		} catch (Exception e) {
-			String msg = "Error extracting routing info from ICO request file: " + icoRequestfile + "\n" + e.getMessage();
+			String msg = "Error extracting routing info from ICO request file: " + icoRequestfile + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
 		} 
