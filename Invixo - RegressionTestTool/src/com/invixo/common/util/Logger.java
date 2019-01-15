@@ -1,4 +1,4 @@
-package com.invixo.messageExtractor.util;
+package com.invixo.common.util;
 
 import java.io.FileWriter;
 import java.io.StringWriter;

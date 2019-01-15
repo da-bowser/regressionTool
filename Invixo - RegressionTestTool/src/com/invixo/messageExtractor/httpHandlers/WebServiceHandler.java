@@ -11,9 +11,9 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
-import com.invixo.messageExtractor.util.Logger;
-import com.invixo.messageExtractor.util.PropertyAccessor;
 
 public abstract class WebServiceHandler {
 	private static Logger logger = Logger.getInstance();

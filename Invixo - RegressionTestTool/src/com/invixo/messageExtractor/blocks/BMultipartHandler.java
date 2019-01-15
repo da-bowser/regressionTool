@@ -14,10 +14,10 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
+import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
-import com.invixo.messageExtractor.util.Logger;
-import com.invixo.messageExtractor.util.PropertyAccessor;
 
 public class BMultipartHandler {
 	private static Logger logger 						= Logger.getInstance();

@@ -4,13 +4,13 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 
+import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.messageExtractor.blocks.BGetMessageBytesJavaLangStringIntBoolean;
 import com.invixo.messageExtractor.blocks.BGetMessageList;
 import com.invixo.messageExtractor.httpHandlers.HGetMessageList;
-import com.invixo.messageExtractor.util.Logger;
-import com.invixo.messageExtractor.util.PropertyAccessor;
 
 
 /**

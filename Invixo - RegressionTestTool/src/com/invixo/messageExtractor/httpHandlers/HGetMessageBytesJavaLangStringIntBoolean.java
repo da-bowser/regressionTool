@@ -1,8 +1,9 @@
 package com.invixo.messageExtractor.httpHandlers;
 
 import java.io.InputStream;
+
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
-import com.invixo.messageExtractor.util.PropertyAccessor;
 
 public class HGetMessageBytesJavaLangStringIntBoolean extends WebServiceHandler {
 	

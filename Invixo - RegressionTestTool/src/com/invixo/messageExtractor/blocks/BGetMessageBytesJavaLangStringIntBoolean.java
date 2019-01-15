@@ -7,12 +7,12 @@ import java.io.StringWriter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
+import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
 import com.invixo.messageExtractor.httpHandlers.HGetMessageBytesJavaLangStringIntBoolean;
-import com.invixo.messageExtractor.util.Logger;
-import com.invixo.messageExtractor.util.PropertyAccessor;
 
 public class BGetMessageBytesJavaLangStringIntBoolean {
 	private static int fileNameCounter 		= 1;

@@ -1,10 +1,11 @@
 package com.invixo.messageExtractor.httpHandlers;
 
 import java.io.InputStream;
+
+import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
-import com.invixo.messageExtractor.util.Logger;
-import com.invixo.messageExtractor.util.PropertyAccessor;
 
 public class HGetMessageList {
 	private static final String LOCATION 			= HGetMessageList.class.getName();

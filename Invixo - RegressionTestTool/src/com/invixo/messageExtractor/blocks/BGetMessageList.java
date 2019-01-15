@@ -9,8 +9,8 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.events.XMLEvent;
 
+import com.invixo.common.util.Logger;
 import com.invixo.messageExtractor.httpHandlers.HGetMessageList;
-import com.invixo.messageExtractor.util.Logger;
 
 
 public class BGetMessageList {

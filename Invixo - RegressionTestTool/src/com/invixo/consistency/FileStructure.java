@@ -2,7 +2,7 @@ package com.invixo.consistency;
 
 import java.io.File;
 
-import com.invixo.messageExtractor.util.PropertyAccessor;
+import com.invixo.common.util.PropertyAccessor;
 
 public class FileStructure {
 	private static final String FILE_BASE_LOCATION 										= PropertyAccessor.getProperty("BASE_DIRECTORY");
