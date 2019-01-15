@@ -108,10 +108,9 @@ public class RequestGenerator {
 			    switch(event.getEventType()) {
 			    case XMLStreamConstants.START_ELEMENT:
 			    	String currentElementName = event.asStartElement().getName().toString();
-			    	System.out.println(currentElementName);
+
 			    	// interface start
 			    	if (ELEMENT_INTERFACE.equals(currentElementName)) {
-			    		System.out.println("hej");
 			    		fetchData = true;
 			    		
 			    	// Sender interface name
@@ -152,15 +151,12 @@ public class RequestGenerator {
 			    				    	
 			    	// Quality of Service
 			    	} else if (ELEMENT_QOS.equals(currentElementName)) {
-			    		System.out.println("hej");
 			    		if (eventReader.peek().isCharacters()) {
-			    			System.out.println("hej");
 			    			ir.setQualityOfService(eventReader.peek().asCharacters().getData());	
 			    		}
 			    	
 			    	// Endpoint
 			    	} else if (ELEMENT_ENDPOINT.equals(currentElementName)) {
-			    		System.out.println("hej 2");
 			    		if (eventReader.peek().isCharacters()) {
 			    			ir.setEndpoint(eventReader.peek().asCharacters().getData());
 			    		}
