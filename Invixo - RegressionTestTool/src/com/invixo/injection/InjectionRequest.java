@@ -4,7 +4,7 @@ import com.invixo.common.util.PropertyAccessor;
 
 public class InjectionRequest {
 
-	private static final String SAP_HOST_PORT = PropertyAccessor.getProperty("HOST_PORT");
+	private static final String SAP_HOST_PORT = PropertyAccessor.getProperty("SERVICE_HOST_PORT");
 	private String senderParty = null;
 	private String senderComponent = null;
 	private String senderInterface = null;

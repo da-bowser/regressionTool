@@ -3,14 +3,11 @@ package com.invixo.messageExtractor.httpHandlers;
 import java.io.InputStream;
 
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 
 public class HGetMessageList {
 	private static final String LOCATION 			= HGetMessageList.class.getName();
-	private static final String FILE_BASE_LOCATION 	= PropertyAccessor.getProperty("BASE_DIRECTORY");			// Base directory
-	public static final String DIR_REQUEST			= FILE_BASE_LOCATION + "GetMessageList\\Requests\\";		// Relative path to specific directory
 	private static Logger logger 					= Logger.getInstance();
 
 	
@@ -34,7 +31,7 @@ public class HGetMessageList {
 		logger.writeDebug(LOCATION, SIGNATURE, "Processing request file: " + fileLocation);
 		
 		// Call web service
-		return WebServiceHandler.callWebService(requestBytes);
+		return WebServiceHandler.callWebService("EXTRACT", requestBytes);
 	}
 	
 }

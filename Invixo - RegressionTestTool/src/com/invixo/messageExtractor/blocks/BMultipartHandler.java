@@ -22,13 +22,12 @@ import com.invixo.consistency.FileStructure;
 public class BMultipartHandler {
 	private static Logger logger 						= Logger.getInstance();
 	private static final String LOCATION 				= BMultipartHandler.class.getName();
-	private static final String FILE_BASE_LOCATION 		= PropertyAccessor.getProperty("BASE_DIRECTORY");					// Base directory
-	
+
 	
 	public static void main(String[] args) {
 		try {
 			// Test processing of single file
-			String file = FILE_BASE_LOCATION + "Test\\GetMessageBytesJavaLangStringIntBoolean\\Responses\\0000001_payload_50dcdec7-157c-11e9-a97d-000000554e16_OUTBOUND_5590550_BE_0_FIRST.xml";
+			String file = FileStructure.FILE_BASE_LOCATION + "Test\\GetMessageBytesJavaLangStringIntBoolean\\Responses\\0000001_payload_50dcdec7-157c-11e9-a97d-000000554e16_OUTBOUND_5590550_BE_0_FIRST.xml";
 			String fileName = processSingle(file, true, "TestData");
 			System.out.println("File created: " + fileName);
 		} catch (Exception e) {

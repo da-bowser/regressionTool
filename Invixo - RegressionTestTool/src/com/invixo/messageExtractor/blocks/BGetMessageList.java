@@ -10,6 +10,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.events.XMLEvent;
 
 import com.invixo.common.util.Logger;
+import com.invixo.consistency.FileStructure;
 import com.invixo.messageExtractor.httpHandlers.HGetMessageList;
 
 
@@ -41,7 +42,7 @@ public class BGetMessageList {
 		String SIGNATURE = "processRequestFiles()";
 		
 		// Get list of all request files to be processed
-		File folder = new File(HGetMessageList.DIR_REQUEST);
+		File folder = new File(FileStructure.DIR_REGRESSION_INPUT_ICO);
 		File[] files = folder.listFiles();
 		logger.writeDebug(LOCATION, SIGNATURE, "GetMessageList: number of request files: " + files.length);
 		

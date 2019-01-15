@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import com.invixo.common.util.Logger;
@@ -22,23 +21,33 @@ public abstract class WebServiceHandler {
 	private static final String ENCODING = PropertyAccessor.getProperty("ENCODING");
 	private static final String WEB_SERVICE_USER = PropertyAccessor.getProperty("USER");
 	private static final String WEB_SERVICE_PASS = PropertyAccessor.getProperty("PASSWORD");
-	private static final String ENDPOINT = PropertyAccessor.getProperty("ENDPOINT");
+	private static final String SERVICE_HOST_PORT = PropertyAccessor.getProperty("SERVICE_HOST_PORT");
+	private static final String SERVICE_PATH_EXTRACT = PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
+	private static final String SERVICE_PATH_INJECT = PropertyAccessor.getProperty("SERVICE_PATH_INJECT");
 	private static final int TIMEOUT = Integer.parseInt(PropertyAccessor.getProperty("TIMEOUT"));
 
 	
-	protected static InputStream callWebService(byte[] requestBytes) throws Exception {
+	protected static InputStream callWebService(String callType, byte[] requestBytes) throws Exception {
 		String SIGNATURE = "callWebService(byte[])";
 		HttpURLConnection conn = null;
-		
+		InputStream response = null;
 		try {
-			URL url = new URL(ENDPOINT);
+			// Create endpoint
+			String endpoint = SERVICE_HOST_PORT;
+			if ("INJECT".equals(callType)) {
+				endpoint += SERVICE_PATH_INJECT;
+			} else {
+				endpoint += SERVICE_PATH_EXTRACT;
+			}
+			
+			URL url = new URL(endpoint);
 			logMessage(SIGNATURE, "---------------Web Service Call: begin -----------------------");
 			logMessage(SIGNATURE, "Endpoint: " + url.toString());
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("POST");
 			
 			// Set request header values
-			String encoded = Base64.getEncoder().encodeToString((WEB_SERVICE_USER + ":" + WEB_SERVICE_PASS).getBytes(StandardCharsets.UTF_8));
+			String encoded = Base64.getEncoder().encodeToString((WEB_SERVICE_USER + ":" + WEB_SERVICE_PASS).getBytes(ENCODING));
 			conn.setRequestProperty("Authorization", "Basic " + encoded);
 			conn.setRequestProperty("Content-Type", "text/xml");
 			conn.setRequestProperty("SOAPAction", "http://sap.com/xi/WebService/soap1.1");
@@ -60,14 +69,17 @@ public abstract class WebServiceHandler {
 			if (status == 200) {
 				// Success
 				logMessage(SIGNATURE, "--> Response is positive...");
+				response = conn.getInputStream();
 			} else {
 				// Error
-				String response = Util.inputstreamToString(conn.getInputStream(), ENCODING);
-				logMessage(SIGNATURE, "Response: " + response);
+				response = conn.getErrorStream();
+				String resp = Util.inputstreamToString(response, ENCODING);
+				logger.writeError(LOCATION, SIGNATURE, "Negative Web Service response (HTTP status code " + status +"): \n" + resp);
+				throw new RuntimeException("Error calling web service with endpoint: " + endpoint + ". See the trace for details.");
 			}
 			
 			// Return the web service response
-			ByteArrayInputStream bais = new ByteArrayInputStream(conn.getInputStream().readAllBytes());
+			ByteArrayInputStream bais = new ByteArrayInputStream(response.readAllBytes());
 			return bais;
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
@@ -76,8 +88,8 @@ public abstract class WebServiceHandler {
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw e;
 		} finally { 
-			if (conn.getInputStream() != null) {
-				conn.getInputStream().close();	
+			if (response != null) {
+				response.close();	
 			}
 			logMessage(SIGNATURE, "---------------Web Service Call: end -----------------------\n");
 		}

@@ -23,14 +23,14 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
+import com.invixo.consistency.FileStructure;
 import com.invixo.messageExtractor.blocks.BMultipartHandler;
 
 public class RequestGenerator {
 	private static Logger logger 						= Logger.getInstance();
 	private static final String LOCATION 				= BMultipartHandler.class.getName();
-	private static final String FILE_BASE_LOCATION 		= PropertyAccessor.getProperty("BASE_DIRECTORY");					// Base directory
 	private static final String ENCODING 				= PropertyAccessor.getProperty("ENCODING");
-	private static final String TARGET_DIR_INJECTION	= FILE_BASE_LOCATION + "Injection\\";
+	private static final String TARGET_DIR_INJECTION	= FileStructure.DIR_REGRESSION_INPUT_INJECTION;
 	
 	private static final String ELEMENT_ENDPOINT		= "{urn:com.invixo.regressionTool}endpoint";
 	private static final String ELEMENT_INTERFACE		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}interface";
@@ -46,8 +46,8 @@ public class RequestGenerator {
 	
 	
 	public static void main(String[] args) {
-		String icoRequestFile = FILE_BASE_LOCATION + "Test\\GetMessageList\\Requests\\GetMessageListRequest.xml";
-		String payloadFile = FILE_BASE_LOCATION + "Test\\Extracts\\f7667537-157b-11e9-c0b1-000000554e16.xml";
+		String icoRequestFile = FileStructure.FILE_BASE_LOCATION + "Test\\GetMessageList\\Requests\\GetMessageListRequest.xml";
+		String payloadFile = FileStructure.FILE_BASE_LOCATION + "Test\\Extracts\\f7667537-157b-11e9-c0b1-000000554e16.xml";
 		
 		generateInjectionFile(icoRequestFile, payloadFile);
 		System.out.println("Done");

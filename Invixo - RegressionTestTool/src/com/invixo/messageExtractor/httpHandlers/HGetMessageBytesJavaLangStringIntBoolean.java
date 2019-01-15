@@ -1,20 +1,15 @@
 package com.invixo.messageExtractor.httpHandlers;
 
 import java.io.InputStream;
-
-import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.consistency.FileStructure;
 
-public class HGetMessageBytesJavaLangStringIntBoolean extends WebServiceHandler {
-	
-	private static final String FILE_BASE_LOCATION 	= PropertyAccessor.getProperty("BASE_DIRECTORY");									// Base directory
-	public static final String DIR_RESPONSE 		= FILE_BASE_LOCATION + "GetMessageBytesJavaLangStringIntBoolean\\Responses\\";		// Relative path to specific directory
-
+public class HGetMessageBytesJavaLangStringIntBoolean {
 	
 	public static void main(String[] args) {
 		try {
 			// Test: get bytes from request file
-			String requestFile = FILE_BASE_LOCATION + "Test\\GetMessageBytesJavaLangStringIntBoolean\\Requests\\" + "resp_GetMessageListRequest.xml_key1_POST.xml";
+			String requestFile = FileStructure.FILE_BASE_LOCATION + "Test\\GetMessageBytesJavaLangStringIntBoolean\\Requests\\resp_GetMessageListRequest.xml_key1_POST.xml";
 			byte[] requestBytes = Util.readFile(requestFile);
 			
 			// Test: call web service
@@ -27,7 +22,7 @@ public class HGetMessageBytesJavaLangStringIntBoolean extends WebServiceHandler 
 	
 	
 	public static InputStream invoke(byte[] requestBytes) throws Exception {
-		return WebServiceHandler.callWebService(requestBytes);
+		return WebServiceHandler.callWebService("EXTRACT", requestBytes);
 	}
 	
 }
