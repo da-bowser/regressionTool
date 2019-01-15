@@ -5,7 +5,7 @@ import com.invixo.messageExtractor.main.Orchestrator;
 public class Main {
 
 	public static void main(String[] args) {
-		// Test 1
+		// Test
 		extract();
 	}
 
