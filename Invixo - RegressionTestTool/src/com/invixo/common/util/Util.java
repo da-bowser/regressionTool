@@ -2,6 +2,7 @@ package com.invixo.common.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -47,7 +48,13 @@ public class Util {
 	
 	public static File[] getListOfFilesInDirectory(String directory) {
 		File folder = new File(directory);
-		File[] files = folder.listFiles();
+		File[] files = folder.listFiles(new FileFilter() {
+
+			@Override
+			public boolean accept(File pathname) {
+				return pathname.isFile();
+			}
+		});
 		return files;
 	}
 	
