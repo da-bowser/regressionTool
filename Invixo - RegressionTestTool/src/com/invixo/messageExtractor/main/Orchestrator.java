@@ -5,9 +5,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import com.invixo.common.util.Util;
+import com.invixo.consistency.FileStructure;
 import com.invixo.messageExtractor.blocks.BGetMessageBytesJavaLangStringIntBoolean;
 import com.invixo.messageExtractor.blocks.BGetMessageList;
-import com.invixo.messageExtractor.httpHandlers.HGetMessageBytesJavaLangStringIntBoolean;
 import com.invixo.messageExtractor.httpHandlers.HGetMessageList;
 import com.invixo.messageExtractor.util.Logger;
 import com.invixo.messageExtractor.util.PropertyAccessor;
@@ -45,11 +45,11 @@ public class Orchestrator {
 		
 		try {
 			// Cleanup: delete all files contained in directory for Web Service responses for method GetMessageBytesJavaLangStringIntBoolean
-			Util.deleteFilesInDirectory(HGetMessageBytesJavaLangStringIntBoolean.DIR_RESPONSE);
-			logger.writeDebug(LOCATION, SIGNATURE, "Housekeeping: all response files deleted from directory: " + HGetMessageBytesJavaLangStringIntBoolean.DIR_RESPONSE);
+			Util.deleteFilesInDirectory(FileStructure.DIR_REGRESSION_OUTPUT_WS_RESPONSES);
+			logger.writeDebug(LOCATION, SIGNATURE, "Housekeeping: all response files deleted from directory: " + FileStructure.DIR_REGRESSION_OUTPUT_WS_RESPONSES);
 			
 			// Get list of all request files to be processed
-			File[] files = Util.getListOfFilesInDirectory(HGetMessageList.DIR_REQUEST);
+			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_REGRESSION_INPUT_ICO);
 			logger.writeDebug(LOCATION, SIGNATURE, "--- Number of request files: " + files.length);
 			
 			// Process each request file
@@ -79,7 +79,8 @@ public class Orchestrator {
 		
 		// For each MessageKey fetch payloads (first and last)
 		for (String key : messageKeys) {
-			processSingleMessageKey(key);
+			String requestICOFileName = file.substring(0, file.lastIndexOf("."));
+			processSingleMessageKey(key, requestICOFileName);
 		}
 	}
 	
@@ -91,7 +92,7 @@ public class Orchestrator {
 	 * @param key
 	 * @throws Exception
 	 */
-	private static void processSingleMessageKey(String key) throws Exception {
+	private static void processSingleMessageKey(String key, String requestICOFileName) throws Exception {
 		String SIGNATURE = "processSingleMessageKey(String)";
 		logger.writeDebug(LOCATION, SIGNATURE, "--> Processing message key: " + key);
 		logger.writeDebug(LOCATION, SIGNATURE, "--> Payload extraction enabled for FIRST payload: " + EXTRACT_FIRST_PAYLOAD);
@@ -99,12 +100,12 @@ public class Orchestrator {
 
 		// Fetch payload: FIRST
 		if (EXTRACT_FIRST_PAYLOAD) {
-			BGetMessageBytesJavaLangStringIntBoolean.processSingleMessageKey(key, true);
+			BGetMessageBytesJavaLangStringIntBoolean.processSingleMessageKey(key, true, requestICOFileName);
 		}
 		
 		// Fetch payload: LAST
 		if (EXTRACT_LAST_PAYLOAD) {
-			 BGetMessageBytesJavaLangStringIntBoolean.processSingleMessageKey(key, false);			
+			 BGetMessageBytesJavaLangStringIntBoolean.processSingleMessageKey(key, false, requestICOFileName);			
 		}
 	}
 

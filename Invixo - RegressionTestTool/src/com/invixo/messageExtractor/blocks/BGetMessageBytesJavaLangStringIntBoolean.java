@@ -9,6 +9,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
+import com.invixo.consistency.FileStructure;
 import com.invixo.messageExtractor.httpHandlers.HGetMessageBytesJavaLangStringIntBoolean;
 import com.invixo.messageExtractor.util.Logger;
 import com.invixo.messageExtractor.util.PropertyAccessor;
@@ -105,7 +106,7 @@ public class BGetMessageBytesJavaLangStringIntBoolean {
 	 * @param getFirstPayload
 	 * @throws Exception
 	 */
-	public static void processSingleMessageKey(String messageKey, boolean getFirstPayload) throws Exception {
+	public static void processSingleMessageKey(String messageKey, boolean getFirstPayload, String requestICOFileName) throws Exception {
 		String SIGNATURE = "processSingleMessageKey(String, boolean)";
 		
 		// Build request payload
@@ -114,15 +115,26 @@ public class BGetMessageBytesJavaLangStringIntBoolean {
 		// Call Web Service
 		InputStream response = HGetMessageBytesJavaLangStringIntBoolean.invoke(requestFirst.readAllBytes());
 		
+		// Generate directory path for Web Service response file using name of original request file
+		String directoryPath = "";
+		if (getFirstPayload) {
+			directoryPath = FileStructure.DIR_REGRESSION_OUTPUT_WS_RESPONSES_FIRST_MSG_VERSION + requestICOFileName + "\\";
+		} else {
+			directoryPath = FileStructure.DIR_REGRESSION_OUTPUT_WS_RESPONSES_LAST_MSG_VERSION + requestICOFileName + "\\";
+		}
+		
+		// Make sure the new dynamic directory is created
+		FileStructure.createDirIfNotExists(directoryPath);
+		
 		// Write Web Service response to file system
-		String rawMultipartFileName = HGetMessageBytesJavaLangStringIntBoolean.DIR_RESPONSE + getFileName(messageKey, getFirstPayload);
-		Util.writeFileToFileSystem(rawMultipartFileName, response.readAllBytes());
+		String WebServiceResponse = directoryPath + getFileName(messageKey, getFirstPayload);
+		Util.writeFileToFileSystem(WebServiceResponse, response.readAllBytes());
 		
 		// Log success
-		logger.writeDebug(LOCATION, SIGNATURE, "	# File with response payload (multipart) created: " + rawMultipartFileName);
+		logger.writeDebug(LOCATION, SIGNATURE, "	# File with response payload (multipart) created: " + WebServiceResponse);
 		
 		// Extract the actual SAP PO payload from the Multipart message and store it on file system also
-		String sapPayloadFileName = BMultipartHandler.processSingle(rawMultipartFileName);
+		String sapPayloadFileName = BMultipartHandler.processSingle(WebServiceResponse, getFirstPayload, requestICOFileName);
 		
 		// Log success
 		logger.writeDebug(LOCATION, SIGNATURE, "	# File with SAP PO payload created: " + sapPayloadFileName);

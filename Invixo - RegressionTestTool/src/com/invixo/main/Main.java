@@ -1,11 +1,12 @@
 package com.invixo.main;
 
+import com.invixo.consistency.FileStructure;
 import com.invixo.messageExtractor.main.Orchestrator;
 
 public class Main {
 
 	public static void main(String[] args) {
-		// Test 3
+		ensureFileStructureConsistency();
 		extract();
 	}
 
@@ -54,10 +55,7 @@ public class Main {
 	 * This includes generating missing directories and file templates.
 	 */
 	public static void ensureFileStructureConsistency() {
-		// Get base directory
-		
-		// Ensure the following directories exist in base:
-		
+		FileStructure.checkAll();		
 	}
 	
 }

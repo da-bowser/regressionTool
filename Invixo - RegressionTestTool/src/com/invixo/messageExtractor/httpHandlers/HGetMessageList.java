@@ -2,6 +2,7 @@ package com.invixo.messageExtractor.httpHandlers;
 
 import java.io.InputStream;
 import com.invixo.common.util.Util;
+import com.invixo.consistency.FileStructure;
 import com.invixo.messageExtractor.util.Logger;
 import com.invixo.messageExtractor.util.PropertyAccessor;
 
@@ -26,7 +27,7 @@ public class HGetMessageList {
 		String SIGNATURE = "invoke(String)";
 		
 		// Get bytes from request file
-		final String fileLocation = DIR_REQUEST + requestFile;
+		final String fileLocation = FileStructure.DIR_REGRESSION_INPUT_ICO + requestFile;
 		byte[] requestBytes = Util.readFile(fileLocation);
 		logger.writeDebug(LOCATION, SIGNATURE, "Processing request file: " + fileLocation);
 		

@@ -15,6 +15,7 @@ import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.util.Util;
+import com.invixo.consistency.FileStructure;
 import com.invixo.messageExtractor.util.Logger;
 import com.invixo.messageExtractor.util.PropertyAccessor;
 
@@ -22,14 +23,13 @@ public class BMultipartHandler {
 	private static Logger logger 						= Logger.getInstance();
 	private static final String LOCATION 				= BMultipartHandler.class.getName();
 	private static final String FILE_BASE_LOCATION 		= PropertyAccessor.getProperty("BASE_DIRECTORY");					// Base directory
-	private static final String DIR_EXTRACTED_PAYLOAD 	= FILE_BASE_LOCATION + "EXTRACTS\\";
 	
 	
 	public static void main(String[] args) {
 		try {
 			// Test processing of single file
 			String file = FILE_BASE_LOCATION + "Test\\GetMessageBytesJavaLangStringIntBoolean\\Responses\\0000001_payload_50dcdec7-157c-11e9-a97d-000000554e16_OUTBOUND_5590550_BE_0_FIRST.xml";
-			String fileName = processSingle(file);
+			String fileName = processSingle(file, true, "TestData");
 			System.out.println("File created: " + fileName);
 		} catch (Exception e) {
 			System.err.println(e);
@@ -44,7 +44,7 @@ public class BMultipartHandler {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String processSingle(String file) throws Exception {
+	public static String processSingle(String file, Boolean isFirst, String requestICOFileName) throws Exception {
 		// Get content of XML payload file
 		byte[] content = Util.readFile(file);
 		
@@ -56,9 +56,20 @@ public class BMultipartHandler {
 		
 		// Get main payload (classic SAP PO main payload) from multipart message
 		BodyPart bp = mmp.getBodyPart(1);	// 0 = SAP PO internal envelope (no payload), 1 = payload / body
-
+		
+		// Generate directory path for Web Service response file using name of original request file
+		String directoryPath = "";
+		if (isFirst) {
+			directoryPath = FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION + requestICOFileName + "\\";
+		} else {
+			directoryPath = FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_LAST_MSG_VERSION + requestICOFileName + "\\";
+		}
+		
+		// Make sure the new dynamic directory is created
+		FileStructure.createDirIfNotExists(directoryPath);
+		
 		// Store body on file system for later injection or comparison
-		String fileName = DIR_EXTRACTED_PAYLOAD + messageId + ".xml";
+		String fileName = directoryPath + messageId + ".xml";
 		Util.writeFileToFileSystem(fileName, bp.getInputStream().readAllBytes());
 		
 		return fileName;

@@ -3,6 +3,8 @@ package com.invixo.messageExtractor.util;
 import java.io.FileWriter;
 import java.io.StringWriter;
 
+import com.invixo.consistency.FileStructure;
+
 
 public class Logger {
 
@@ -31,7 +33,7 @@ public class Logger {
 
                 // Initialize log file
                 if (LoggingTypes.FILE.toString().equals(LOGGING_TYPE)) {
-        			instance.fileWriter = new FileWriter(PropertyAccessor.getProperty("LOG_LOCATION") + instance.LOG_FILE, true);            	
+        			instance.fileWriter = new FileWriter(FileStructure.DIR_REGRESSION_LOG + instance.LOG_FILE, true);            	
                 }
         	}
         	return instance;
