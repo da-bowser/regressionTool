@@ -26,7 +26,6 @@ public class Util {
 				    baos.write(buffer, 0, length);
 				}
 				
-				
 				result = baos.toString(encoding);
 			}
 			return result;
@@ -99,5 +98,28 @@ public class Util {
 		}
 		fileList.close();
 	}
+
 	
+    /**
+    * Delete all folders, sub-folders and files.
+    * @param dir
+    * @throws IOException
+    */
+    public static void deleteFilesAndSubDirectories(String dir) throws IOException {
+    	File file = new File(dir);
+    	if (file.exists()) {
+    		for (File childFile : file.listFiles()) {
+    			if (childFile.isDirectory()) {
+    				// Recursive call to delete method to delete any child elements
+    				deleteFilesAndSubDirectories(childFile.getAbsolutePath());
+    			} else {
+                    // Delete child
+    				childFile.delete();
+    			}
+    		}
+    		// Delete file or folder
+            file.delete();
+    	}
+    }
+
 }

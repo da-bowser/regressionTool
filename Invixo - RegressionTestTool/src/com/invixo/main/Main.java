@@ -55,7 +55,7 @@ public class Main {
 	 * This includes generating missing directories and file templates.
 	 */
 	public static void ensureFileStructureConsistency() {
-		FileStructure.checkAll();		
+		FileStructure.startCheck();
 	}
 	
 }

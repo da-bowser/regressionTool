@@ -27,7 +27,6 @@ public class Injector {
 		
 		// Test injection of FIRST payload files
 		injector.injectAllMessages();
-		System.out.println("TEST: all messages should be injected!");
 		
 		// Test injection of single message
 //		injector.injectMessage(payloadFile);

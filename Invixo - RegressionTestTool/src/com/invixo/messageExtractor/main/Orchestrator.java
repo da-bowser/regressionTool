@@ -44,10 +44,6 @@ public class Orchestrator {
 		String SIGNATURE = "startAll()";
 		
 		try {
-			// Cleanup: delete all files contained in directory for Web Service responses for method GetMessageBytesJavaLangStringIntBoolean
-			Util.deleteFilesInDirectory(FileStructure.DIR_REGRESSION_OUTPUT_WS_RESPONSES);
-			logger.writeDebug(LOCATION, SIGNATURE, "Housekeeping: all response files deleted from directory: " + FileStructure.DIR_REGRESSION_OUTPUT_WS_RESPONSES);
-			
 			// Get list of all request files to be processed
 			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_REGRESSION_INPUT_ICO);
 			logger.writeDebug(LOCATION, SIGNATURE, "--- Number of request files: " + files.length);
