@@ -70,9 +70,11 @@ public class Injector {
 				injectMessage(file.getAbsolutePath());
 				payloadFilesProcessed++;
 			}
-			
+
 			// Log
-			logger.writeDebug(LOCATION, SIGNATURE, "Number of request files processed: " + this.payloadFilesProcessed);
+			if (files.length > 0) { 
+				logger.writeDebug(LOCATION, SIGNATURE, "Number of request files processed: " + this.payloadFilesProcessed);				
+			}
 		} catch (Exception e) {
 			String msg = "Error occurred during injection! Number of processed files: " + this.payloadFilesProcessed + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -137,7 +139,7 @@ public class Injector {
 		final String separator = "|";
 		
 		// Create mapping line
-		String mapEntry = sourceFile + separator + sourceMsgId + separator + targetFile + separator + targetMsgId;
+		String mapEntry = sourceFile + separator + sourceMsgId + separator + targetFile + separator + targetMsgId + "\n";
 		
 		// Write line to map
 		this.mapWriter.write(mapEntry);
