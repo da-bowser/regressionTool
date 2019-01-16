@@ -23,6 +23,8 @@ public class FileStructure {
               public static final String DIR_REGRESSION_OUTPUT_WS_RESPONSES                     = DIR_REGRESSION_OUTPUT + "\\WS Responses\\";
               public static final String DIR_REGRESSION_OUTPUT_WS_RESPONSES_FIRST_MSG_VERSION   = DIR_REGRESSION_OUTPUT_WS_RESPONSES + "\\First message version\\";
               public static final String DIR_REGRESSION_OUTPUT_WS_RESPONSES_LAST_MSG_VERSION  	= DIR_REGRESSION_OUTPUT_WS_RESPONSES + "\\Last message version\\";
+              public static final String DIR_REGRESSION_OUTPUT_MAPPING						  	= DIR_REGRESSION_OUTPUT + "\\Mapping\\";
+
               
               /**
               * Start File Structure check.
@@ -75,6 +77,7 @@ public class FileStructure {
                   createDirIfNotExists(DIR_REGRESSION_OUTPUT_WS_RESPONSES);
                   createDirIfNotExists(DIR_REGRESSION_OUTPUT_WS_RESPONSES_FIRST_MSG_VERSION);
                   createDirIfNotExists(DIR_REGRESSION_OUTPUT_WS_RESPONSES_LAST_MSG_VERSION);
+                  createDirIfNotExists(DIR_REGRESSION_OUTPUT_MAPPING);
               }
               
               

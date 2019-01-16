@@ -48,7 +48,7 @@ public class Util {
 	public static File[] getListOfFilesInDirectory(String directory) {
 		File folder = new File(directory);
 		
-		// DANGER DANGER DANGER - DUMMY IDIOTIC CODE BELOW: quick solution to ensure array is ALWAYS initialized and not evar NULL
+		// DANGER DANGER DANGER - DUMMY IDIOTIC CODE BELOW to make a quick solution ensuring array is ALWAYS initialized and not evar NULL. Sorry!
 		File[] files = {};
 	
 		File[] files2 = folder.listFiles(new FileFilter() {
@@ -76,6 +76,15 @@ public class Util {
 		}
 	}
 	
+	
+	public static String getFileName(String fileName, boolean includeFileExtension) {
+		File file = new File(fileName);
+		if (includeFileExtension) {
+			return file.getName();
+		} else {
+			return file.getName().replaceFirst(".xml", "");
+		}	
+	}
 	
 	
 	/**
