@@ -48,14 +48,22 @@ public class Util {
 	
 	public static File[] getListOfFilesInDirectory(String directory) {
 		File folder = new File(directory);
-		File[] files = folder.listFiles(new FileFilter() {
-
+		
+		// DANGER DANGER DANGER - DUMMY IDIOTIC CODE BELOW: quick solution to ensure array is ALWAYS initialized and not evar NULL
+		File[] files = {};
+	
+		File[] files2 = folder.listFiles(new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
 				return pathname.isFile();
 			}
 		});
-		return files;
+		
+		if (files2 == null) {
+			return files;
+		} else {
+			return files2;
+		}
 	}
 	
 	
