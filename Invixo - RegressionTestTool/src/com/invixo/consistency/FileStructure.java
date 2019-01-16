@@ -63,18 +63,18 @@ public class FileStructure {
               * Ensure project folder structure is healthy.
               */
               private static void checkFolderStructure() {
-                            createDirIfNotExists(DIR_BASE_REGRESSION);
-                            createDirIfNotExists(DIR_REGRESSION_INPUT);
-                            createDirIfNotExists(DIR_REGRESSION_INPUT_ICO);
-                createDirIfNotExists(DIR_REGRESSION_INPUT_INJECTION);
-                            createDirIfNotExists(DIR_REGRESSION_LOG);
-                            createDirIfNotExists(DIR_REGRESSION_OUTPUT);
-              createDirIfNotExists(DIR_REGRESSION_OUTPUT_PAYLOADS);
-              createDirIfNotExists(DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION);
-              createDirIfNotExists(DIR_REGRESSION_OUTPUT_PAYLOADS_LAST_MSG_VERSION);
-              createDirIfNotExists(DIR_REGRESSION_OUTPUT_WS_RESPONSES);
-              createDirIfNotExists(DIR_REGRESSION_OUTPUT_WS_RESPONSES_FIRST_MSG_VERSION);
-              createDirIfNotExists(DIR_REGRESSION_OUTPUT_WS_RESPONSES_LAST_MSG_VERSION);
+            	  createDirIfNotExists(DIR_BASE_REGRESSION);
+                  createDirIfNotExists(DIR_REGRESSION_INPUT);
+                  createDirIfNotExists(DIR_REGRESSION_INPUT_ICO);
+                  createDirIfNotExists(DIR_REGRESSION_INPUT_INJECTION);
+                  createDirIfNotExists(DIR_REGRESSION_LOG);
+                  createDirIfNotExists(DIR_REGRESSION_OUTPUT);
+                  createDirIfNotExists(DIR_REGRESSION_OUTPUT_PAYLOADS);
+                  createDirIfNotExists(DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION);
+                  createDirIfNotExists(DIR_REGRESSION_OUTPUT_PAYLOADS_LAST_MSG_VERSION);
+                  createDirIfNotExists(DIR_REGRESSION_OUTPUT_WS_RESPONSES);
+                  createDirIfNotExists(DIR_REGRESSION_OUTPUT_WS_RESPONSES_FIRST_MSG_VERSION);
+                  createDirIfNotExists(DIR_REGRESSION_OUTPUT_WS_RESPONSES_LAST_MSG_VERSION);
               }
               
               
