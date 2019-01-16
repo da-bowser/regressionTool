@@ -21,9 +21,7 @@ public abstract class WebServiceHandler {
 	private static final String ENCODING = PropertyAccessor.getProperty("ENCODING");
 	private static final String WEB_SERVICE_USER = PropertyAccessor.getProperty("USER");
 	private static final String WEB_SERVICE_PASS = PropertyAccessor.getProperty("PASSWORD");
-	private static final String SERVICE_HOST_PORT = PropertyAccessor.getProperty("SERVICE_HOST_PORT");
-	private static final String SERVICE_PATH_EXTRACT = PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
-	private static final String SERVICE_PATH_INJECT = PropertyAccessor.getProperty("SERVICE_PATH_INJECT");
+	private static final String ENDPOINT = PropertyAccessor.getProperty("SERVICE_HOST_PORT") + PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
 	private static final int TIMEOUT = Integer.parseInt(PropertyAccessor.getProperty("TIMEOUT"));
 
 	
@@ -31,16 +29,8 @@ public abstract class WebServiceHandler {
 		String SIGNATURE = "callWebService(byte[])";
 		HttpURLConnection conn = null;
 		InputStream response = null;
-		try {
-			// Create endpoint
-			String endpoint = SERVICE_HOST_PORT;
-			if ("INJECT".equals(callType)) {
-				endpoint += SERVICE_PATH_INJECT;
-			} else {
-				endpoint += SERVICE_PATH_EXTRACT;
-			}
-			
-			URL url = new URL(endpoint);
+		try {		
+			URL url = new URL(ENDPOINT);
 			logMessage(SIGNATURE, "---------------Web Service Call: begin -----------------------");
 			logMessage(SIGNATURE, "Endpoint: " + url.toString());
 			conn = (HttpURLConnection) url.openConnection();
@@ -75,7 +65,7 @@ public abstract class WebServiceHandler {
 				response = conn.getErrorStream();
 				String resp = Util.inputstreamToString(response, ENCODING);
 				logger.writeError(LOCATION, SIGNATURE, "Negative Web Service response (HTTP status code " + status +"): \n" + resp);
-				throw new RuntimeException("Error calling web service with endpoint: " + endpoint + ". See the trace for details.");
+				throw new RuntimeException("Error calling web service with endpoint: " + ENDPOINT + ". See the trace for details.");
 			}
 			
 			// Return the web service response

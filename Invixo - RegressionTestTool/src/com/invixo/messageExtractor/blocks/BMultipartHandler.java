@@ -15,7 +15,6 @@ import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 

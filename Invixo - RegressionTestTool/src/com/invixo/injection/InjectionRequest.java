@@ -1,10 +1,8 @@
 package com.invixo.injection;
 
-import com.invixo.common.util.PropertyAccessor;
+import java.util.UUID;
 
 public class InjectionRequest {
-
-	private static final String SAP_HOST_PORT = PropertyAccessor.getProperty("SERVICE_HOST_PORT");
 	private String senderParty = null;
 	private String senderComponent = null;
 	private String senderInterface = null;
@@ -12,7 +10,7 @@ public class InjectionRequest {
 	private String receiverParty = null;
 	private String receiverComponent = null;
 	private String qualityOfService = null;
-	private String endpoint = null;
+	private String messageId = UUID.randomUUID().toString();
 	private byte[] payload = null;
 	
 	public String getSenderParty() {
@@ -57,11 +55,8 @@ public class InjectionRequest {
 	public void setQualityOfService(String qualityOfService) {
 		this.qualityOfService = qualityOfService;
 	}
-	public String getEndpoint() {
-		return endpoint;
-	}
-	public void setEndpoint(String endpoint) {
-		this.endpoint = SAP_HOST_PORT + endpoint;
+	public String getMessageId() {
+		return messageId;
 	}
 	public byte[] getPayload() {
 		return payload;
