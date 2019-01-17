@@ -64,7 +64,7 @@ public class Injector {
 			File[] files = Util.getListOfFilesInDirectory(directory);
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of request files to be processed: " + files.length);
 			
-			// Only create mapping file if there are files to inject
+			// Only create mapping file if there are files to inject and if it is not created already
 			if (files.length > 0) {
 				this.mapWriter = (this.mapWriter == null)?Files.newBufferedWriter(Paths.get(MAP_FILE), Charset.forName(ENCODING)):this.mapWriter;
 				logger.writeDebug(LOCATION, SIGNATURE, "Mapping file used: " + MAP_FILE);
