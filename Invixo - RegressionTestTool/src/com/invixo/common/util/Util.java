@@ -1,5 +1,6 @@
 package com.invixo.common.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
@@ -10,6 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.stream.Stream;
+
+import sun.security.util.IOUtils;
 
 public class Util {
 
@@ -41,6 +44,28 @@ public class Util {
 			Files.write(path, fileContent);			
 		} catch (IOException e) {
 			throw new RuntimeException("*writeFileToFileSystem* Error writing to file system for file" + filePath + "\n" + e);
+		}
+	}
+	
+	
+	public static byte[] inputstreamToByteArray(InputStream is) {
+		try {
+//			final byte[] b = new byte[is.available()];
+//			is.read(b);
+
+		    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		    int nRead;
+		    byte[] data = new byte[1024];
+		    while ((nRead = is.read(data, 0, data.length)) != -1) {
+		        buffer.write(data, 0, nRead);
+		    }
+		 
+		    buffer.flush();
+		    byte[] b = buffer.toByteArray();
+			
+			return b;
+		} catch (IOException e) {
+			throw new RuntimeException("*inputstreamToByteArray* Exception occured " + e);
 		}
 	}
 	
