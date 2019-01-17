@@ -45,28 +45,6 @@ public class Util {
 	}
 	
 	
-	public static byte[] inputstreamToByteArray(InputStream is) {
-		try {
-//			final byte[] b = new byte[is.available()];
-//			is.read(b);
-
-		    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-		    int nRead;
-		    byte[] data = new byte[1024];
-		    while ((nRead = is.read(data, 0, data.length)) != -1) {
-		        buffer.write(data, 0, nRead);
-		    }
-		 
-		    buffer.flush();
-		    byte[] b = buffer.toByteArray();
-			
-			return b;
-		} catch (IOException e) {
-			throw new RuntimeException("*inputstreamToByteArray* Exception occured " + e);
-		}
-	}
-	
-	
 	public static File[] getListOfFilesInDirectory(String directory) {
 		File folder = new File(directory);
 		

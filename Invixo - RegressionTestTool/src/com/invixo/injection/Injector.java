@@ -2,6 +2,7 @@ package com.invixo.injection;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -24,19 +25,24 @@ public class Injector {
 	
 	
 	public static void main(String[] args) {
-		String icoRequestFile 	= "c:\\Users\\dhek\\Desktop\\Test\\NoScenario - Invixo - DEK.xml";
-//		String payloadFile 		= "c:\\Users\\dhek\\Desktop\\Test\\NoScenario - Invixo - DEK - PAYLOAD.xml";
-		Injector injector = new Injector(icoRequestFile);
-		
-		// Test name generation for target file
-//		String targetFileName = getTargetFileName(icoRequestFile, "7447b182-1968-11e9-c902-000000554e16");
-//		System.out.println("Target file name: " + targetFileName);
-		
-		// Test injection of FIRST payload files
-		injector.injectAllMessagesForSingleIco();
-		
-		// Test injection of single message
-//		injector.injectMessage(payloadFile);
+		try {
+			String icoRequestFile 	= "c:\\Users\\dhek\\Desktop\\Test\\NoScenario - Invixo - DEK.xml";
+			String payloadFile 		= "c:\\Users\\dhek\\Desktop\\Test\\NoScenario - Invixo - DEK - PAYLOAD.xml";
+			Injector injector = new Injector(icoRequestFile);
+			
+			// Test name generation for target file
+//			String targetFileName = getTargetFileName(icoRequestFile, "7447b182-1968-11e9-c902-000000554e16");
+//			System.out.println("Target file name: " + targetFileName);
+			
+			// Test injection of FIRST payload files
+//			injector.injectAllMessagesForSingleIco();
+			
+			// Test injection of single message
+			injector.mapWriter = Files.newBufferedWriter(Paths.get(MAP_FILE), Charset.forName(ENCODING));
+			injector.injectMessage(payloadFile);			
+		} catch (IOException e) {
+			System.err.println("\n\n" + e);
+		}
 	}
 
 	
@@ -118,7 +124,7 @@ public class Injector {
 			
 			// Store request on file system (just for pleasant reference)
 			String fileName = getTargetFileName(this.configurationFile, ir.getMessageId());
-			Util.writeFileToFileSystem(fileName, webServiceRequest.getEntity().getContent().readAllBytes());
+			webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(fileName)));
 			logger.writeError(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + fileName);
 	        
 			// Call SAP PO Web Service (using XI protocol)
