@@ -66,8 +66,8 @@ public class Injector {
 			
 			// Only create mapping file if there are files to inject
 			if (files.length > 0) {
-				this.mapWriter = Files.newBufferedWriter(Paths.get(MAP_FILE), Charset.forName(ENCODING));
-				logger.writeDebug(LOCATION, SIGNATURE, "Mapping file created " + MAP_FILE);
+				this.mapWriter = (this.mapWriter == null)?Files.newBufferedWriter(Paths.get(MAP_FILE), Charset.forName(ENCODING)):this.mapWriter;
+				logger.writeDebug(LOCATION, SIGNATURE, "Mapping file used: " + MAP_FILE);
 			}
 			
 			// Process each request file
