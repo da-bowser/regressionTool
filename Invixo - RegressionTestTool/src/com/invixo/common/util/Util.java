@@ -1,6 +1,5 @@
 package com.invixo.common.util;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
@@ -11,8 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.stream.Stream;
-
-import sun.security.util.IOUtils;
 
 public class Util {
 
