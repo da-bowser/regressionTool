@@ -131,7 +131,7 @@ public class Injector {
 			WebServiceHandler.callWebService(webServiceRequest);
 			
 			// Write entry to mapping file
-			addMappingEntryToFile(payloadFile, Util.getFileName(payloadFile, false), fileName, ir.getMessageId());
+			addMappingEntryToFile(Util.getFileName(payloadFile, false), ir.getMessageId());
 		} catch (Exception e) {
 			String msg = "Error injecting new request to SAP PO for ICO file " + this.configurationFile + " and payload file " + payloadFile + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -140,12 +140,12 @@ public class Injector {
 	}
 	
 	
-	private void addMappingEntryToFile(String sourceFile, String sourceMsgId, String targetFile, String targetMsgId) throws IOException {
-		final String SIGNATURE = "addMappingEntryToFile(String, String, String, String)";
+	private void addMappingEntryToFile(String sourceMsgId, String targetMsgId) throws IOException {
+		final String SIGNATURE = "addMappingEntryToFile(String, String)";
 		final String separator = "|";
 		
 		// Create mapping line
-		String mapEntry = sourceFile + separator + sourceMsgId + separator + targetFile + separator + targetMsgId + "\n";
+		String mapEntry = sourceMsgId + separator + targetMsgId + "\n";
 		
 		// Write line to map
 		this.mapWriter.write(mapEntry);
