@@ -21,8 +21,8 @@ public class FileStructure {
               public static final String DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION       = DIR_REGRESSION_OUTPUT_PAYLOADS + "\\First message version\\";
               public static final String DIR_REGRESSION_OUTPUT_PAYLOADS_LAST_MSG_VERSION        = DIR_REGRESSION_OUTPUT_PAYLOADS + "\\Last message version\\";
               public static final String DIR_REGRESSION_OUTPUT_WS_RESPONSES                     = DIR_REGRESSION_OUTPUT + "\\WS Responses\\";
-              public static final String DIR_REGRESSION_OUTPUT_WS_RESPONSES_FIRST_MSG_VERSION   = DIR_REGRESSION_OUTPUT_WS_RESPONSES + "\\First message version\\";
-              public static final String DIR_REGRESSION_OUTPUT_WS_RESPONSES_LAST_MSG_VERSION  	= DIR_REGRESSION_OUTPUT_WS_RESPONSES + "\\Last message version\\";
+              public static final String DIR_REGRESSION_OUTPUT_WS_RESPONSES_FIRST_MSG_VERSION   = DIR_REGRESSION_OUTPUT_WS_RESPONSES + "First message version\\";
+              public static final String DIR_REGRESSION_OUTPUT_WS_RESPONSES_LAST_MSG_VERSION  	= DIR_REGRESSION_OUTPUT_WS_RESPONSES + "Last message version\\";
               public static final String DIR_REGRESSION_OUTPUT_MAPPING						  	= DIR_REGRESSION_OUTPUT + "\\Mapping\\";
 
               
