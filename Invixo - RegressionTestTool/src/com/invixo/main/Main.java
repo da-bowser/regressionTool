@@ -1,12 +1,15 @@
 package com.invixo.main;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.injection.Injector;
+import com.invixo.messageExtractor.main.IntegratedConfiguration;
 import com.invixo.messageExtractor.main.Orchestrator;
+import com.invixo.messageExtractor.main.ReportWriter;
 
 public class Main {
 	private static Logger logger 			= Logger.getInstance();
@@ -23,7 +26,7 @@ public class Main {
 		extract();
 		
 		// Test extraction (this should be checked for as a program parameter!!!!
-		inject();
+//		inject();
 	}
 
 	
@@ -36,7 +39,13 @@ public class Main {
  	 * NB: remember to set the proper properties in config file. Some should probably be parameterized in the class for safety and ease.
 	 */
 	public static void extract() {
-		Orchestrator.startAll();
+		// Start
+		ArrayList<IntegratedConfiguration> icoList = Orchestrator.start();
+		
+		// Write some report
+		ReportWriter report = new ReportWriter();
+		report.interpretResult(icoList);
+		report.create(icoList);
 	}
 	
 		

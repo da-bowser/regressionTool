@@ -34,7 +34,7 @@ public class MessageKey {
 	private String sapMessageKey = null;			// SAP Message Key from Web Service response of GetMessageList
 	private String sapMessageId = null;				// SAP Message Id 
 	private IntegratedConfiguration ico	= null;		// Integrated Configuration
-	
+
 	// Target file(s)
 	private String targetPathFirst = null;		// Path (no filename) to create target payload file, FIRST	
 	private String targetPathLast = null;		// Path (no filename) to create target payload file, LAST
@@ -75,6 +75,37 @@ public class MessageKey {
 		this.targetPathFirst = FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION 	+ this.ico.getName() + "\\";
 		this.targetPathLast = FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_LAST_MSG_VERSION 	+ this.ico.getName() + "\\";
 		this.fileName = this.sapMessageId + ".txt";
+	}
+	
+	
+	
+	public String getSapMessageKey() {
+		return sapMessageKey;
+	}
+
+
+	public String getSapMessageId() {
+		return sapMessageId;
+	}
+
+
+	public String getTargetPathFirst() {
+		return targetPathFirst;
+	}
+
+
+	public String getTargetPathLast() {
+		return targetPathLast;
+	}
+
+
+	public String getFileName() {
+		return fileName;
+	}
+
+
+	public Exception getEx() {
+		return ex;
 	}
 	
 		

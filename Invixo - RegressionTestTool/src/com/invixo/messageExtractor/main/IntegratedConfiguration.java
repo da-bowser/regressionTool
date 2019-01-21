@@ -33,7 +33,7 @@ public class IntegratedConfiguration {
 	private String qualityOfService = null;	// QoS
 	
 	private ArrayList<String> responseMessageKeys = new ArrayList<String>();	// MessageKey IDs returned by Web Service GetMessageList
-	ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();			// List of MessageKeys created/processed
+	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();	// List of MessageKeys created/processed
 	
 	private Exception ex = null;					// Error details
 
@@ -48,7 +48,27 @@ public class IntegratedConfiguration {
 
 	
 	public String getName() {
-		return name;
+		return this.name;
+	}
+	
+	public String getFileName() {
+		return this.fileName;
+	}
+	
+	public int getMaxMessagesToFetch() {
+		return this.maxMessagesToFetch;
+	}
+	
+	public String getQualityOfService() {
+		return this.qualityOfService;
+	}
+
+	public ArrayList<MessageKey> getMessageKeys() {
+		return this.messageKeys;
+	}
+	
+	public Exception getEx() {
+		return this.ex;
 	}
 		
 		

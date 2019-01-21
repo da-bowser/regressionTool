@@ -24,10 +24,8 @@ public class Orchestrator {
 	public static void main(String[] args) {
 		try {	
 			// Test process for all files
-			extract();
-			
-			// Test process for a single file
-//			startSingle("GetMessageListRequest.xml");			
+			start();
+
 		} catch (Exception e) {
 			System.err.println("\nMessage caught in MAIN: \n" + e);
 		}
@@ -37,8 +35,8 @@ public class Orchestrator {
 	/**
 	 * This method extracts data from SAP PO based on request ICO files on file system.
 	 */
-	public static void extract() {
-		String SIGNATURE = "extract()";
+	public static ArrayList<IntegratedConfiguration> start() {
+		String SIGNATURE = "start()";
 		try {
 			// Get list of all request files to be processed
 			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_REGRESSION_INPUT_ICO);
@@ -58,6 +56,7 @@ public class Orchestrator {
 			}
 			
 			logger.writeDebug(LOCATION, SIGNATURE, "Processing all ICO's finished successfully!");
+			return icoExtractList;
 		} catch (Exception e) {
 			String ex = "Processing terminated with error!";
 			logger.writeError(LOCATION, SIGNATURE, ex);
