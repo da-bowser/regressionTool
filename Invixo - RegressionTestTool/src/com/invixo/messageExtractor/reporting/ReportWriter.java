@@ -1,4 +1,4 @@
-package com.invixo.messageExtractor.main;
+package com.invixo.messageExtractor.reporting;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -8,6 +8,9 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import com.invixo.consistency.FileStructure;
+import com.invixo.main.GlobalParameters;
+import com.invixo.messageExtractor.main.IntegratedConfiguration;
+import com.invixo.messageExtractor.main.MessageKey;
 
 public class ReportWriter {
 	private static final String XML_PREFIX 	= "inv";

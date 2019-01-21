@@ -15,7 +15,8 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
-import com.invixo.messageExtractor.httpHandlers.WebServiceHandler;
+import com.invixo.main.GlobalParameters;
+import com.invixo.messageExtractor.webServices.WebServiceHandler;
 
 
 @SuppressWarnings("unused")

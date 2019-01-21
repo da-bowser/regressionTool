@@ -1,4 +1,4 @@
-package com.invixo.messageExtractor.httpHandlers;
+package com.invixo.messageExtractor.webServices;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;

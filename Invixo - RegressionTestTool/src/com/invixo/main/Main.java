@@ -9,7 +9,7 @@ import com.invixo.consistency.FileStructure;
 import com.invixo.injection.Injector;
 import com.invixo.messageExtractor.main.IntegratedConfiguration;
 import com.invixo.messageExtractor.main.Orchestrator;
-import com.invixo.messageExtractor.main.ReportWriter;
+import com.invixo.messageExtractor.reporting.ReportWriter;
 
 public class Main {
 	private static Logger logger 			= Logger.getInstance();

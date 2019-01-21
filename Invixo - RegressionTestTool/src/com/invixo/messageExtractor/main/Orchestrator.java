@@ -11,7 +11,7 @@ import com.invixo.consistency.FileStructure;
  * This program uses SAP PO Message API.
  * It extracts message payloads from SAP PO database.
  *
- * Configuration of program is done in the 'apiConfig.properties' file part of the project.
+ * Configuration of program is done in the 'messageExtractor.properties' file part of the project.
  */
 public class Orchestrator {
 	private static Logger logger = Logger.getInstance();

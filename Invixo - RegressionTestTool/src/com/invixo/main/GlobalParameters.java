@@ -1,4 +1,4 @@
-package com.invixo.messageExtractor.main;
+package com.invixo.main;
 
 import com.invixo.common.util.PropertyAccessor;
 
