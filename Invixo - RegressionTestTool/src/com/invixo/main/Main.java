@@ -6,10 +6,8 @@ import java.util.ArrayList;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
-import com.invixo.injection.Injector;
-import com.invixo.messageExtractor.main.IntegratedConfiguration;
-import com.invixo.messageExtractor.main.Orchestrator;
-import com.invixo.messageExtractor.reporting.ReportWriter;
+import com.invixo.extraction.IntegratedConfiguration;
+import com.invixo.extraction.reporting.ReportWriter;
 
 public class Main {
 	private static Logger logger 			= Logger.getInstance();
@@ -18,9 +16,6 @@ public class Main {
 	
 	public static void main(String[] args) {
 		// NB: this should be parameterized so it can be run from a console.
-		
-		// Always clean up file structure and ensure its consistency
-		ensureFileStructureConsistency();
 		
 		// Test extraction (this should be checked for as a program parameter!!!!
 		extract();
@@ -32,17 +27,17 @@ public class Main {
 	
 	/**
 	 * Extract data from a productive or non-productive SAP PO system.
-	 * This creates 2 files on file system: 
-	 * 		1) Raw multipart message extracted from Web Service GetMessageBytesJavaLangStringIntBoolean
-	 * 		2) SAP PO payload extracted from multipart message
-	 * 
+	 * This creates payload files (FIRST and/or LAST) on file system: 
  	 * NB: remember to set the proper properties in config file. Some should probably be parameterized in the class for safety and ease.
 	 */
 	public static void extract() {
-		// Start
-		ArrayList<IntegratedConfiguration> icoList = Orchestrator.start();
+		// Clean up file structure and ensure its consistency
+		ensureFileStructureConsistency();
 		
-		// Write some report
+		// Start extracting
+		ArrayList<IntegratedConfiguration> icoList = com.invixo.extraction.Orchestrator.start();
+		
+		// Write report
 		ReportWriter report = new ReportWriter();
 		report.interpretResult(icoList);
 		report.create(icoList);
@@ -62,8 +57,7 @@ public class Main {
 		// Inject all payload files related to ICO
 		for (File file : files) {
 			logger.writeDebug(LOCATION, SIGNATURE, "Start processing ICO: " + file);
-			Injector injector = new Injector(file.getAbsolutePath());
-			injector.injectAllMessagesForSingleIco();
+			com.invixo.injection.Orchestrator.start();
 		}
 	}
 	

@@ -1,4 +1,4 @@
-package com.invixo.messageExtractor.main;
+package com.invixo.extraction;
 
 import java.io.File;
 import java.util.ArrayList;

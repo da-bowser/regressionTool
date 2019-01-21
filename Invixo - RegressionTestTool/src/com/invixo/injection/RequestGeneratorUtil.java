@@ -1,9 +1,13 @@
 package com.invixo.injection;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
@@ -11,15 +15,20 @@ import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
+
+import com.invixo.common.util.InjectionException;
 import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
+import com.invixo.consistency.FileStructure;
 
 public class RequestGeneratorUtil {
 	private static Logger logger 						= Logger.getInstance();
@@ -35,13 +44,18 @@ public class RequestGeneratorUtil {
 	private static final String TARGET_SAP_NS			= "http://sap.com/xi/XI/Message/30";
 	private static final String TARGET_SAP_NS_PREFIX	= "sap";
 	
+	private static final String MAP_FILE				= FileStructure.FILE_BASE_LOCATION + "\\systemMapping.txt";
+	private static final String SOURCE_ENV 				= PropertyAccessor.getProperty("SOURCE_ENVIRONMENT");
+	private static final String TARGET_ENV 				= PropertyAccessor.getProperty("TARGET_ENVIRONMENT");
+	private static HashMap<String, String> SYSTEM_MAP	= initializeSystemMap();
+	
 		
 	/**
 	 * Extract routing info from an Integrated Configuration request file used also when extracting data from SAP PO system.
 	 * @param ir
 	 * @param icoRequestfile
 	 */
-	static void extractInfoFromIcoRequest(InjectionRequest ir, String icoRequestfile) {
+	static void extractInfoFromIcoRequest(InjectionRequest ir, String icoRequestfile) throws InjectionException {
 		String SIGNATURE = "extractRoutingInfoFromIcoRequest(InjectionRequest, String)";
 		try {
 			// Read file
@@ -85,7 +99,15 @@ public class RequestGeneratorUtil {
 			    	// Sender component
 			    	} else if (fetchData && ELEMENT_ITF_SCOMPONENT.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
-			    			ir.setSenderComponent(eventReader.peek().asCharacters().getData());	
+			    			String sender = eventReader.peek().asCharacters().getData();
+			    			ir.setSenderComponent(SYSTEM_MAP.get(sender));
+			    			
+			    			// Check
+			    			if (ir.getSenderComponent() == null) {
+			    				String ex = "System Mapping: missing entry for source system " + sender;
+			    				logger.writeError(LOCATION, SIGNATURE, ex);
+			    				throw new InjectionException(ex);
+			    			}
 			    		}
 			    	
 			    	// Receiver party
@@ -114,7 +136,7 @@ public class RequestGeneratorUtil {
 			    	break;
 			    }
 			}
-		} catch (Exception e) {
+		} catch (XMLStreamException e) {
 			String msg = "Error extracting routing info from ICO request file: " + icoRequestfile + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
@@ -122,7 +144,7 @@ public class RequestGeneratorUtil {
 	}
 	
 	
-	static String generateSoapXiHeaderPart(InjectionRequest ir) {
+	static String generateSoapXiHeaderPart(InjectionRequest ir) throws InjectionException {
 		String SIGNATURE = "generateSoapXiHeaderPart(InjectionRequest)";
 		try {
 			StringWriter stringWriter = new StringWriter();
@@ -297,11 +319,60 @@ public class RequestGeneratorUtil {
 			logger.writeDebug(LOCATION, SIGNATURE, "SOAP XI Header generated.");
 			stringWriter.flush();
 			return stringWriter.toString();
-		} catch (Exception e) {
+		} catch (XMLStreamException e) {
 			String msg = "Error generating SOAP XI Header. " + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new InjectionException(msg);
+		}
+	}
+		
+	
+	private static HashMap<String, String> initializeSystemMap() {
+		final String SIGNATURE = "initializeSystemMap()";
+		
+		
+		try {
+	 		SYSTEM_MAP = new HashMap<String, String>();
+			
+			// Determine source index (how the request ICO's are created)
+			int sourceIndex = -1;
+			if ("DEV".equals(SOURCE_ENV)) {
+				sourceIndex = 0;
+			} else if ("TST".equals(SOURCE_ENV)) {
+				sourceIndex = 1;
+			} else {
+				sourceIndex = 2;
+			}
+			
+			// Determine target index (which target system to map to when injecting)
+			int targetIndex = -1;
+			if ("DEV".equals(TARGET_ENV)) {
+				targetIndex = 0;
+			} else if ("TST".equals(TARGET_ENV)) {
+				targetIndex = 1;
+			} else {
+				targetIndex = 2;
+			}
+			
+			// Populate map
+		   String line;
+		   FileReader fileReader = new FileReader(MAP_FILE);
+		   try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+			   while((line = bufferedReader.readLine()) != null) {
+			    	  String[] str = line.split("\\|");
+			    	  SYSTEM_MAP.put(str[sourceIndex], str[targetIndex]);
+			   }			   
+		   }
+
+		    // Return initialized map
+		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized mapping from source env '" + SOURCE_ENV + "' to target env '" + TARGET_ENV + "'. Number of entries: " + SYSTEM_MAP.size());
+		    return SYSTEM_MAP;			
+		} catch (IOException e) {
+			String msg = "Error generating system mapping\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
 		}
+
 	}
 	
 }

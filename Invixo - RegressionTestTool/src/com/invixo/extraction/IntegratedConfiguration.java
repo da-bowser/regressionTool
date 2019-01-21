@@ -1,6 +1,5 @@
-package com.invixo.messageExtractor.main;
+package com.invixo.extraction;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -14,12 +13,9 @@ import com.invixo.common.util.ExtractorException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure;
+import com.invixo.extraction.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
-import com.invixo.messageExtractor.webServices.WebServiceHandler;
 
-
-@SuppressWarnings("unused")
 public class IntegratedConfiguration {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = IntegratedConfiguration.class.getName();	

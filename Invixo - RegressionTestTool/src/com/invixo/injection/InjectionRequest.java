@@ -12,6 +12,7 @@ public class InjectionRequest {
 	private String qualityOfService = null;
 	private String messageId = UUID.randomUUID().toString();
 	private byte[] payload = null;
+	private String payloadFile = null;
 	
 	public String getSenderParty() {
 		return senderParty;
@@ -63,5 +64,11 @@ public class InjectionRequest {
 	}
 	public void setPayload(byte[] payload) {
 		this.payload = payload;
+	}
+	public String getPayloadFile() {
+		return payloadFile;
+	}
+	public void setPayloadFile(String payloadFile) {
+		this.payloadFile = payloadFile;
 	}
 }

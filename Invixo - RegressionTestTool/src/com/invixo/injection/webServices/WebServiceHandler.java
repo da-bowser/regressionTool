@@ -1,4 +1,4 @@
-package com.invixo.injection;
+package com.invixo.injection.webServices;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +19,7 @@ import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+import com.invixo.common.util.InjectionException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
@@ -36,7 +37,7 @@ public class WebServiceHandler {
 	public static final String CID_HEADER = "INJECTION_HEADER";
 
 	
-	static InputStream callWebService(HttpPost httpPostRequest) throws Exception {
+	public static InputStream callWebService(HttpPost httpPostRequest) throws InjectionException {
 		final String SIGNATURE = "callWebService(HttpPost)";
 		try {
 	        // Call service
@@ -53,12 +54,12 @@ public class WebServiceHandler {
 			e.printStackTrace(new PrintWriter(sw));
 			String ex = "Error calling web service.\n" + sw.toString();
 			logger.writeError(LOCATION, SIGNATURE, ex);
-			throw e;
+			throw new InjectionException(ex);
 		}
 	}
 
 
-	static HttpPost buildHttpPostRequest(byte[] requestXiHeader, byte[] requestPayload) throws UnsupportedEncodingException {
+	public static HttpPost buildHttpPostRequest(byte[] requestXiHeader, byte[] requestPayload) throws UnsupportedEncodingException {
 		// Create multipart boundary
 		final String boundary = "-- Invixo Injection: boundary --";
 
@@ -82,10 +83,10 @@ public class WebServiceHandler {
 	
 	
 	private static void handleWebServiceResponse(CloseableHttpResponse response) throws UnsupportedOperationException, IOException {
-		final String SIGNATURE = "callWebService(byte[], byte[])";
+		final String SIGNATURE = "handleWebServiceResponse(byte[], byte[])";
 		
 		int status = response.getStatusLine().getStatusCode();
-		logger.writeDebug(LOCATION, SIGNATURE, "Injection Web service returned HTTP status code: " + status);
+		logger.writeDebug(LOCATION, SIGNATURE, "Injection Web Service returned HTTP status code: " + status);
 		
 		if (status == 200 || status == 202) {
 			logger.writeDebug(LOCATION, SIGNATURE, "Message injected succesfully.");

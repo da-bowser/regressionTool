@@ -1,4 +1,4 @@
-package com.invixo.messageExtractor.main;
+package com.invixo.extraction;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,10 +24,9 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
+import com.invixo.extraction.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
-import com.invixo.messageExtractor.webServices.WebServiceHandler;
 
-@SuppressWarnings("unused")
 public class MessageKey {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = MessageKey.class.getName();	
