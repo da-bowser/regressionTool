@@ -10,6 +10,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
 
+import com.invixo.common.util.ExtractorException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
@@ -25,7 +26,7 @@ public abstract class WebServiceHandler {
 	private static final int TIMEOUT = Integer.parseInt(PropertyAccessor.getProperty("TIMEOUT"));
 
 	
-	protected static InputStream callWebService(String callType, byte[] requestBytes) throws Exception {
+	public static InputStream callWebService(byte[] requestBytes) throws ExtractorException {
 		String SIGNATURE = "callWebService(byte[])";
 		HttpURLConnection conn = null;
 		InputStream response = null;
@@ -76,10 +77,15 @@ public abstract class WebServiceHandler {
 			e.printStackTrace(new PrintWriter(sw));
 			String ex = "Error calling web service.\n" + sw.toString();
 			logger.writeError(LOCATION, SIGNATURE, ex);
-			throw e;
-		} finally { 
+			ExtractorException ee = new ExtractorException(ex);
+			throw ee;
+		} finally {
 			if (response != null) {
-				response.close();	
+				try { 
+					response.close();	
+				} catch (IOException e) {
+					// Too bad...
+				}
 			}
 			logMessage(SIGNATURE, "---------------Web Service Call: end -----------------------\n");
 		}
