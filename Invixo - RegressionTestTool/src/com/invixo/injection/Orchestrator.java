@@ -22,7 +22,7 @@ public class Orchestrator {
 	/**
 	 * Main entry point for injecting all payload files related to any given ICO.
 	 */
-	public static void start() {
+	public static ArrayList<IntegratedConfiguration> start() {
 		String SIGNATURE = "start()";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Start processing all ICO's...");
@@ -37,6 +37,7 @@ public class Orchestrator {
 			}
 			
 			logger.writeDebug(LOCATION, SIGNATURE, "Finished processing all ICO's...");
+			return icoList;
 		} catch (InjectionException e) {
 			String ex = "Processing terminated with error!";
 			logger.writeError(LOCATION, SIGNATURE, ex);

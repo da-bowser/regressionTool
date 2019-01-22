@@ -1,10 +1,7 @@
 package com.invixo.main;
 
-import java.io.File;
 import java.util.ArrayList;
-
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.IntegratedConfiguration;
 import com.invixo.extraction.reporting.ReportWriter;
@@ -18,7 +15,7 @@ public class Main {
 		// NB: this should be parameterized so it can be run from a console.
 		
 		// Test extraction (this should be checked for as a program parameter!!!!
-		extract();
+//		extract();
 		
 		// Test extraction (this should be checked for as a program parameter!!!!
 //		inject();
@@ -31,6 +28,8 @@ public class Main {
  	 * NB: remember to set the proper properties in config file. Some should probably be parameterized in the class for safety and ease.
 	 */
 	public static void extract() {
+		final String SIGNATURE = "extract()";
+		
 		// Clean up file structure and ensure its consistency
 		ensureFileStructureConsistency();
 		
@@ -40,7 +39,8 @@ public class Main {
 		// Write report
 		ReportWriter report = new ReportWriter();
 		report.interpretResult(icoList);
-		report.create(icoList);
+		String reportName = report.create(icoList);
+		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
 	
 		
@@ -49,16 +49,14 @@ public class Main {
 	 */
 	public static void inject() {
 		final String SIGNATURE = "inject()";
+		// Start injecting
+		ArrayList<com.invixo.injection.IntegratedConfiguration> icoList = com.invixo.injection.Orchestrator.start();
 		
-		// Get list of integrations to process.
-		File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_REGRESSION_INPUT_ICO);
-		logger.writeDebug(LOCATION, SIGNATURE, "Number of ICOs to be processed: " + files.length);
-		
-		// Inject all payload files related to ICO
-		for (File file : files) {
-			logger.writeDebug(LOCATION, SIGNATURE, "Start processing ICO: " + file);
-			com.invixo.injection.Orchestrator.start();
-		}
+		// Write report
+		com.invixo.injection.reporting.ReportWriter report = new com.invixo.injection.reporting.ReportWriter();
+		report.interpretResult(icoList);
+		String reportName = report.create(icoList);
+		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
 	
 	

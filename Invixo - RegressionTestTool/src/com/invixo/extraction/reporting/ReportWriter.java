@@ -16,7 +16,7 @@ public class ReportWriter {
 	private static final String XML_PREFIX 	= "inv";
 	private static final String XML_NS 		= "urn:invixo.com.extract.report";
 	
-	private final String REPORT_FILE = FileStructure.FILE_BASE_LOCATION + System.currentTimeMillis() +  "_Report.xml";
+	private final String REPORT_FILE = FileStructure.FILE_BASE_LOCATION + System.currentTimeMillis() +  "_ExtractReport.xml";
 	private int countIcoTotal = 0;	// Total number of ICOs processed
 	private int countIcoErr = 0;	// Total number of ICOs processed with error
 	private int countIcoOk = 0;		// Total number of ICOs processed successfully
@@ -44,7 +44,7 @@ public class ReportWriter {
 	}
 	
 	
-	public void create(ArrayList<IntegratedConfiguration> icoList) {
+	public String create(ArrayList<IntegratedConfiguration> icoList) {
 		try {
 			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
 			XMLStreamWriter xmlWriter = xMLOutputFactory.createXMLStreamWriter(new FileOutputStream(REPORT_FILE), GlobalParameters.ENCODING);
@@ -170,6 +170,8 @@ public class ReportWriter {
 			xmlWriter.flush();
 			xmlWriter.close();
 
+			// Return report name
+			return REPORT_FILE;
 		} catch (XMLStreamException|FileNotFoundException e) {
 			throw new RuntimeException("Error generating report! " + e);
 		}	
