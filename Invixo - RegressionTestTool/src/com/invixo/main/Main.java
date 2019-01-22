@@ -2,6 +2,7 @@ package com.invixo.main;
 
 import java.util.ArrayList;
 import com.invixo.common.util.Logger;
+import com.invixo.compare.Comparer;
 import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.IntegratedConfiguration;
 import com.invixo.extraction.reporting.ReportWriter;
@@ -19,6 +20,9 @@ public class Main {
 		
 		// Test extraction (this should be checked for as a program parameter!!!!
 //		inject();  
+		
+		// Test compare (this should be checked for as a program parameter!!!!
+		compare();
 	}
 
 	
@@ -64,7 +68,7 @@ public class Main {
 	 * Start a file comparison
 	 */
 	public static void compare() {
-		
+		Comparer.startCompare();
 	}
 	
 	

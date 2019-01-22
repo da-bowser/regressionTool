@@ -8,7 +8,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Util {
@@ -138,5 +142,55 @@ public class Util {
             file.delete();
     	}
     }
+    
+    
+    /**
+     * Get FILE|DIRECTORY list
+     * @param directory		Source destination
+     * @param readMode		Type of read to perform FILE or DIRECTORY
+     * @return	List<Path>
+     */
+	public static List<Path> generateListPath(String directory, String readMode) {		
+		List<Path> readList = new ArrayList<Path>();
+		try {
+			if (readMode.equals("FILE")) {
+				// Get all files in directory AND subdirectories and return			
+				readList = Files.walk(Paths.get(directory)).filter(Files::isRegularFile).collect(Collectors.toList());
+			} else {
+				// Get all files in directory AND subdirectories and return
+				readList = Files.walk(Paths.get(directory)).filter(Files::isDirectory).collect(Collectors.toList());	
+
+				if (readList.size() > 1) {
+					// Remove "parent" (self) directory, to only return subdirs
+					readList.remove(0);
+				}
+			}
+
+		} catch (IOException e) {
+			String msg = "ERROR | Error reading " + readMode + " data from: " + directory + e.getMessage();
+			throw new RuntimeException(msg);
+		}
+		
+		// Return list of FILE|DIRECTORIES found
+		return readList;
+	}
+	
+	
+	/**
+	 * Create MAP from an input file using a delimiter
+	 * @param filePath			Source file
+	 * @param fileDelimiter		Delimiter used to seperate values in file
+	 * @param keyIndex			Column in file to get key data from
+	 * @param valueIndex		Column in file to get value data from
+	 * @return					Map<String, String>
+	 * @throws IOException
+	 */
+	public static Map<String, String> createMapFromPath(Path filePath, String fileDelimiter, int keyIndex, int valueIndex) throws IOException {
+		Map<String, String> mapFromFile = 	Files
+											.lines(filePath)
+											.collect(Collectors.toMap(k -> k.split(fileDelimiter)[keyIndex], v -> v.split(fileDelimiter)[valueIndex]));
+		
+		return mapFromFile;
+	}
 
 }
