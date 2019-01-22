@@ -29,6 +29,7 @@ public class IntegratedConfiguration {
 	private static final String MAP_FILE	= FileStructure.DIR_REGRESSION_OUTPUT_MAPPING + "Map_" + System.currentTimeMillis() + ".txt";
 	public static BufferedWriter mapWriter	= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID	
 	
+	
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
