@@ -1,12 +1,14 @@
 package com.invixo.extraction;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 
 import com.invixo.common.util.ExtractorException;
@@ -39,7 +41,6 @@ public class IntegratedConfiguration {
 	public IntegratedConfiguration(String icoFileName) throws ExtractorException {
 		this.fileName = icoFileName;
 		this.name = Util.getFileName(icoFileName, false);
-		
 		extractAdditionalInfoFromIco();
 	}
 
@@ -90,12 +91,10 @@ public class IntegratedConfiguration {
 			    	}
 			    }
 			}
-		} catch (Exception e) {
+		} catch (XMLStreamException|FileNotFoundException e) {
 			String msg = "Error extracting basic info from ICO request file: " + this.fileName + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			ExtractorException ex = new ExtractorException(msg);
-			this.ex = ex;
-			throw ex;
+			throw new ExtractorException(msg);
 		} 
 	}
 
@@ -167,7 +166,7 @@ public class IntegratedConfiguration {
 	 * @param file
 	 * @return
 	 */
-	private static ArrayList<String> extractMessageKeysFromSingleResponseFile(InputStream responseBytes) {
+	private static ArrayList<String> extractMessageKeysFromSingleResponseFile(InputStream responseBytes) throws ExtractorException {
 		String SIGNATURE = "extractMessageKeysFromSingleResponseFile(InputStream)";
 		ArrayList<String> objectKeys = new ArrayList<String>();
 		
@@ -188,10 +187,10 @@ public class IntegratedConfiguration {
 			}
 			
 			return objectKeys;
-		} catch (Exception e) {
+		} catch (XMLStreamException e) {
 			String msg = "Error extracting MessageKeys.\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
+			throw new ExtractorException(msg);
 		} 
 	}
 	

@@ -72,7 +72,7 @@ public abstract class WebServiceHandler {
 			// Return the web service response
 			ByteArrayInputStream bais = new ByteArrayInputStream(response.readAllBytes());
 			return bais;
-		} catch (Exception e) {
+		} catch (IOException e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
 			String ex = "Error calling web service.\n" + sw.toString();

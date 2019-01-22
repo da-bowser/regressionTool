@@ -329,11 +329,7 @@ public class RequestGeneratorUtil {
 	
 	private static HashMap<String, String> initializeSystemMap() {
 		final String SIGNATURE = "initializeSystemMap()";
-		
-		
 		try {
-	 		SYSTEM_MAP = new HashMap<String, String>();
-			
 			// Determine source index (how the request ICO's are created)
 			int sourceIndex = -1;
 			if ("DEV".equals(SOURCE_ENV)) {
@@ -355,14 +351,15 @@ public class RequestGeneratorUtil {
 			}
 			
 			// Populate map
-		   String line;
-		   FileReader fileReader = new FileReader(MAP_FILE);
-		   try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
-			   while((line = bufferedReader.readLine()) != null) {
-			    	  String[] str = line.split("\\|");
-			    	  SYSTEM_MAP.put(str[sourceIndex], str[targetIndex]);
-			   }			   
-		   }
+	 		SYSTEM_MAP = new HashMap<String, String>();
+	 		String line;
+	 		FileReader fileReader = new FileReader(MAP_FILE);
+	 		try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+	 			while((line = bufferedReader.readLine()) != null) {
+	 				String[] str = line.split("\\|");
+	 				SYSTEM_MAP.put(str[sourceIndex], str[targetIndex]);
+	 			}			   
+	 		}
 
 		    // Return initialized map
 		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized mapping from source env '" + SOURCE_ENV + "' to target env '" + TARGET_ENV + "'. Number of entries: " + SYSTEM_MAP.size());

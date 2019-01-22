@@ -42,7 +42,7 @@ public class Orchestrator {
 		} catch (InjectionException e) {
 			String ex = "Processing terminated with error!";
 			logger.writeError(LOCATION, SIGNATURE, ex);
-			throw new RuntimeException(e);
+			throw new RuntimeException(ex);
 		}
 	}
 	

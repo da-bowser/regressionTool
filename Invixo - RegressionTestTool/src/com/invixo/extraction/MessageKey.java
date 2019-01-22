@@ -15,6 +15,7 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
@@ -36,12 +37,12 @@ public class MessageKey {
 	private IntegratedConfiguration ico	= null;		// Integrated Configuration
 
 	// Target file(s)
-	private String targetPathFirst = null;		// Path (no filename) to create target payload file, FIRST	
-	private String targetPathLast = null;		// Path (no filename) to create target payload file, LAST
-	private String fileName = null;				// File name
+	private String targetPathFirst = null;			// Path (no filename) to create target payload file, FIRST	
+	private String targetPathLast = null;			// Path (no filename) to create target payload file, LAST
+	private String fileName = null;					// File name
 	
 	// Error Indicator
-	private Exception ex = null;				// Error details
+	private Exception ex = null;					// Error details
 	
 	
 	public static void main(String[] args) {
@@ -240,7 +241,7 @@ public class MessageKey {
 			ByteArrayInputStream bais = new ByteArrayInputStream(stringWriter.toString().getBytes());
 
 			return bais;
-		} catch (Exception e) {
+		} catch (XMLStreamException e) {
 			String msg = "Error creating request payload for messageKey: " + messageKey + " with version " + version;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);
@@ -327,7 +328,7 @@ public class MessageKey {
 			    }
 			}
 			return response;
-		} catch (Exception e) {
+		} catch (XMLStreamException e) {
 			String msg = "Error extracting encoded (base64) payload from response.\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);
