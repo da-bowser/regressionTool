@@ -220,7 +220,7 @@ public class IntegratedConfiguration {
 			// Store request on file system (just for pleasant reference)
 			ir.setInjectionRequestFile(getTargetFileName(this.fileName, ir.getMessageId()));
 			webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
-			logger.writeError(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
+			logger.writeDebug(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
 	        
 			// Call SAP PO Web Service (using XI protocol)
 			WebServiceHandler.callWebService(webServiceRequest);
