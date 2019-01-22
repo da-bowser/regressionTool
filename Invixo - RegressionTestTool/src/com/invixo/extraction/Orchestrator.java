@@ -37,7 +37,7 @@ public class Orchestrator {
 	 * This method extracts data from SAP PO based on request ICO files on file system.
 	 */
 	public static ArrayList<IntegratedConfiguration> start() {
-		String SIGNATURE = "start()";
+		final String SIGNATURE = "start()";
 		try {
 			// Get list of all request files to be processed
 			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_REGRESSION_INPUT_ICO);

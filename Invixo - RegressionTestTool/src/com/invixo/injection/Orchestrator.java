@@ -23,7 +23,7 @@ public class Orchestrator {
 	 * Main entry point for injecting all payload files related to any given ICO.
 	 */
 	public static ArrayList<IntegratedConfiguration> start() {
-		String SIGNATURE = "start()";
+		final String SIGNATURE = "start()";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Start processing all ICO's...");
 			
@@ -57,7 +57,7 @@ public class Orchestrator {
 	
 	
 	private static void processSingleIco(File file) throws InjectionException {
-		String SIGNATURE = "processSingleIco()";
+		final String SIGNATURE = "processSingleIco(File)";
 		IntegratedConfiguration ico = null;
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);

@@ -29,9 +29,16 @@ import com.invixo.extraction.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
 
 public class MessageKey {
+	/*====================================================================================
+	 *------------- Class variables
+	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = MessageKey.class.getName();	
 	
+	
+	/*====================================================================================
+	 *------------- Instance variables
+	 *====================================================================================*/
 	private String sapMessageKey = null;			// SAP Message Key from Web Service response of GetMessageList
 	private String sapMessageId = null;				// SAP Message Id 
 	private IntegratedConfiguration ico	= null;		// Integrated Configuration
@@ -45,6 +52,10 @@ public class MessageKey {
 	private Exception ex = null;					// Error details
 	
 	
+	
+	/*====================================================================================
+	 *------------- Class methods
+	 *====================================================================================*/
 	public static void main(String[] args) {
 		try {
 			// Prepare
@@ -68,7 +79,10 @@ public class MessageKey {
 	}
 	
 	
-	// Constructor
+	
+	/*====================================================================================
+	 *------------- Constructors
+	 *====================================================================================*/
 	public MessageKey(IntegratedConfiguration ico, String messageKey) {
 		this.ico = ico;
 		this.sapMessageKey = messageKey;
@@ -80,6 +94,9 @@ public class MessageKey {
 	
 	
 	
+	/*====================================================================================
+	 *------------- Getters and Setters
+	 *====================================================================================*/
 	public String getSapMessageKey() {
 		return sapMessageKey;
 	}
@@ -114,6 +131,10 @@ public class MessageKey {
 	}
 	
 	
+	
+	/*====================================================================================
+	 *------------- Instance methods
+	 *====================================================================================*/
 	/**
 	 * Main entry point for processing a Message Key.
 	 * Call Web Service for fetching SAP PO message data (SOAP envelope). 
@@ -124,7 +145,7 @@ public class MessageKey {
 	 * @throws Exception
 	 */
 	public void processMessageKey(String messageKey, boolean getFirstPayload) throws ExtractorException {
-		String SIGNATURE = "processMessageKey(String, boolean, String)";
+		final String SIGNATURE = "processMessageKey(String, boolean, String)";
 		try {
 			// Build request payload
 			int version = getFirstPayload ? 0 : -1;
@@ -158,7 +179,7 @@ public class MessageKey {
 	 * @throws Exception
 	 */
 	private String storePayload(byte[] content, Boolean isFirst) throws ExtractorException {
-		String SIGNATURE = "storePayload(byte[], Boolean, String)";
+		final String SIGNATURE = "storePayload(byte[], Boolean, String)";
 		try {
 			// Get multipart message from XML payload contained in Web Service response XML file
 			MimeMultipart mmp = getMultipartMessageFromResponse(content);
@@ -196,7 +217,7 @@ public class MessageKey {
 	 * @throws Exception
 	 */
 	private ByteArrayInputStream createNewRequest(String messageKey, int version) throws ExtractorException {
-		String SIGNATURE = "createNewRequest(String, int)";
+		final String SIGNATURE = "createNewRequest(String, int)";
 		try {
 			StringWriter stringWriter = new StringWriter();
 			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
@@ -278,7 +299,7 @@ public class MessageKey {
 	 * @return
 	 */
 	private MimeMultipart getMultipartMessageFromResponse(byte[] responseBytes) throws ExtractorException {
-		String SIGNATURE = "getMultipartMessageFromResponse(bute[])";
+		final String SIGNATURE = "getMultipartMessageFromResponse(bute[])";
 		try {
 			// Extract base64 payload
 			String encodedPayload = this.extractEncodedPayload(responseBytes);
@@ -301,7 +322,7 @@ public class MessageKey {
 	
 	
 	private String extractEncodedPayload(byte[] fileContent) throws ExtractorException {
-		String SIGNATURE = "extractEncodedPayload(byte[])";
+		final String SIGNATURE = "extractEncodedPayload(byte[])";
 		boolean fetchData = false;
 		
 		try {

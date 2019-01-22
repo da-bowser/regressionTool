@@ -19,6 +19,9 @@ import com.invixo.extraction.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
 
 public class IntegratedConfiguration {
+	/*====================================================================================
+	 *------------- Class variables
+	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = IntegratedConfiguration.class.getName();	
 
@@ -26,6 +29,10 @@ public class IntegratedConfiguration {
 	public static final boolean EXTRACT_FIRST_PAYLOAD = Boolean.parseBoolean(PropertyAccessor.getProperty("EXTRACT_FIRST_PAYLOAD"));
 	public static final boolean EXTRACT_LAST_PAYLOAD = Boolean.parseBoolean(PropertyAccessor.getProperty("EXTRACT_LAST_PAYLOAD"));
 		
+	
+	/*====================================================================================
+	 *------------- Instance variables
+	 *====================================================================================*/
 	private String name = null;				// Name of ICO
 	private String fileName = null;			// Complete path to ICO request file
 	private int maxMessagesToFetch = 0;		// Maximum messages to fetch via service GetMessageList
@@ -37,7 +44,10 @@ public class IntegratedConfiguration {
 	private Exception ex = null;					// Error details
 
 	
-	// Overloaded constructor
+	
+	/*====================================================================================
+	 *------------- Constructors
+	 *====================================================================================*/
 	public IntegratedConfiguration(String icoFileName) throws ExtractorException {
 		this.fileName = icoFileName;
 		this.name = Util.getFileName(icoFileName, false);
@@ -45,6 +55,10 @@ public class IntegratedConfiguration {
 	}
 
 	
+	
+	/*====================================================================================
+	 *------------- Getters and Setters
+	 *====================================================================================*/
 	public String getName() {
 		return this.name;
 	}
@@ -70,8 +84,12 @@ public class IntegratedConfiguration {
 	}
 		
 		
+	
+	/*====================================================================================
+	 *------------- Instance methods
+	 *====================================================================================*/
 	private void extractAdditionalInfoFromIco() throws ExtractorException {
-		String SIGNATURE = "extractAdditionalInfoFromIco()";
+		final String SIGNATURE = "extractAdditionalInfoFromIco()";
 		try {
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(new FileInputStream(this.fileName), GlobalParameters.ENCODING);
@@ -106,7 +124,7 @@ public class IntegratedConfiguration {
 	 * @throws ExtractorException
 	 */
 	public void processSingleIco(String file) {
-		String SIGNATURE = "processSingleIco(String)";
+		final String SIGNATURE = "processSingleIco(String)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);
 			
@@ -145,10 +163,10 @@ public class IntegratedConfiguration {
 	 * this on file system.
 	 * This method can/will generate both FIRST and LAST payload if requested.
 	 * @param key
-	 * @throws Exception
+	 * @throws ExtractorException
 	 */
 	private void processSingleMessageKey(String key) throws ExtractorException {
-		String SIGNATURE = "processSingleMessageKey(String, String)";
+		final String SIGNATURE = "processSingleMessageKey(String)";
 		MessageKey msgKey = null;
 		try {
 			// Create a new MessageKey object
@@ -176,13 +194,17 @@ public class IntegratedConfiguration {
 	}
 
 	
+	
+	/*====================================================================================
+	 *------------- Class methods
+	 *====================================================================================*/
 	/**
 	 * Get list of 'messageKey' contained in a single response file.
 	 * @param file
 	 * @return
 	 */
 	private static ArrayList<String> extractMessageKeysFromSingleResponseFile(InputStream responseBytes) throws ExtractorException {
-		String SIGNATURE = "extractMessageKeysFromSingleResponseFile(InputStream)";
+		final String SIGNATURE = "extractMessageKeysFromSingleResponseFile(InputStream)";
 		ArrayList<String> objectKeys = new ArrayList<String>();
 		
 		try {
