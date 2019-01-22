@@ -56,7 +56,7 @@ public class RequestGeneratorUtil {
 	 * @param ico
 	 */
 	static void extractInfoFromIcoRequest(IntegratedConfiguration ico) throws InjectionException {
-		String SIGNATURE = "extractInfoFromIcoRequest(IntegratedConfiguration)";
+		final String SIGNATURE = "extractInfoFromIcoRequest(IntegratedConfiguration)";
 		try {
 			// Read file
 			byte[] fileContent = Util.readFile(ico.getFileName());
@@ -145,7 +145,7 @@ public class RequestGeneratorUtil {
 	
 	
 	static String generateSoapXiHeaderPart(IntegratedConfiguration ico, InjectionRequest ir) throws InjectionPayloadException {
-		String SIGNATURE = "generateSoapXiHeaderPart(InjectionRequest)";
+		final String SIGNATURE = "generateSoapXiHeaderPart(IntegratedConfiguration, InjectionRequest)";
 		try {
 			StringWriter stringWriter = new StringWriter();
 			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
@@ -369,7 +369,6 @@ public class RequestGeneratorUtil {
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
 		}
-
 	}
 	
 }

@@ -27,12 +27,11 @@ public class IntegratedConfiguration {
 	private static Logger logger 			= Logger.getInstance();
 	private static final String LOCATION 	= IntegratedConfiguration.class.getName();	
 	private static final String MAP_FILE	= FileStructure.DIR_REGRESSION_OUTPUT_MAPPING + "Map_" + System.currentTimeMillis() + ".txt";
-	
+	public static BufferedWriter mapWriter	= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID	
 	
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
-	public static BufferedWriter mapWriter			= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID
 	private String name 							= null;		// Name of ICO
 	private String fileName							= null;		// Complete path to ICO request file
 	private String payloadDirectory					= null;		// Directory containing payload files to be injected
@@ -131,7 +130,7 @@ public class IntegratedConfiguration {
 	 * Inject FIRST payloads to SAP PO based on single ICO request file
 	 */
 	public void injectAllMessagesForSingleIco() throws InjectionException {
-		String SIGNATURE = "injectAllMessagesForSingleIco()";
+		final String SIGNATURE = "injectAllMessagesForSingleIco()";
 		InjectionRequest ir = null;
 		try {
 			// Get list of all request/payload files related to ICO
@@ -204,7 +203,7 @@ public class IntegratedConfiguration {
 	 * @throws InjectionPayloadException
 	 */
 	private void injectMessage(String payloadFile, InjectionRequest ir) throws InjectionPayloadException {
-		String SIGNATURE = "injectMessage(String)";
+		final String SIGNATURE = "injectMessage(String)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "---- Payload processing BEGIN: " + payloadFile);
 
