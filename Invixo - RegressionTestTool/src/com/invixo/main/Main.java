@@ -14,10 +14,10 @@ public class Main {
 	public static void main(String[] args) {
 		// NB: this should be parameterized so it can be run from a console.
 		
-		// Test extraction (this should be checked for as a program parameter!!!
+		// Test extraction (this should be checked for as a program parameter!!!!
 //		extract();
 		
-		// Test extraction (this should be checked for as a program parameter!!!
+		// Test extraction (this should be checked for as a program parameter!!!!
 //		inject(); 
 	}
 
