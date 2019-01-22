@@ -2,6 +2,8 @@ package com.invixo.extraction.reporting;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -94,6 +96,15 @@ public class ReportWriter {
 			for (IntegratedConfiguration ico : icoList) {
 				// Create element: ExtractReport | IntegratedConfiguration
 				xmlWriter.writeStartElement(XML_PREFIX, "IntegratedConfiguration", XML_NS);
+
+				// Create element: ExtractReport | IntegratedConfiguration | Error
+				xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+				if (ico.getEx() != null) {
+					StringWriter sw = new StringWriter();
+					ico.getEx().printStackTrace(new PrintWriter(sw));
+					xmlWriter.writeCData(sw.toString());	
+				}				
+				xmlWriter.writeEndElement();	
 				
 				// Create element: ExtractReport | IntegratedConfiguration | Name
 				xmlWriter.writeStartElement(XML_PREFIX, "Name", XML_NS);
@@ -128,6 +139,15 @@ public class ReportWriter {
 				for (MessageKey key : keys) {
 					// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List
 					xmlWriter.writeStartElement(XML_PREFIX, "List", XML_NS);
+					
+					// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | Error
+					xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+					if (key.getEx() != null) {
+						StringWriter sw = new StringWriter();
+						key.getEx().printStackTrace(new PrintWriter(sw));
+						xmlWriter.writeCData(sw.toString());	
+					}				
+					xmlWriter.writeEndElement();	
 					
 					// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | Key
 					xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);					

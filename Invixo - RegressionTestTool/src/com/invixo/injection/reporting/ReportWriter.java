@@ -2,6 +2,8 @@ package com.invixo.injection.reporting;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -78,6 +80,15 @@ public class ReportWriter {
 				// Create element: InjectReport | IntegratedConfiguration
 				xmlWriter.writeStartElement(XML_PREFIX, "IntegratedConfiguration", XML_NS);
 				
+				// Create element: InjectReport | IntegratedConfiguration | Injections | info | Error
+				xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+				if (ico.getEx() != null) {
+					StringWriter sw = new StringWriter();
+					ico.getEx().printStackTrace(new PrintWriter(sw));
+					xmlWriter.writeCData(sw.toString());		
+				}
+				xmlWriter.writeEndElement();
+				
 				// Create element: InjectReport | IntegratedConfiguration | Name
 				xmlWriter.writeStartElement(XML_PREFIX, "Name", XML_NS);
 				xmlWriter.writeCharacters(ico.getName());
@@ -102,6 +113,16 @@ public class ReportWriter {
 				// Build InjectionRequest list
 				ArrayList<InjectionRequest> requests = ico.getInjections();
 				for (InjectionRequest req : requests) {
+					
+					// Create element: InjectReport | IntegratedConfiguration | Injections | info | Error
+					xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+					if (req.getError() != null) {
+						StringWriter sw = new StringWriter();
+						req.getError().printStackTrace(new PrintWriter(sw));
+						xmlWriter.writeCData(sw.toString());		
+					}
+					xmlWriter.writeEndElement();
+					
 					// Create element: InjectReport | IntegratedConfiguration | Injections | info
 					xmlWriter.writeStartElement(XML_PREFIX, "info", XML_NS);
 					
@@ -118,13 +139,6 @@ public class ReportWriter {
 					// Create element: InjectReport | IntegratedConfiguration | Injections | info | GeneratedRequestFile
 					xmlWriter.writeStartElement(XML_PREFIX, "GeneratedRequestFile", XML_NS);					
 					xmlWriter.writeCharacters(req.getInjectionRequestFile());
-					xmlWriter.writeEndElement();
-					
-					// Create element: InjectReport | IntegratedConfiguration | Injections | info | Error
-					xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
-					if (req.getError() != null) {
-						xmlWriter.writeCharacters(req.getError().getMessage());	
-					}
 					xmlWriter.writeEndElement();
 					
 					// Close element: InjectReport | IntegratedConfiguration | Injections | info

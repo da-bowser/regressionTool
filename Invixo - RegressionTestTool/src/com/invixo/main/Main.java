@@ -22,7 +22,7 @@ public class Main {
 //		inject();  
 		
 		// Test compare (this should be checked for as a program parameter!!!!
-		compare();
+//		compare();
 	}
 
 	

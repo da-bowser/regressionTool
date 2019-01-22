@@ -109,7 +109,11 @@ public class MessageKey {
 		return ex;
 	}
 	
-		
+	public void setEx(ExtractorException e) {
+		this.ex = e;
+	}
+	
+	
 	/**
 	 * Main entry point for processing a Message Key.
 	 * Call Web Service for fetching SAP PO message data (SOAP envelope). 
@@ -175,7 +179,7 @@ public class MessageKey {
 			logger.writeDebug(LOCATION, SIGNATURE, "Payload file written to file system");
 			
 			return fileName;
-		} catch (MessagingException|IOException e) {
+		} catch (ArrayIndexOutOfBoundsException|MessagingException|IOException e) {
 			String msg = "Error extracting payload from multipart message and storing it on file sytem\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			ExtractorException ex = new ExtractorException(msg);

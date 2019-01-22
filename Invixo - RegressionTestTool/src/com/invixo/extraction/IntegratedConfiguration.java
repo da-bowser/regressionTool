@@ -149,23 +149,29 @@ public class IntegratedConfiguration {
 	 */
 	private void processSingleMessageKey(String key) throws ExtractorException {
 		String SIGNATURE = "processSingleMessageKey(String, String)";
-		
-		// Create a new MessageKey object
-		MessageKey msgKey = new MessageKey(this, key);
-		
-		// Attach a reference to newly created MessageKey object to this ICO
-		this.messageKeys.add(msgKey);
-		
-		// Fetch payload: FIRST
-		if (EXTRACT_FIRST_PAYLOAD) {
-			msgKey.processMessageKey(key, true);
-			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey processing finished for FIRST payload");
-		}
-		
-		// Fetch payload: LAST
-		if (EXTRACT_LAST_PAYLOAD) {
-			msgKey.processMessageKey(key, false);
-			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey processing finished for LAST payload");
+		MessageKey msgKey = null;
+		try {
+			// Create a new MessageKey object
+			msgKey = new MessageKey(this, key);
+			
+			// Attach a reference to newly created MessageKey object to this ICO
+			this.messageKeys.add(msgKey);
+			
+			// Fetch payload: FIRST
+			if (EXTRACT_FIRST_PAYLOAD) {
+				msgKey.processMessageKey(key, true);
+				logger.writeDebug(LOCATION, SIGNATURE, "MessageKey processing finished for FIRST payload");
+			}
+			
+			// Fetch payload: LAST
+			if (EXTRACT_LAST_PAYLOAD) {
+				msgKey.processMessageKey(key, false);
+				logger.writeDebug(LOCATION, SIGNATURE, "MessageKey processing finished for LAST payload");
+			}			
+		} catch (ExtractorException e) {
+			if (msgKey != null) {
+				msgKey.setEx(e);
+			}
 		}
 	}
 
