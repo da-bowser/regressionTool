@@ -31,7 +31,15 @@ private static final String LOCATION 	= CustomDifferenceEvaluator.class.getName(
 			
 			// Should the difference be ignored?
 			for (String exceptionXpathString : exceptionList) {
-				if (comp.getControlDetails().getXPath().equals(exceptionXpathString)) {
+				
+				/* Strip square bractes from comp.getControlDetails().getXPath() to create a generic xpath.
+				 * /Astro_Envelope[1]/PurchaseOrderSync[1]/DataArea[1]/PurchaseOrderLine[1]/DeliveryDate[1]/text()[1]
+				 * /Astro_Envelope/PurchaseOrderSync/DataArea/PurchaseOrderLine/DeliveryDate/text()
+				 * This so we can ignore ALL occurrences in one exception entry
+				 */
+				String strippedXpath = comp.getControlDetails().getXPath().replaceAll("\\[(.+?)\\]", "");
+				
+				if (strippedXpath.equals(exceptionXpathString)) {
 					logger.writeDebug(LOCATION, SIGNATURE, "--> Diff found but is configured to be ignored using exception: " + exceptionXpathString);
 					
 					// Change result from DIFFERENT to EQUAL as it is found in our exception list
