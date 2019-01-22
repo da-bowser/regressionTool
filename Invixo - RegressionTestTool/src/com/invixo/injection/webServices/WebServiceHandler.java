@@ -19,7 +19,7 @@ import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import com.invixo.common.util.InjectionException;
+import com.invixo.common.util.InjectionPayloadException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
@@ -37,7 +37,7 @@ public class WebServiceHandler {
 	public static final String CID_HEADER = "INJECTION_HEADER";
 
 	
-	public static InputStream callWebService(HttpPost httpPostRequest) throws InjectionException {
+	public static InputStream callWebService(HttpPost httpPostRequest) throws InjectionPayloadException {
 		final String SIGNATURE = "callWebService(HttpPost)";
 		try {
 	        // Call service
@@ -54,7 +54,7 @@ public class WebServiceHandler {
 			e.printStackTrace(new PrintWriter(sw));
 			String ex = "Error calling web service.\n" + sw.toString();
 			logger.writeError(LOCATION, SIGNATURE, ex);
-			throw new InjectionException(ex);
+			throw new InjectionPayloadException(ex);
 		}
 	}
 

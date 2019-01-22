@@ -2,73 +2,35 @@ package com.invixo.injection;
 
 import java.util.UUID;
 
+import com.invixo.common.util.InjectionPayloadException;
+
 public class InjectionRequest {
-	private String senderParty = null;
-	private String senderComponent = null;
-	private String senderInterface = null;
-	private String senderNamespace = null;
-	private String receiverParty = null;
-	private String receiverComponent = null;
-	private String qualityOfService = null;
+
 	private String messageId = UUID.randomUUID().toString();
-	private byte[] payload = null;
-	private String payloadFile = null;
+	private String sourcePayloadFile = null;
+	private String injectionRequestFile = null;
+	private InjectionPayloadException error = null;
 	
-	public String getSenderParty() {
-		return senderParty;
-	}
-	public void setSenderParty(String senderParty) {
-		this.senderParty = senderParty;
-	}
-	public String getSenderComponent() {
-		return senderComponent;
-	}
-	public void setSenderComponent(String senderComponent) {
-		this.senderComponent = senderComponent;
-	}
-	public String getSenderInterface() {
-		return senderInterface;
-	}
-	public void setSenderInterface(String senderInterface) {
-		this.senderInterface = senderInterface;
-	}
-	public String getSenderNamespace() {
-		return senderNamespace;
-	}
-	public void setSenderNamespace(String senderNamespace) {
-		this.senderNamespace = senderNamespace;
-	}
-	public String getReceiverParty() {
-		return receiverParty;
-	}
-	public void setReceiverParty(String receiverParty) {
-		this.receiverParty = receiverParty;
-	}
-	public String getReceiverComponent() {
-		return receiverComponent;
-	}
-	public void setReceiverComponent(String receiverComponent) {
-		this.receiverComponent = receiverComponent;
-	}
-	public String getQualityOfService() {
-		return qualityOfService;
-	}
-	public void setQualityOfService(String qualityOfService) {
-		this.qualityOfService = qualityOfService;
-	}
 	public String getMessageId() {
 		return messageId;
 	}
-	public byte[] getPayload() {
-		return payload;
+	public String getSourcePayloadFile() {
+		return sourcePayloadFile;
 	}
-	public void setPayload(byte[] payload) {
-		this.payload = payload;
+	public void setSourcePayloadFile(String payloadFile) {
+		this.sourcePayloadFile = payloadFile;
 	}
-	public String getPayloadFile() {
-		return payloadFile;
+	public String getInjectionRequestFile() {
+		return injectionRequestFile;
 	}
-	public void setPayloadFile(String payloadFile) {
-		this.payloadFile = payloadFile;
+	public void setInjectionRequestFile(String injectionRequestFile) {
+		this.injectionRequestFile = injectionRequestFile;
 	}
+	public InjectionPayloadException getError() {
+		return error;
+	}
+	public void setError(InjectionPayloadException error) {
+		this.error = error;
+	}
+	
 }

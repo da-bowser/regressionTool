@@ -1,6 +1,7 @@
 package com.invixo.injection;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import com.invixo.common.util.InjectionException;
 import com.invixo.common.util.Logger;
@@ -8,9 +9,9 @@ import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 
 public class Orchestrator {
-	private static Logger logger 			= Logger.getInstance();
-	private static final String LOCATION 	= Orchestrator.class.getName();
-	
+	private static Logger logger 						= Logger.getInstance();
+	private static final String LOCATION 				= Orchestrator.class.getName();
+	private static ArrayList<IntegratedConfiguration> icoList 	= new ArrayList<IntegratedConfiguration>();
 	
 	public static void main(String[] args) {
 		start();
@@ -29,13 +30,7 @@ public class Orchestrator {
 			
 			// Process each ICO request file
 			for (File file : files) {
-				logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);
-				
-				// Process
-				IntegratedConfiguration ico = new IntegratedConfiguration(file.getAbsolutePath());
-				ico.injectAllMessagesForSingleIco();
-
-				logger.writeDebug(LOCATION, SIGNATURE, "*********** Processing ICO finished successfully");
+				processSingleIco(file);
 			}
 			
 			logger.writeDebug(LOCATION, SIGNATURE, "Processing all ICO's finished successfully!");
@@ -43,6 +38,32 @@ public class Orchestrator {
 			String ex = "Processing terminated with error!";
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new RuntimeException(ex);
+		}
+	}
+	
+	
+	private static void processSingleIco(File file) throws InjectionException {
+		String SIGNATURE = "processSingleIco()";
+		IntegratedConfiguration ico = null;
+		try {
+			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);
+			
+			// Process
+			ico = new IntegratedConfiguration(file.getAbsolutePath());
+			icoList.add(ico);
+			ico.injectAllMessagesForSingleIco();
+
+		} catch (InjectionException e) {
+			if (ico != null) {
+				ico.setEx(e);
+			} else {
+				// If ICO could not be instantiated then something is horrible wrong.
+				String msg = "Fatal error! Could not instantiate ICO for file: " + file.getAbsolutePath() + "\n" + e;
+				logger.writeError(LOCATION, SIGNATURE, msg);
+				throw new RuntimeException(msg);
+			}
+		} finally {
+			logger.writeDebug(LOCATION, SIGNATURE, "*********** Processing ICO finished");
 		}
 	}
 	

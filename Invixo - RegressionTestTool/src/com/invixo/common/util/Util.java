@@ -82,7 +82,15 @@ public class Util {
 		if (includeFileExtension) {
 			return file.getName();
 		} else {
-			return file.getName().replaceFirst(".xml", "");
+			int index = file.getName().lastIndexOf(".");
+			if (index == -1) {
+				// There is no extension
+				return file.getName();
+			} else {
+				// There is an extension
+				return file.getName().substring(0, index);	
+			}
+			
 		}	
 	}
 	

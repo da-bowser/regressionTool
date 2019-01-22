@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -13,6 +12,7 @@ import java.util.ArrayList;
 import org.apache.http.client.methods.HttpPost;
 
 import com.invixo.common.util.InjectionException;
+import com.invixo.common.util.InjectionPayloadException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
@@ -35,11 +35,18 @@ public class IntegratedConfiguration {
 	private String name 							= null;		// Name of ICO
 	private String fileName							= null;		// Complete path to ICO request file
 	private String payloadDirectory					= null;		// Directory containing payload files to be injected
-	private Exception ex 							= null;		// Error information in case of error
+	private InjectionException ex					= null;		// Error information in case of error
 	private BufferedWriter mapWriter				= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID
-	private int payloadFilesProcessed				= 0;		// Number of payload files processed
 	private ArrayList<InjectionRequest> injections 	= new ArrayList<InjectionRequest>();
 	
+	// Extracts from ICO request file
+	private String senderParty = null;
+	private String senderComponent = null;
+	private String senderInterface = null;
+	private String senderNamespace = null;
+	private String receiverParty = null;
+	private String receiverComponent = null;
+	private String qualityOfService = null;
 	
 	
 	/*====================================================================================
@@ -67,6 +74,51 @@ public class IntegratedConfiguration {
 	public Exception getEx() {
 		return this.ex;
 	}
+	public Exception setEx(InjectionException ex) {
+		return this.ex;
+	}
+	public String getSenderParty() {
+		return senderParty;
+	}
+	public void setSenderParty(String senderParty) {
+		this.senderParty = senderParty;
+	}
+	public String getSenderComponent() {
+		return senderComponent;
+	}
+	public void setSenderComponent(String senderComponent) {
+		this.senderComponent = senderComponent;
+	}
+	public String getSenderInterface() {
+		return senderInterface;
+	}
+	public void setSenderInterface(String senderInterface) {
+		this.senderInterface = senderInterface;
+	}
+	public String getSenderNamespace() {
+		return senderNamespace;
+	}
+	public void setSenderNamespace(String senderNamespace) {
+		this.senderNamespace = senderNamespace;
+	}
+	public String getReceiverParty() {
+		return receiverParty;
+	}
+	public void setReceiverParty(String receiverParty) {
+		this.receiverParty = receiverParty;
+	}
+	public String getReceiverComponent() {
+		return receiverComponent;
+	}
+	public void setReceiverComponent(String receiverComponent) {
+		this.receiverComponent = receiverComponent;
+	}
+	public String getQualityOfService() {
+		return qualityOfService;
+	}
+	public void setQualityOfService(String qualityOfService) {
+		this.qualityOfService = qualityOfService;
+	}
 		
 	
 
@@ -74,38 +126,43 @@ public class IntegratedConfiguration {
 	 *------------- Instance methods
 	 *====================================================================================*/
 	/**
-	 * Inject FIRST payloads to SAP PO based on ICO request file
+	 * Inject FIRST payloads to SAP PO based on single ICO request file
 	 */
 	public void injectAllMessagesForSingleIco() throws InjectionException {
-		String SIGNATURE = "injectAllMessages()";
+		String SIGNATURE = "injectAllMessagesForSingleIco()";
+		InjectionRequest ir = null;
 		try {
-			// Get list of all request files related to ICO
+			// Get list of all request/payload files related to ICO
 			File[] files = Util.getListOfFilesInDirectory(this.payloadDirectory);
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of payload files to be processed: " + files.length);
 			
-			// Only create mapping file if there are files to inject and if it is not created already
-			if (files.length > 0 && this.mapWriter == null) {
-				this.mapWriter = Files.newBufferedWriter(Paths.get(MAP_FILE), Charset.forName(GlobalParameters.ENCODING));
-				logger.writeDebug(LOCATION, SIGNATURE, "SAP message Id mapping file generated: " + MAP_FILE);
-			}
-			
-			// Process each payload file
-			for (File file : files) {
-				logger.writeDebug(LOCATION, SIGNATURE, "Start processing payload file: " + file);
-				injectMessage(file.getAbsolutePath());
-				payloadFilesProcessed++;
+			// Prepare
+			if (files.length > 0) {
+				// Only create mapping file if there are files to inject and if it is not created already
+				initMappingTableWriter();
+				
+				// Extract common info from ICO
+				RequestGeneratorUtil.extractInfoFromIcoRequest(this);
 			}
 
-			// Log
-			if (files.length > 0) { 
-				logger.writeDebug(LOCATION, SIGNATURE, "Number of payload files processed: " + this.payloadFilesProcessed);				
+			// Process each payload file
+			for (File file : files) {
+				ir = new InjectionRequest();
+				injections.add(ir);
+				injectMessage(file.getAbsolutePath(), ir);
 			}
-		} catch (Exception e) {
-			String msg = "Error occurred during injection! Number of processed payload files: " + this.payloadFilesProcessed + "\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new InjectionException(msg);
+		} catch (InjectionPayloadException e) {
+			// Add error to current payload injection
+			if (ir != null ) {
+				ir.setError(e);
+			}
 		} finally {
 			try {
+				// Logging
+				String msg = "Number of processed payload files: " + this.injections.size();
+				logger.writeDebug(LOCATION, SIGNATURE, msg);
+				
+				// Close resources
 				if (this.mapWriter != null) {
 					this.mapWriter.flush();
 					this.mapWriter.close();
@@ -115,50 +172,78 @@ public class IntegratedConfiguration {
 			}
 		}
 	}
+
+
+	/**
+	 * Initialize writer enabling writing to mapping file for source/target SAP message IDs
+	 * @throws InjectionPayloadException
+	 */
+	private void initMappingTableWriter() throws InjectionPayloadException {
+		final String SIGNATURE = "initMappingTableWriter()";
+		try {
+			if (this.mapWriter == null) {
+				this.mapWriter = Files.newBufferedWriter(Paths.get(MAP_FILE), Charset.forName(GlobalParameters.ENCODING));
+				logger.writeDebug(LOCATION, SIGNATURE, "SAP message Id mapping file initialized: " + MAP_FILE);
+			}
+		} catch (IOException e) {
+			String msg = "Error initializing SAP MessageId mapping file "+ MAP_FILE + ".\n" + e.getMessage();
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new InjectionPayloadException(msg);
+		}
+	}
 	
 	
 	/**
+	 * Main entry point for processing/injecting a single payload file to SAP PO.
 	 * Create HTTP request message to be sent to SAP PO and inject it to the system.
 	 * Routing info is extracted from the ICO Request file.
 	 * Payload is taken from the referenced payload file.
 	 * @param payloadFile
+	 * @param ir
+	 * @throws InjectionPayloadException
 	 */
-	private void injectMessage(String payloadFile) throws InjectionException {
+	private void injectMessage(String payloadFile, InjectionRequest ir) throws InjectionPayloadException {
 		String SIGNATURE = "injectMessage(String)";
 		try {
-			// Create injection request object
-			InjectionRequest ir = new InjectionRequest();
-			
-			// Extract relevant properties into POJO from request file
-			RequestGeneratorUtil.extractInfoFromIcoRequest(ir, this.fileName);
-			
-			// Add payload to injection request. Payload is taken from an "instance" payload file (file extracted from the system)
-			ir.setPayload(Util.readFile(payloadFile));
+			logger.writeDebug(LOCATION, SIGNATURE, "---- Payload processing BEGIN: " + payloadFile);
+
+			// Add payload to injection request. Payload is taken from an "instance" payload file (a file extracted previously)
+			byte[] payload = Util.readFile(payloadFile);
 
 			// Generate SOAP XI Header
-			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(ir);
+			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(this, ir);
 			
 			// Build Request to be sent via Web Service call
-			HttpPost webServiceRequest = WebServiceHandler.buildHttpPostRequest(soapXiHeader.getBytes(GlobalParameters.ENCODING), ir.getPayload()); 
+			HttpPost webServiceRequest = WebServiceHandler.buildHttpPostRequest(soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
 			
 			// Store request on file system (just for pleasant reference)
-			String fileName = getTargetFileName(this.fileName, ir.getMessageId());
-			webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(fileName)));
-			logger.writeError(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + fileName);
+			ir.setInjectionRequestFile(getTargetFileName(this.fileName, ir.getMessageId()));
+			webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
+			logger.writeError(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
 	        
 			// Call SAP PO Web Service (using XI protocol)
 			WebServiceHandler.callWebService(webServiceRequest);
 			
 			// Write entry to mapping file
+			System.out.println(Util.getFileName(payloadFile, false));
+			System.out.println(payloadFile);
 			addMappingEntryToFile(Util.getFileName(payloadFile, false), ir.getMessageId());
 		} catch (IOException e) {
 			String msg = "Error injecting new request to SAP PO for ICO file " + this.fileName + " and payload file " + payloadFile + ".\n" + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg + e);
-			throw new InjectionException(msg);
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new InjectionPayloadException(msg);
+		} finally {
+			logger.writeDebug(LOCATION, SIGNATURE, "---- Payload processing END");
 		}
 	}
 	
 	
+	/**
+	 * Write new SAP Message ID (source --> target) mapping to mapping file 
+	 * @param sourceMsgId
+	 * @param targetMsgId
+	 * @throws IOException
+	 */
 	private void addMappingEntryToFile(String sourceMsgId, String targetMsgId) throws IOException {
 		final String SIGNATURE = "addMappingEntryToFile(String, String)";
 		final String separator = "|";
@@ -168,6 +253,7 @@ public class IntegratedConfiguration {
 		
 		// Write line to map
 		this.mapWriter.write(mapEntry);
+		
 		logger.writeDebug(LOCATION, SIGNATURE, "Map file update with new entry: " + mapEntry);
 	}
 	

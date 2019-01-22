@@ -24,6 +24,7 @@ import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.util.InjectionException;
+import com.invixo.common.util.InjectionPayloadException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
@@ -52,14 +53,13 @@ public class RequestGeneratorUtil {
 		
 	/**
 	 * Extract routing info from an Integrated Configuration request file used also when extracting data from SAP PO system.
-	 * @param ir
-	 * @param icoRequestfile
+	 * @param ico
 	 */
-	static void extractInfoFromIcoRequest(InjectionRequest ir, String icoRequestfile) throws InjectionException {
-		String SIGNATURE = "extractRoutingInfoFromIcoRequest(InjectionRequest, String)";
+	static void extractInfoFromIcoRequest(IntegratedConfiguration ico) throws InjectionException {
+		String SIGNATURE = "extractInfoFromIcoRequest(IntegratedConfiguration)";
 		try {
 			// Read file
-			byte[] fileContent = Util.readFile(icoRequestfile);
+			byte[] fileContent = Util.readFile(ico.getFileName());
 			
 			// Read XML file and extract data
 			XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -81,29 +81,29 @@ public class RequestGeneratorUtil {
 			    	// Sender interface name
 			    	} else if (fetchData && ELEMENT_ITF_NAME.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
-			    			ir.setSenderInterface(eventReader.peek().asCharacters().getData());	
+			    			ico.setSenderInterface(eventReader.peek().asCharacters().getData());	
 			    		}
 			    		
 			    	// Sender interface namespace
 			    	} else if (fetchData && ELEMENT_ITF_NS.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
-			    			ir.setSenderNamespace(eventReader.peek().asCharacters().getData());	
+			    			ico.setSenderNamespace(eventReader.peek().asCharacters().getData());	
 			    		}
 			    		
 			    	// Sender party
 			    	} else if (fetchData && ELEMENT_ITF_SPARTY.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
-			    			ir.setSenderParty(eventReader.peek().asCharacters().getData());	
+			    			ico.setSenderParty(eventReader.peek().asCharacters().getData());	
 			    		}
 			    		
 			    	// Sender component
 			    	} else if (fetchData && ELEMENT_ITF_SCOMPONENT.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
 			    			String sender = eventReader.peek().asCharacters().getData();
-			    			ir.setSenderComponent(SYSTEM_MAP.get(sender));
+			    			ico.setSenderComponent(SYSTEM_MAP.get(sender));
 			    			
 			    			// Check
-			    			if (ir.getSenderComponent() == null) {
+			    			if (ico.getSenderComponent() == null) {
 			    				String ex = "System Mapping: missing entry for source system " + sender;
 			    				logger.writeError(LOCATION, SIGNATURE, ex);
 			    				throw new InjectionException(ex);
@@ -113,19 +113,19 @@ public class RequestGeneratorUtil {
 			    	// Receiver party
 			    	} else if (fetchData && ELEMENT_ITF_RPARTY.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
-			    			ir.setReceiverParty(eventReader.peek().asCharacters().getData());	
+			    			ico.setReceiverParty(eventReader.peek().asCharacters().getData());	
 			    		}
 			    		
 			    	// Receiver component
 			    	} else if (fetchData && ELEMENT_ITF_RCOMPONENT.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
-			    			ir.setReceiverComponent(eventReader.peek().asCharacters().getData());	
+			    			ico.setReceiverComponent(eventReader.peek().asCharacters().getData());	
 			    		}
 			    				    	
 			    	// Quality of Service
 			    	} else if (ELEMENT_QOS.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
-			    			ir.setQualityOfService(eventReader.peek().asCharacters().getData());	
+			    			ico.setQualityOfService(eventReader.peek().asCharacters().getData());	
 			    		}
 			    	}
 			    	break;
@@ -137,14 +137,14 @@ public class RequestGeneratorUtil {
 			    }
 			}
 		} catch (XMLStreamException e) {
-			String msg = "Error extracting routing info from ICO request file: " + icoRequestfile + "\n" + e;
+			String msg = "Error extracting routing info from ICO request file: " + ico.getFileName() + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
+			throw new InjectionException(msg);
 		} 
 	}
 	
 	
-	static String generateSoapXiHeaderPart(InjectionRequest ir) throws InjectionException {
+	static String generateSoapXiHeaderPart(IntegratedConfiguration ico, InjectionRequest ir) throws InjectionPayloadException {
 		String SIGNATURE = "generateSoapXiHeaderPart(InjectionRequest)";
 		try {
 			StringWriter stringWriter = new StringWriter();
@@ -193,7 +193,7 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | ProcessingMode
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ProcessingMode");
 			xmlEventWriter.add(startElement);
-			value = xmlEventFactory.createCharacters("EO".equals(ir.getQualityOfService())?"asynchronous":"synchronous");
+			value = xmlEventFactory.createCharacters("EO".equals(ico.getQualityOfService())?"asynchronous":"synchronous");
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ProcessingMode"));
 	        
@@ -222,14 +222,14 @@ public class RequestGeneratorUtil {
 	        xmlEventWriter.add(attr);
 	        attr = xmlEventFactory.createAttribute("scheme", "XIParty");
 	        xmlEventWriter.add(attr);
-			value = xmlEventFactory.createCharacters(ir.getSenderParty());
+			value = xmlEventFactory.createCharacters(ico.getSenderParty());
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "Party"));
 			
 			// Create element: Envelope | Header | Main | Sender | Service
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "Service");
 			xmlEventWriter.add(startElement);
-			value = xmlEventFactory.createCharacters(ir.getSenderComponent());
+			value = xmlEventFactory.createCharacters(ico.getSenderComponent());
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "Service"));
 			
@@ -239,9 +239,9 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | Interface
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "Interface");
 			xmlEventWriter.add(startElement);
-	        attr = xmlEventFactory.createAttribute("namespace", ir.getSenderNamespace());
+	        attr = xmlEventFactory.createAttribute("namespace", ico.getSenderNamespace());
 	        xmlEventWriter.add(attr);
-			value = xmlEventFactory.createCharacters(ir.getSenderInterface());
+			value = xmlEventFactory.createCharacters(ico.getSenderInterface());
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "Interface"));
 
@@ -257,7 +257,7 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | ReliableMessaging | QualityOfService
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService");
 			xmlEventWriter.add(startElement);
-			value = xmlEventFactory.createCharacters("EO".equals(ir.getQualityOfService())?"ExactlyOnce":"BestEffort");		// EOIO emitted for now. Not sure of impact
+			value = xmlEventFactory.createCharacters("EO".equals(ico.getQualityOfService())?"ExactlyOnce":"BestEffort");		// EOIO emitted for now. Not sure of impact
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService"));
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ReliableMessaging"));
@@ -322,7 +322,7 @@ public class RequestGeneratorUtil {
 		} catch (XMLStreamException e) {
 			String msg = "Error generating SOAP XI Header. " + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new InjectionException(msg);
+			throw new InjectionPayloadException(msg);
 		}
 	}
 		
@@ -362,7 +362,7 @@ public class RequestGeneratorUtil {
 	 		}
 
 		    // Return initialized map
-		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized mapping from source env '" + SOURCE_ENV + "' to target env '" + TARGET_ENV + "'. Number of entries: " + SYSTEM_MAP.size());
+		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized. Source ENV '" + SOURCE_ENV + "'. Target ENV '" + TARGET_ENV + "'. Number of entries: " + SYSTEM_MAP.size());
 		    return SYSTEM_MAP;			
 		} catch (IOException e) {
 			String msg = "Error generating system mapping\n" + e;
