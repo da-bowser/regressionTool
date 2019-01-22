@@ -119,20 +119,18 @@ public class CompareHandler {
 		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" start");
 		
 		// Prepare ICO compare files
-		this.prepareFiles();
+		this.prepareFilesAndCompare();
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" completed!");
 	}
 
 	
-	private void prepareFiles() {
-		String SIGNATURE = "prepareFiles()";
-		logger.writeDebug(LOCATION, SIGNATURE, "Start file compare. Source files: " + this.sourceFiles.size()  + " Target files: " + this.compareFiles.size());
-
-		int fileCompareCount = 0;
-		Map<String, String> msgIdMap = CompareHandler.messageIdMap;
+	private void prepareFilesAndCompare() {
+		String SIGNATURE = "prepareFilesAndCompare()";
+		logger.writeDebug(LOCATION, SIGNATURE, "Start prepare and compare. Source files: " + this.sourceFiles.size()  + " Target files: " + this.compareFiles.size());
 
 		// Start looping over source files
+		int fileCompareCount = 0;
 		Path currentSourcePath;
 		for (int i = 0; i < sourceFiles.size(); i++) {
 
@@ -140,7 +138,7 @@ public class CompareHandler {
 			currentSourcePath = sourceFiles.get(i); 
 
 			// Locate matching compare file based on source msgId
-			Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, msgIdMap);
+			Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, CompareHandler.messageIdMap);
 
 			// Do compare
 			compareFiles(currentSourcePath, comparePathMatch);
@@ -149,13 +147,13 @@ public class CompareHandler {
 			fileCompareCount++;
 		}
 
-		logger.writeDebug(LOCATION, SIGNATURE, "File compare done. Files compared: " + fileCompareCount); 
+		logger.writeDebug(LOCATION, SIGNATURE, "Prepare and compare done. Files compared: " + fileCompareCount); 
 		
 	}
 	
 	
 	private static Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> map) {
-		String SIGNATURE = "getMatchingCompareFile";
+		String SIGNATURE = "getMatchingCompareFile()";
 		
 		// Extract message id from filename 
 		String sourceMsgId = Util.getFileName(sourceFilePath.getFileName().toString(), false);
