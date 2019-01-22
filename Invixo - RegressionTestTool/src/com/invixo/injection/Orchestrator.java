@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import com.invixo.common.util.InjectionException;
+import com.invixo.common.GeneralException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
@@ -62,12 +62,17 @@ public class Orchestrator {
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);
 			
-			// Process
+			// Prepare
 			ico = new IntegratedConfiguration(file.getAbsolutePath());
 			icoList.add(ico);
+
+			// Extract common info 
+			ico.extractInfoFromIcoRequest("{urn:com.sap.aii.mdt.server.adapterframework.ws}senderInterface");
+			
+			// Process
 			ico.injectAllMessagesForSingleIco();
 
-		} catch (InjectionException e) {
+		} catch (GeneralException|InjectionException e) {
 			if (ico != null) {
 				ico.setEx(e);
 			} else {

@@ -19,10 +19,10 @@ import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import com.invixo.common.util.InjectionPayloadException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.injection.InjectionPayloadException;
 
 public class WebServiceHandler {
 	private static Logger logger = Logger.getInstance();

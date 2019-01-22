@@ -1,4 +1,4 @@
-package com.invixo.common.util;
+package com.invixo.injection;
 
 public class InjectionException extends Exception {
 	private static final long serialVersionUID = 2683683154443921199L;

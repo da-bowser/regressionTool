@@ -11,8 +11,8 @@ import java.util.ArrayList;
 
 import org.apache.http.client.methods.HttpPost;
 
-import com.invixo.common.util.InjectionException;
-import com.invixo.common.util.InjectionPayloadException;
+import com.invixo.common.GeneralException;
+import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
@@ -20,7 +20,7 @@ import com.invixo.injection.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
 
 
-public class IntegratedConfiguration {
+public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	/*====================================================================================
 	 *------------- Class variables
 	 *====================================================================================*/
@@ -33,95 +33,29 @@ public class IntegratedConfiguration {
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
-	private String name 							= null;		// Name of ICO
-	private String fileName							= null;		// Complete path to ICO request file
-	private String payloadDirectory					= null;		// Directory containing payload files to be injected
-	private InjectionException ex					= null;		// Error information in case of error
+	private String payloadDirectory	= null;		// Directory containing payload files to be injected
 	private ArrayList<InjectionRequest> injections 	= new ArrayList<InjectionRequest>();
-	
-	// Extracts from ICO request file
-	private String senderParty = null;
-	private String senderComponent = null;
-	private String senderInterface = null;
-	private String senderNamespace = null;
-	private String receiverParty = null;
-	private String receiverComponent = null;
-	private String qualityOfService = null;
+
 	
 	
 	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
-	public IntegratedConfiguration(String icoFileName) throws InjectionException {
-		final String SIGNATURE = "IntegratedConfiguration(String)";
-		this.fileName = icoFileName;
-		this.name = Util.getFileName(icoFileName, false);
-		this.payloadDirectory = FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION + this.name;
-		logger.writeDebug(LOCATION, SIGNATURE, "Source directory containing FIRST messages: " + this.payloadDirectory);
+	public IntegratedConfiguration(String icoFileName) throws GeneralException {
+		super(icoFileName);
+		
+		initialize();
 	}
-	
+			
 	
 	
 	/*====================================================================================
 	 *------------- Getters and Setters
 	 *====================================================================================*/
-	public String getName() {
-		return this.name;
-	}
-	public String getFileName() {
-		return this.fileName;
-	}	
-	public Exception getEx() {
-		return this.ex;
-	}
-	public Exception setEx(InjectionException ex) {
-		return this.ex;
-	}
-	public String getSenderParty() {
-		return senderParty;
-	}
-	public void setSenderParty(String senderParty) {
-		this.senderParty = senderParty;
-	}
-	public String getSenderComponent() {
-		return senderComponent;
-	}
-	public void setSenderComponent(String senderComponent) {
-		this.senderComponent = senderComponent;
-	}
-	public String getSenderInterface() {
-		return senderInterface;
-	}
-	public void setSenderInterface(String senderInterface) {
-		this.senderInterface = senderInterface;
-	}
-	public String getSenderNamespace() {
-		return senderNamespace;
-	}
-	public void setSenderNamespace(String senderNamespace) {
-		this.senderNamespace = senderNamespace;
-	}
-	public String getReceiverParty() {
-		return receiverParty;
-	}
-	public void setReceiverParty(String receiverParty) {
-		this.receiverParty = receiverParty;
-	}
-	public String getReceiverComponent() {
-		return receiverComponent;
-	}
-	public void setReceiverComponent(String receiverComponent) {
-		this.receiverComponent = receiverComponent;
-	}
-	public String getQualityOfService() {
-		return qualityOfService;
-	}
-	public void setQualityOfService(String qualityOfService) {
-		this.qualityOfService = qualityOfService;
-	}
 	public ArrayList<InjectionRequest> getInjections() {
 		return this.injections;
 	}	
+	
 	
 
 	/*====================================================================================
@@ -135,6 +69,7 @@ public class IntegratedConfiguration {
 		InjectionRequest ir = null;
 		try {
 			// Get list of all request/payload files related to ICO
+			System.out.println(this.payloadDirectory);
 			File[] files = Util.getListOfFilesInDirectory(this.payloadDirectory);
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of payload files to be processed: " + files.length);
 			
@@ -207,6 +142,7 @@ public class IntegratedConfiguration {
 		final String SIGNATURE = "injectMessage(String)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "---- Payload processing BEGIN: " + payloadFile);
+			ir.setSourcePayloadFile(payloadFile);
 
 			// Add payload to injection request. Payload is taken from an "instance" payload file (a file extracted previously)
 			byte[] payload = Util.readFile(payloadFile);
@@ -228,7 +164,7 @@ public class IntegratedConfiguration {
 			// Write entry to mapping file
 			addMappingEntryToFile(Util.getFileName(payloadFile, false), ir.getMessageId());
 		} catch (IOException e) {
-			String msg = "Error injecting new request to SAP PO for ICO file " + this.fileName + " and payload file " + payloadFile + ".\n" + e.getMessage();
+			String msg = "Error injecting new request to SAP PO for ICO file " + super.fileName + " and payload file " + payloadFile + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new InjectionPayloadException(msg);
 		} finally {
@@ -261,6 +197,18 @@ public class IntegratedConfiguration {
 		String scenarioName = Util.getFileName(icoRequestfile, false);
 		String targetFile = FileStructure.DIR_REGRESSION_INPUT_INJECTION + scenarioName + " -- " +  messageId + ".payload";
 		return targetFile;
+	}
+	
+	
+	/**
+	 * Implementation specific object initialization
+	 */
+	protected void initialize() throws GeneralException {
+		final String SIGNATURE = "initialize()";
+
+		// Set directory for Payloads (FIRST)
+		this.payloadDirectory = FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION + super.name;
+		logger.writeDebug(LOCATION, SIGNATURE, "Source directory containing FIRST messages: " + this.payloadDirectory);
 	}
 	
 }

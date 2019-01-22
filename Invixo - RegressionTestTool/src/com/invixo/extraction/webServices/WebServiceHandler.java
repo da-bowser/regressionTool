@@ -10,10 +10,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
 
-import com.invixo.common.util.ExtractorException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.extraction.ExtractorException;
 
 public abstract class WebServiceHandler {
 	private static Logger logger = Logger.getInstance();

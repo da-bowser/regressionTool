@@ -23,8 +23,6 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
-import com.invixo.common.util.InjectionException;
-import com.invixo.common.util.InjectionPayloadException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
@@ -81,13 +79,13 @@ public class RequestGeneratorUtil {
 			    	// Sender interface name
 			    	} else if (fetchData && ELEMENT_ITF_NAME.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
-			    			ico.setSenderInterface(eventReader.peek().asCharacters().getData());	
+			    			ico.setInterfaceName(eventReader.peek().asCharacters().getData());	
 			    		}
 			    		
 			    	// Sender interface namespace
 			    	} else if (fetchData && ELEMENT_ITF_NS.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
-			    			ico.setSenderNamespace(eventReader.peek().asCharacters().getData());	
+			    			ico.setNamespace(eventReader.peek().asCharacters().getData());	
 			    		}
 			    		
 			    	// Sender party
@@ -239,9 +237,9 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | Interface
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "Interface");
 			xmlEventWriter.add(startElement);
-	        attr = xmlEventFactory.createAttribute("namespace", ico.getSenderNamespace());
+	        attr = xmlEventFactory.createAttribute("namespace", ico.getNamespace());
 	        xmlEventWriter.add(attr);
-			value = xmlEventFactory.createCharacters(ico.getSenderInterface());
+			value = xmlEventFactory.createCharacters(ico.getinterfaceName());
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "Interface"));
 

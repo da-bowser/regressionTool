@@ -40,7 +40,7 @@ public class ReportWriter {
 			}
 		}
 		
-		// Detemmine if FIRST / LAST payload where to be extracted
+		// Determine if FIRST / LAST payload where to be extracted
 		this.fetchPayloadFirst = IntegratedConfiguration.EXTRACT_FIRST_PAYLOAD;
 		this.fetchPayloadLast = IntegratedConfiguration.EXTRACT_LAST_PAYLOAD;
 	}
@@ -92,93 +92,8 @@ public class ReportWriter {
 			// Create element: ExtractReport | Details
 			xmlWriter.writeStartElement(XML_PREFIX, "Details", XML_NS);
 			
-			// Add detail info per ICO
-			for (IntegratedConfiguration ico : icoList) {
-				// Create element: ExtractReport | IntegratedConfiguration
-				xmlWriter.writeStartElement(XML_PREFIX, "IntegratedConfiguration", XML_NS);
-
-				// Create element: ExtractReport | IntegratedConfiguration | Error
-				xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
-				if (ico.getEx() != null) {
-					StringWriter sw = new StringWriter();
-					ico.getEx().printStackTrace(new PrintWriter(sw));
-					xmlWriter.writeCData(sw.toString());	
-				}				
-				xmlWriter.writeEndElement();	
-				
-				// Create element: ExtractReport | IntegratedConfiguration | Name
-				xmlWriter.writeStartElement(XML_PREFIX, "Name", XML_NS);
-				xmlWriter.writeCharacters(ico.getName());
-				xmlWriter.writeEndElement();	
-
-				// Create element: ExtractReport | IntegratedConfiguration | File
-				xmlWriter.writeStartElement(XML_PREFIX, "File", XML_NS);
-				xmlWriter.writeCharacters(ico.getFileName());
-				xmlWriter.writeEndElement();
-				
-				// Create element: ExtractReport | IntegratedConfiguration | QoS
-				xmlWriter.writeStartElement(XML_PREFIX, "QoS", XML_NS);
-				xmlWriter.writeCharacters("" + ico.getQualityOfService());
-				xmlWriter.writeEndElement();
-
-				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys
-				xmlWriter.writeStartElement(XML_PREFIX, "MessageKeys", XML_NS);
-				
-				// Create element: ExtractReport | IntegratedConfiguration | Max
-				xmlWriter.writeStartElement(XML_PREFIX, "Max", XML_NS);
-				xmlWriter.writeCharacters("" + ico.getMaxMessagesToFetch());
-				xmlWriter.writeEndElement();				
-
-				// Create element: ExtractReport | IntegratedConfiguration | Actual
-				xmlWriter.writeStartElement(XML_PREFIX, "Actual", XML_NS);
-				xmlWriter.writeCharacters("" + ico.getMessageKeys().size());
-				xmlWriter.writeEndElement();
-
-				// Build MessageKey list
-				ArrayList<MessageKey> keys = ico.getMessageKeys();
-				for (MessageKey key : keys) {
-					// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List
-					xmlWriter.writeStartElement(XML_PREFIX, "List", XML_NS);
-					
-					// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | Error
-					xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
-					if (key.getEx() != null) {
-						StringWriter sw = new StringWriter();
-						key.getEx().printStackTrace(new PrintWriter(sw));
-						xmlWriter.writeCData(sw.toString());	
-					}				
-					xmlWriter.writeEndElement();	
-					
-					// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | Key
-					xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);					
-					xmlWriter.writeCharacters(key.getSapMessageKey());
-					xmlWriter.writeEndElement();		
-					
-					// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | PathToPayloadFirst
-					xmlWriter.writeStartElement(XML_PREFIX, "PathToPayloadFirst", XML_NS);					
-					xmlWriter.writeCharacters(key.getTargetPathFirst());
-					xmlWriter.writeEndElement();
-					
-					// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | PathToPayloadLast
-					xmlWriter.writeStartElement(XML_PREFIX, "PathToPayloadLast", XML_NS);					
-					xmlWriter.writeCharacters(key.getTargetPathLast());
-					xmlWriter.writeEndElement();
-					
-					// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FileName
-					xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);					
-					xmlWriter.writeCharacters(key.getFileName());
-					xmlWriter.writeEndElement();
-					
-					// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | List
-					xmlWriter.writeEndElement();
-				}		
-
-				// Close element: ExtractReport | IntegratedConfiguration | MessageKeys
-				xmlWriter.writeEndElement();
-				
-				// Close element: ExtractReport | IntegratedConfiguration
-				xmlWriter.writeEndElement();					
-			}
+			// Add list: ExtractReport | Details | IntegratedConfiguration
+			addIcoDetails(icoList, xmlWriter);
 			
 			// Close element: ExtractReport | Details
 			xmlWriter.writeEndElement();	
@@ -195,5 +110,150 @@ public class ReportWriter {
 		} catch (XMLStreamException|FileNotFoundException e) {
 			throw new RuntimeException("Error generating report! " + e);
 		}	
+	}
+
+
+	private void addIcoDetails(ArrayList<IntegratedConfiguration> icoList,
+			XMLStreamWriter xmlWriter) throws XMLStreamException {
+		// Add detail info per ICO
+		for (IntegratedConfiguration ico : icoList) {
+			// Create element: ExtractReport | IntegratedConfiguration
+			xmlWriter.writeStartElement(XML_PREFIX, "IntegratedConfiguration", XML_NS);
+
+			// Create element: ExtractReport | IntegratedConfiguration | Error
+			xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+			if (ico.getEx() != null) {
+				StringWriter sw = new StringWriter();
+				ico.getEx().printStackTrace(new PrintWriter(sw));
+				xmlWriter.writeCData(sw.toString());	
+			}				
+			xmlWriter.writeEndElement();	
+			
+			// Create element: ExtractReport | IntegratedConfiguration | Name
+			xmlWriter.writeStartElement(XML_PREFIX, "Name", XML_NS);
+			xmlWriter.writeCharacters(ico.getName());
+			xmlWriter.writeEndElement();	
+
+			// Create element: ExtractReport | IntegratedConfiguration | File
+			xmlWriter.writeStartElement(XML_PREFIX, "File", XML_NS);
+			xmlWriter.writeCharacters(ico.getFileName());
+			xmlWriter.writeEndElement();
+			
+			// Add structure: ExtractReport | IntegratedConfiguration | Details
+			addHeaderDetails(xmlWriter, ico);
+
+			// Add structure: MessageKeys
+			addMessageKeysStructure(xmlWriter, ico);
+			
+			// Close element: ExtractReport | IntegratedConfiguration
+			xmlWriter.writeEndElement();					
+		}
+	}
+
+
+	private void addMessageKeysStructure(XMLStreamWriter xmlWriter, IntegratedConfiguration ico) throws XMLStreamException {
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys
+		xmlWriter.writeStartElement(XML_PREFIX, "MessageKeys", XML_NS);
+		
+		// Create element: ExtractReport | IntegratedConfiguration | Max
+		xmlWriter.writeStartElement(XML_PREFIX, "Max", XML_NS);
+		xmlWriter.writeCharacters("" + ico.getMaxMessages());
+		xmlWriter.writeEndElement();				
+
+		// Create element: ExtractReport | IntegratedConfiguration | Actual
+		xmlWriter.writeStartElement(XML_PREFIX, "Actual", XML_NS);
+		xmlWriter.writeCharacters("" + ico.getMessageKeys().size());
+		xmlWriter.writeEndElement();
+
+		// Build MessageKey list
+		ArrayList<MessageKey> keys = ico.getMessageKeys();
+		for (MessageKey key : keys) {
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List
+			xmlWriter.writeStartElement(XML_PREFIX, "List", XML_NS);
+			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | Error
+			xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+			if (key.getEx() != null) {
+				StringWriter sw = new StringWriter();
+				key.getEx().printStackTrace(new PrintWriter(sw));
+				xmlWriter.writeCData(sw.toString());	
+			}				
+			xmlWriter.writeEndElement();	
+			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | Key
+			xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);					
+			xmlWriter.writeCharacters(key.getSapMessageKey());
+			xmlWriter.writeEndElement();		
+			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | PathToPayloadFirst
+			xmlWriter.writeStartElement(XML_PREFIX, "PathToPayloadFirst", XML_NS);					
+			xmlWriter.writeCharacters(key.getTargetPathFirst());
+			xmlWriter.writeEndElement();
+			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | PathToPayloadLast
+			xmlWriter.writeStartElement(XML_PREFIX, "PathToPayloadLast", XML_NS);					
+			xmlWriter.writeCharacters(key.getTargetPathLast());
+			xmlWriter.writeEndElement();
+			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FileName
+			xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);					
+			xmlWriter.writeCharacters(key.getFileName());
+			xmlWriter.writeEndElement();
+			
+			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | List
+			xmlWriter.writeEndElement();
+		}		
+
+		// Close element: ExtractReport | IntegratedConfiguration | MessageKeys
+		xmlWriter.writeEndElement();
+	}
+	
+	
+	/**
+	 * Build elements:	InjectReport | Header | Details
+	 * @param xmlWriter
+	 * @param ico
+	 */
+	private static void addHeaderDetails(XMLStreamWriter xmlWriter, IntegratedConfiguration ico) throws XMLStreamException {
+		// Create element Details
+		xmlWriter.writeStartElement(XML_PREFIX, "Details", XML_NS);
+
+		// Create element: InjectReport | IntegratedConfiguration | QoS
+		xmlWriter.writeStartElement(XML_PREFIX, "QoS", XML_NS);
+		xmlWriter.writeCharacters(ico.getQualityOfService());
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | SenderParty
+		xmlWriter.writeStartElement(XML_PREFIX, "SenderParty", XML_NS);
+		xmlWriter.writeCharacters(ico.getSenderParty());
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | SenderComponent
+		xmlWriter.writeStartElement(XML_PREFIX, "SenderComponent", XML_NS);
+		xmlWriter.writeCharacters(ico.getSenderComponent());
+		xmlWriter.writeEndElement();
+
+		// Create element: ExtractReport | IntegratedConfiguration | Interface
+		xmlWriter.writeStartElement(XML_PREFIX, "Interface", XML_NS);
+		xmlWriter.writeCharacters(ico.getinterfaceName());
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | Namespace
+		xmlWriter.writeStartElement(XML_PREFIX, "Namespace", XML_NS);
+		xmlWriter.writeCharacters(ico.getNamespace());
+		xmlWriter.writeEndElement();
+
+		// Create element: ExtractReport | IntegratedConfiguration | ReceiverParty
+		xmlWriter.writeStartElement(XML_PREFIX, "ReceiverParty", XML_NS);
+		xmlWriter.writeCharacters(ico.getReceiverParty());
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | ReceiverComponent
+		xmlWriter.writeStartElement(XML_PREFIX, "ReceiverComponent", XML_NS);
+		xmlWriter.writeCharacters(ico.getReceiverComponent());
+		xmlWriter.writeEndElement();
+		
+		// Close element: Details
+		xmlWriter.writeEndElement();
 	}
 }

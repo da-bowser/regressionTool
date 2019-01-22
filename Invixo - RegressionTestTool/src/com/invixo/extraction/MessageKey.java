@@ -20,7 +20,6 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
-import com.invixo.common.util.ExtractorException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;

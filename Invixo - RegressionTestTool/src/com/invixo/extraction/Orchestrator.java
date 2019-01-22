@@ -3,7 +3,7 @@ package com.invixo.extraction;
 import java.io.File;
 import java.util.ArrayList;
 
-import com.invixo.common.util.ExtractorException;
+import com.invixo.common.GeneralException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
@@ -38,27 +38,34 @@ public class Orchestrator {
 	 */
 	public static ArrayList<IntegratedConfiguration> start() {
 		final String SIGNATURE = "start()";
-		try {
-			// Get list of all request files to be processed
-			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_REGRESSION_INPUT_ICO);
-			logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files: " + files.length);
+
+		// Get list of all request files to be processed
+		File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_REGRESSION_INPUT_ICO);
+		logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files: " + files.length);
 			
-			// Process each ICO request file
-			for (File file : files) {
-				// Prepare
-				IntegratedConfiguration ico = new IntegratedConfiguration(file.getAbsolutePath());
-				icoExtractList.add(ico);
-				
-				// Process
-				ico.processSingleIco(file.getAbsolutePath());
-			}
-			return icoExtractList;
-		} catch (ExtractorException e) {
-			String ex = "Processing terminated with error! " + e;
+		// Process each ICO request file
+		for (File file : files) {
+			processSingleIco(file);
+		}
+
+		logger.writeDebug(LOCATION, SIGNATURE, "Finished processing all ICO's");
+		return icoExtractList;
+	}
+	
+	
+	private static void processSingleIco(File file) {
+		final String SIGNATURE = "processSingleIco(File)";
+		try {
+			// Prepare
+			IntegratedConfiguration ico = new IntegratedConfiguration(file.getAbsolutePath());
+			icoExtractList.add(ico);
+
+			// Process
+			ico.processSingleIco(file.getAbsolutePath());
+		} catch (GeneralException e) {
+			String ex = "Error instantiating Integrated Configuration object! " + e;
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new RuntimeException(e);
-		} finally {
-			logger.writeDebug(LOCATION, SIGNATURE, "Finished processing all ICO's");			
 		}
 	}
 	

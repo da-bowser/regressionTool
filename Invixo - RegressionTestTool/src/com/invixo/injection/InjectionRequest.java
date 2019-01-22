@@ -2,8 +2,6 @@ package com.invixo.injection;
 
 import java.util.UUID;
 
-import com.invixo.common.util.InjectionPayloadException;
-
 public class InjectionRequest {
 
 	private String messageId = UUID.randomUUID().toString();

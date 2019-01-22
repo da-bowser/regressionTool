@@ -1,7 +1,5 @@
 package com.invixo.extraction;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
@@ -11,14 +9,15 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 
-import com.invixo.common.util.ExtractorException;
+import com.invixo.common.GeneralException;
+import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.extraction.webServices.WebServiceHandler;
-import com.invixo.main.GlobalParameters;
 
-public class IntegratedConfiguration {
+
+public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/*====================================================================================
 	 *------------- Class variables
 	 *====================================================================================*/
@@ -30,28 +29,20 @@ public class IntegratedConfiguration {
 	public static final boolean EXTRACT_LAST_PAYLOAD = Boolean.parseBoolean(PropertyAccessor.getProperty("EXTRACT_LAST_PAYLOAD"));
 		
 	
+	
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
-	private String name = null;				// Name of ICO
-	private String fileName = null;			// Complete path to ICO request file
-	private int maxMessagesToFetch = 0;		// Maximum messages to fetch via service GetMessageList
-	private String qualityOfService = null;	// QoS
-	
 	private ArrayList<String> responseMessageKeys = new ArrayList<String>();	// MessageKey IDs returned by Web Service GetMessageList
 	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();	// List of MessageKeys created/processed
-	
-	private Exception ex = null;					// Error details
 
 	
 	
 	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
-	public IntegratedConfiguration(String icoFileName) throws ExtractorException {
-		this.fileName = icoFileName;
-		this.name = Util.getFileName(icoFileName, false);
-		extractAdditionalInfoFromIco();
+	public IntegratedConfiguration(String icoFileName) throws GeneralException {
+		super(icoFileName);
 	}
 
 	
@@ -59,64 +50,15 @@ public class IntegratedConfiguration {
 	/*====================================================================================
 	 *------------- Getters and Setters
 	 *====================================================================================*/
-	public String getName() {
-		return this.name;
-	}
-	
-	public String getFileName() {
-		return this.fileName;
-	}
-	
-	public int getMaxMessagesToFetch() {
-		return this.maxMessagesToFetch;
-	}
-	
-	public String getQualityOfService() {
-		return this.qualityOfService;
-	}
-
 	public ArrayList<MessageKey> getMessageKeys() {
 		return this.messageKeys;
 	}
-	
-	public Exception getEx() {
-		return this.ex;
-	}
-		
+
 		
 	
 	/*====================================================================================
 	 *------------- Instance methods
 	 *====================================================================================*/
-	private void extractAdditionalInfoFromIco() throws ExtractorException {
-		final String SIGNATURE = "extractAdditionalInfoFromIco()";
-		try {
-			XMLInputFactory factory = XMLInputFactory.newInstance();
-			XMLEventReader eventReader = factory.createXMLEventReader(new FileInputStream(this.fileName), GlobalParameters.ENCODING);
-			
-			while (eventReader.hasNext()) {
-			    XMLEvent event = eventReader.nextEvent();
-			    
-			    switch(event.getEventType()) {
-			    case XMLStreamConstants.START_ELEMENT:
-			    	String currentElementName = event.asStartElement().getName().getLocalPart();
-			    	
-			    	if ("qualityOfService".equals(currentElementName)) {
-			    		this.qualityOfService = eventReader.peek().asCharacters().getData();
-			    		
-			    	} else if ("maxMessages".equals(currentElementName)) {
-			    		this.maxMessagesToFetch = Integer.parseInt(eventReader.peek().asCharacters().getData());
-			    	}
-			    }
-			}
-		} catch (XMLStreamException|FileNotFoundException e) {
-			String msg = "Error extracting basic info from ICO request file: " + this.fileName + "\n" + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new ExtractorException(msg);
-		} 
-	}
-
-	
 	/**
 	 * Process a single Integrated Configuration object.
 	 * This also includes all MessageKeys related to this object.
@@ -127,6 +69,12 @@ public class IntegratedConfiguration {
 		final String SIGNATURE = "processSingleIco(String)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);
+			
+			// Extract data from ICO request file
+			super.extractInfoFromIcoRequest("{urn:com.sap.aii.mdt.server.adapterframework.ws}interface");
+			
+			// CHECK
+			super.checkDataExtract();
 			
 			// Read ICO file request
 			byte[] requestBytes = Util.readFile(file);
@@ -149,7 +97,7 @@ public class IntegratedConfiguration {
 				logger.writeDebug(LOCATION, SIGNATURE, "-----> (" + counter + ") MessageKey processing finished");
 				counter++;
 			}	
-		} catch (ExtractorException e) {
+		} catch (GeneralException|ExtractorException e) {
 			this.ex = e;
 		} finally {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Finished processing ICO request file");
@@ -193,6 +141,12 @@ public class IntegratedConfiguration {
 		}
 	}
 
+	
+	/**
+	 * Implementation specific object initialization
+	 */
+	protected void initialize() throws GeneralException {}
+	
 	
 	
 	/*====================================================================================

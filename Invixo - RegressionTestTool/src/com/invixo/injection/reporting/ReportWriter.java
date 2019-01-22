@@ -99,11 +99,6 @@ public class ReportWriter {
 				xmlWriter.writeCharacters(ico.getFileName());
 				xmlWriter.writeEndElement();
 				
-				// Create element: InjectReport | IntegratedConfiguration | QoS
-				xmlWriter.writeStartElement(XML_PREFIX, "QoS", XML_NS);
-				xmlWriter.writeCharacters("" + ico.getQualityOfService());
-				xmlWriter.writeEndElement();
-
 				// Add header details
 				addHeaderDetails(xmlWriter, ico);
 				
@@ -113,6 +108,8 @@ public class ReportWriter {
 				// Build InjectionRequest list
 				ArrayList<InjectionRequest> requests = ico.getInjections();
 				for (InjectionRequest req : requests) {
+					// Create element: InjectReport | IntegratedConfiguration | Injections | info
+					xmlWriter.writeStartElement(XML_PREFIX, "info", XML_NS);
 					
 					// Create element: InjectReport | IntegratedConfiguration | Injections | info | Error
 					xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
@@ -122,10 +119,7 @@ public class ReportWriter {
 						xmlWriter.writeCData(sw.toString());		
 					}
 					xmlWriter.writeEndElement();
-					
-					// Create element: InjectReport | IntegratedConfiguration | Injections | info
-					xmlWriter.writeStartElement(XML_PREFIX, "info", XML_NS);
-					
+										
 					// Create element: InjectReport | IntegratedConfiguration | Injections | info | MessageId
 					xmlWriter.writeStartElement(XML_PREFIX, "MessageId", XML_NS);					
 					xmlWriter.writeCharacters(req.getMessageId());
@@ -179,39 +173,39 @@ public class ReportWriter {
 		// Create element Details
 		xmlWriter.writeStartElement(XML_PREFIX, "Details", XML_NS);
 
-		// Create element: Details | senderParty
-		xmlWriter.writeStartElement(XML_PREFIX, "senderParty", XML_NS);
+		// Create element: InjectReport | IntegratedConfiguration | QoS
+		xmlWriter.writeStartElement(XML_PREFIX, "QoS", XML_NS);
+		xmlWriter.writeCharacters(ico.getQualityOfService());
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | SenderParty
+		xmlWriter.writeStartElement(XML_PREFIX, "SenderParty", XML_NS);
 		xmlWriter.writeCharacters(ico.getSenderParty());
 		xmlWriter.writeEndElement();
-
-		// Create element: Details | senderComponent
-		xmlWriter.writeStartElement(XML_PREFIX, "senderComponent", XML_NS);
+		
+		// Create element: ExtractReport | IntegratedConfiguration | SenderComponent
+		xmlWriter.writeStartElement(XML_PREFIX, "SenderComponent", XML_NS);
 		xmlWriter.writeCharacters(ico.getSenderComponent());
 		xmlWriter.writeEndElement();
-		
-		// Create element: Details | senderInterface
-		xmlWriter.writeStartElement(XML_PREFIX, "senderInterface", XML_NS);
-		xmlWriter.writeCharacters(ico.getSenderInterface());
+
+		// Create element: ExtractReport | IntegratedConfiguration | Interface
+		xmlWriter.writeStartElement(XML_PREFIX, "Interface", XML_NS);
+		xmlWriter.writeCharacters(ico.getinterfaceName());
 		xmlWriter.writeEndElement();
 		
-		// Create element: Details | senderNamespace
-		xmlWriter.writeStartElement(XML_PREFIX, "senderNamespace", XML_NS);
-		xmlWriter.writeCharacters(ico.getSenderInterface());
+		// Create element: ExtractReport | IntegratedConfiguration | Namespace
+		xmlWriter.writeStartElement(XML_PREFIX, "Namespace", XML_NS);
+		xmlWriter.writeCharacters(ico.getNamespace());
 		xmlWriter.writeEndElement();
-		
-		// Create element: Details | receiverParty
-		xmlWriter.writeStartElement(XML_PREFIX, "receiverParty", XML_NS);
+
+		// Create element: ExtractReport | IntegratedConfiguration | ReceiverParty
+		xmlWriter.writeStartElement(XML_PREFIX, "ReceiverParty", XML_NS);
 		xmlWriter.writeCharacters(ico.getReceiverParty());
 		xmlWriter.writeEndElement();
 		
-		// Create element: Details | receiverComponent
-		xmlWriter.writeStartElement(XML_PREFIX, "receiverComponent", XML_NS);
+		// Create element: ExtractReport | IntegratedConfiguration | ReceiverComponent
+		xmlWriter.writeStartElement(XML_PREFIX, "ReceiverComponent", XML_NS);
 		xmlWriter.writeCharacters(ico.getReceiverComponent());
-		xmlWriter.writeEndElement();
-		
-		// Create element: Details | qualityOfService
-		xmlWriter.writeStartElement(XML_PREFIX, "qualityOfService", XML_NS);
-		xmlWriter.writeCharacters(ico.getQualityOfService());
 		xmlWriter.writeEndElement();
 		
 		// Close element: Details
