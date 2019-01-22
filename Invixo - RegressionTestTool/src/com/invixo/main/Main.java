@@ -18,7 +18,7 @@ public class Main {
 		// Test extraction (this should be checked for as a program parameter!!!!
 //		extract();
 		
-		// Test extraction (this should be checked for as a program parameter!!!!
+		// Test inject (this should be checked for as a program parameter!!!!
 //		inject();  
 		
 		// Test compare (this should be checked for as a program parameter!!!!
