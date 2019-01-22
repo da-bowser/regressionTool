@@ -92,7 +92,8 @@ public abstract class WebServiceHandler {
 	}
 	
 	
-	protected static void setHttpRequest(HttpURLConnection con, byte[] requestBytes) {
+	protected static void setHttpRequest(HttpURLConnection con, byte[] requestBytes) throws ExtractorException {
+		final String SIGNATURE = "setHttpRequest(HttpURLConnection, byte[])";
 		try {
 			con.setDoOutput(true);
 			DataOutputStream dos = new DataOutputStream(con.getOutputStream());
@@ -100,7 +101,9 @@ public abstract class WebServiceHandler {
 			dos.flush();
 			dos.close();
 		} catch (IllegalStateException|IOException e) {
-			throw new RuntimeException("*setHttpRequest* Error setting http request.\n" + e);
+			String msg = "Error setting http request. " + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new ExtractorException(msg);
 		}
 	}
 	

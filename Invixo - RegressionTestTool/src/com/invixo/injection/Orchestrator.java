@@ -1,6 +1,7 @@
 package com.invixo.injection;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import com.invixo.common.util.InjectionException;
@@ -24,6 +25,8 @@ public class Orchestrator {
 	public static void start() {
 		String SIGNATURE = "start()";
 		try {
+			logger.writeDebug(LOCATION, SIGNATURE, "Start processing all ICO's...");
+			
 			// Get list of all ICO request files to be processed
 			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_REGRESSION_INPUT_ICO);
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files: " + files.length);
@@ -33,11 +36,21 @@ public class Orchestrator {
 				processSingleIco(file);
 			}
 			
-			logger.writeDebug(LOCATION, SIGNATURE, "Processing all ICO's finished successfully!");
+			logger.writeDebug(LOCATION, SIGNATURE, "Finished processing all ICO's...");
 		} catch (InjectionException e) {
 			String ex = "Processing terminated with error!";
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new RuntimeException(ex);
+		} finally {
+			try {
+				// Close resources
+				if (IntegratedConfiguration.mapWriter != null) {
+					IntegratedConfiguration.mapWriter.flush();
+					IntegratedConfiguration.mapWriter.close();
+				}
+			} catch (IOException e) {
+				// Too bad...
+			}
 		}
 	}
 	

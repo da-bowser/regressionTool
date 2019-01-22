@@ -32,11 +32,11 @@ public class IntegratedConfiguration {
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
+	public static BufferedWriter mapWriter			= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID
 	private String name 							= null;		// Name of ICO
 	private String fileName							= null;		// Complete path to ICO request file
 	private String payloadDirectory					= null;		// Directory containing payload files to be injected
 	private InjectionException ex					= null;		// Error information in case of error
-	private BufferedWriter mapWriter				= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID
 	private ArrayList<InjectionRequest> injections 	= new ArrayList<InjectionRequest>();
 	
 	// Extracts from ICO request file
@@ -119,7 +119,9 @@ public class IntegratedConfiguration {
 	public void setQualityOfService(String qualityOfService) {
 		this.qualityOfService = qualityOfService;
 	}
-		
+	public ArrayList<InjectionRequest> getInjections() {
+		return this.injections;
+	}	
 	
 
 	/*====================================================================================
@@ -163,9 +165,8 @@ public class IntegratedConfiguration {
 				logger.writeDebug(LOCATION, SIGNATURE, msg);
 				
 				// Close resources
-				if (this.mapWriter != null) {
-					this.mapWriter.flush();
-					this.mapWriter.close();
+				if (mapWriter != null) {
+					mapWriter.flush();
 				}
 			} catch (Exception e) {
 				// Too bad...
@@ -178,11 +179,11 @@ public class IntegratedConfiguration {
 	 * Initialize writer enabling writing to mapping file for source/target SAP message IDs
 	 * @throws InjectionPayloadException
 	 */
-	private void initMappingTableWriter() throws InjectionPayloadException {
+	private static void initMappingTableWriter() throws InjectionPayloadException {
 		final String SIGNATURE = "initMappingTableWriter()";
 		try {
-			if (this.mapWriter == null) {
-				this.mapWriter = Files.newBufferedWriter(Paths.get(MAP_FILE), Charset.forName(GlobalParameters.ENCODING));
+			if (mapWriter == null) {
+				mapWriter = Files.newBufferedWriter(Paths.get(MAP_FILE), Charset.forName(GlobalParameters.ENCODING));
 				logger.writeDebug(LOCATION, SIGNATURE, "SAP message Id mapping file initialized: " + MAP_FILE);
 			}
 		} catch (IOException e) {
@@ -225,8 +226,6 @@ public class IntegratedConfiguration {
 			WebServiceHandler.callWebService(webServiceRequest);
 			
 			// Write entry to mapping file
-			System.out.println(Util.getFileName(payloadFile, false));
-			System.out.println(payloadFile);
 			addMappingEntryToFile(Util.getFileName(payloadFile, false), ir.getMessageId());
 		} catch (IOException e) {
 			String msg = "Error injecting new request to SAP PO for ICO file " + this.fileName + " and payload file " + payloadFile + ".\n" + e.getMessage();
@@ -252,7 +251,7 @@ public class IntegratedConfiguration {
 		String mapEntry = sourceMsgId + separator + targetMsgId + "\n";
 		
 		// Write line to map
-		this.mapWriter.write(mapEntry);
+		mapWriter.write(mapEntry);
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Map file update with new entry: " + mapEntry);
 	}
@@ -260,7 +259,7 @@ public class IntegratedConfiguration {
 	
 	private static String getTargetFileName(String icoRequestfile, String messageId) {
 		String scenarioName = Util.getFileName(icoRequestfile, false);
-		String targetFile = FileStructure.DIR_REGRESSION_INPUT_INJECTION + scenarioName + " -- " +  messageId + ".txt";
+		String targetFile = FileStructure.DIR_REGRESSION_INPUT_INJECTION + scenarioName + " -- " +  messageId + ".payload";
 		return targetFile;
 	}
 	

@@ -3,6 +3,7 @@ package com.invixo.extraction;
 import java.io.File;
 import java.util.ArrayList;
 
+import com.invixo.common.util.ExtractorException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
@@ -44,23 +45,20 @@ public class Orchestrator {
 			
 			// Process each ICO request file
 			for (File file : files) {
-				logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);
-				
 				// Prepare
 				IntegratedConfiguration ico = new IntegratedConfiguration(file.getAbsolutePath());
 				icoExtractList.add(ico);
 				
 				// Process
 				ico.processSingleIco(file.getAbsolutePath());
-				logger.writeDebug(LOCATION, SIGNATURE, "*********** Processing ICO finished successfully");
 			}
-			
-			logger.writeDebug(LOCATION, SIGNATURE, "Processing all ICO's finished successfully!");
 			return icoExtractList;
-		} catch (Exception e) {
-			String ex = "Processing terminated with error!";
+		} catch (ExtractorException e) {
+			String ex = "Processing terminated with error! " + e;
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new RuntimeException(e);
+		} finally {
+			logger.writeDebug(LOCATION, SIGNATURE, "Finished processing all ICO's");			
 		}
 	}
 	

@@ -105,28 +105,37 @@ public class IntegratedConfiguration {
 	 * @param file
 	 * @throws ExtractorException
 	 */
-	public void processSingleIco(String file) throws ExtractorException {
+	public void processSingleIco(String file) {
 		String SIGNATURE = "processSingleIco(String)";
-
-		// Read ICO file request
-		byte[] requestBytes = Util.readFile(file);
-		logger.writeDebug(LOCATION, SIGNATURE, "ICO request file read: " + file);
-		
-		// Call web service (GetMessageList)
-		InputStream responseBytes = WebServiceHandler.callWebService(requestBytes);
-		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessageList) called");
-		
-		// Extract MessageKeys from web Service response
-		this.responseMessageKeys = extractMessageKeysFromSingleResponseFile(responseBytes);
-		logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys contained in Web Service response: " + messageKeys.size());
-		
-		// For each MessageKey fetch payloads (first and last)
-		for (String key : this.responseMessageKeys) {
-			// Process a single Message Key
-			logger.writeDebug(LOCATION, SIGNATURE, "-----> MessageKey processing started for key: " + key);
-			this.processSingleMessageKey(key);
-			logger.writeDebug(LOCATION, SIGNATURE, "-----> MessageKey processing finished");
-		}	
+		try {
+			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);
+			
+			// Read ICO file request
+			byte[] requestBytes = Util.readFile(file);
+			logger.writeDebug(LOCATION, SIGNATURE, "ICO request file read: " + file);
+			
+			// Call web service (GetMessageList)
+			InputStream responseBytes = WebServiceHandler.callWebService(requestBytes);
+			logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessageList) called");
+			
+			// Extract MessageKeys from web Service response
+			this.responseMessageKeys = extractMessageKeysFromSingleResponseFile(responseBytes);
+			logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys contained in Web Service response: " + this.responseMessageKeys.size());
+			
+			// For each MessageKey fetch payloads (first and last)
+			int counter = 1;
+			for (String key : this.responseMessageKeys) {
+				// Process a single Message Key
+				logger.writeDebug(LOCATION, SIGNATURE, "-----> (" + counter + ") MessageKey processing started for key: " + key);
+				this.processSingleMessageKey(key);
+				logger.writeDebug(LOCATION, SIGNATURE, "-----> (" + counter + ") MessageKey processing finished");
+				counter++;
+			}	
+		} catch (ExtractorException e) {
+			this.ex = e;
+		} finally {
+			logger.writeDebug(LOCATION, SIGNATURE, "*********** Finished processing ICO request file");
+		}
 	}
 	
 	
