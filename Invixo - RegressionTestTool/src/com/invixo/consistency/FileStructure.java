@@ -5,7 +5,7 @@ import java.io.File;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
-import com.invixo.extraction.Orchestrator;
+
 
 public class FileStructure {
 	private static Logger logger = Logger.getInstance();
