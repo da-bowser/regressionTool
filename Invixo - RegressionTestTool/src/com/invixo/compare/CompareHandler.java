@@ -20,10 +20,6 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 
-import difflib.Delta;
-import difflib.DiffUtils;
-import difflib.Patch;
-
 
 public class CompareHandler {
 	
@@ -204,40 +200,6 @@ public class CompareHandler {
 	}
 	
 	
-	
-	private void doTextCompare(Path sourcePath, Path comparePath) {
-		try {
-			String SIGNATURE = "doTextCompare()";
-			// Convert paths to String lists
-			List<String> sourcePayloadList = Files.lines(sourcePath).collect(Collectors.toList());
-			List<String> comparePayloadList = Files.lines(comparePath).collect(Collectors.toList());
-			
-			// Compare
-			Patch patch = DiffUtils.diff(sourcePayloadList, comparePayloadList);
-			
-			String result =	"Result:\n--------------------------------------------------\n";
-			
-			int diffErrors = patch.getDeltas().size();
-			if (diffErrors > 0) {
-				// Simple output the computed patch to console
-				for (Delta delta : patch.getDeltas()) {
-				   result += delta + "\n";
-				}
-			}
-			
-			logger.writeDebug(LOCATION, SIGNATURE, "Differences found during compare: " + diffErrors);
-			
-			// Write result to file system
-			writeCompareResultToFile(sourcePath.getFileName().toString(), comparePath.getFileName().toString(), result, diffErrors);
-			
-		} catch (Exception e) {
-			String msg = "ERROR | Error reading source- or comparePath " + e.getMessage();
-			throw new RuntimeException(msg);
-		}
-			
-	}
-
-
 	private void doXmlCompare(Path sourcePath, Path comparePath) {
 		String sourceFileString = null;
 		String compareFileString = null;
