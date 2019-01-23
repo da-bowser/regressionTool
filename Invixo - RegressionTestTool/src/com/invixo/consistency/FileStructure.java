@@ -19,6 +19,7 @@ public class FileStructure {
 	public static final String DIR_REGRESSION_INPUT_ICO                             = DIR_REGRESSION_INPUT + "\\IntegratedConfigurations\\";
 	public static final String DIR_REGRESSION_INPUT_INJECTION                       = DIR_REGRESSION_INPUT + "\\Injection\\";
 	public static final String DIR_REGRESSION_LOG                                   = DIR_BASE_REGRESSION + "\\Log\\";
+	public static final String DIR_REGRESSION_REPORTS                              	= DIR_BASE_REGRESSION + "\\Reports";
 	private static final String DIR_REGRESSION_OUTPUT                               = DIR_BASE_REGRESSION + "\\Output";
 	private static final String DIR_REGRESSION_OUTPUT_PAYLOADS                      = DIR_REGRESSION_OUTPUT + "\\Payloads";
 	public static final String DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION     = DIR_REGRESSION_OUTPUT_PAYLOADS + "\\First message version\\";
@@ -77,6 +78,7 @@ public class FileStructure {
 		createDirIfNotExists(DIR_REGRESSION_INPUT_ICO);
 		createDirIfNotExists(DIR_REGRESSION_INPUT_INJECTION);
 		createDirIfNotExists(DIR_REGRESSION_LOG);
+		createDirIfNotExists(DIR_REGRESSION_REPORTS);
 		createDirIfNotExists(DIR_REGRESSION_OUTPUT);
 		createDirIfNotExists(DIR_REGRESSION_OUTPUT_PAYLOADS);
 		createDirIfNotExists(DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION);

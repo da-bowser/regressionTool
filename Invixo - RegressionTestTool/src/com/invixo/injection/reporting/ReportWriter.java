@@ -18,7 +18,7 @@ public class ReportWriter {
 	private static final String XML_PREFIX 	= "inv";
 	private static final String XML_NS 		= "urn:invixo.com.inject.report";
 	
-	private final String REPORT_FILE = FileStructure.FILE_BASE_LOCATION + System.currentTimeMillis() +  "_InjectReport.xml";
+	private final String REPORT_FILE = FileStructure.DIR_REGRESSION_REPORTS + "\\InjectReport_" + System.currentTimeMillis() + ".xml";
 	private int countIcoTotal = 0;	// Total number of ICOs processed
 	private int countIcoErr = 0;	// Total number of ICOs processed with error
 	private int countIcoOk = 0;		// Total number of ICOs processed successfully
