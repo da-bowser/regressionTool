@@ -14,7 +14,7 @@ public class Logger {
 	private static final String LOG_TYPE_ERROR_TXT = "[ERROR]";
     private static final String LOG_TYPE_DEBUG_TXT = "[DEBUG]";
 	
-	private final String LOG_FILE = System.currentTimeMillis() + ".txt";
+	private final String logFileName = System.currentTimeMillis() + "regressionToolRunLog.txt";
 	private FileWriter fileWriter = null;
     private static Logger instance;
     private enum LoggingTypes {CONSOLE, FILE};
@@ -25,7 +25,7 @@ public class Logger {
        
     // Get instance
     public static synchronized Logger getInstance() {
-    	String SIGNATURE = "getInstance()";
+    	final String SIGNATURE = "getInstance()";
     	try {
         	if(instance == null){
         		// Initialize new logger instance
@@ -33,7 +33,7 @@ public class Logger {
 
                 // Initialize log file
                 if (LoggingTypes.FILE.toString().equals(LOGGING_TYPE)) {
-        			instance.fileWriter = new FileWriter(FileStructure.DIR_REGRESSION_LOG + instance.LOG_FILE, true);            	
+        			instance.fileWriter = new FileWriter(FileStructure.DIR_REGRESSION_LOG + instance.logFileName, true);            	
                 }
         	}
         	return instance;
@@ -45,7 +45,7 @@ public class Logger {
 	
 	
     private void writeEntry(String location, String signature, String msg, boolean isError) {
-    	String SIGNATURE = "writeEntry(String, String, String, boolean)";
+    	final String SIGNATURE = "writeEntry(String, String, String, boolean)";
     	try {
     		// Build message string
 			String newLogMessage = createLogMessage(location, signature, msg, isError); 

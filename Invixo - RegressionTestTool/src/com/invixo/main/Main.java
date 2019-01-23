@@ -13,6 +13,10 @@ public class Main {
 	
 	
 	public static void main(String[] args) {
+		for (String param : args) {
+			System.out.println(param);
+		}
+		
 		// NB: this should be parameterized so it can be run from a console.
 		
 		// Test extraction (this should be checked for as a program parameter!!!!

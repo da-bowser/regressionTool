@@ -32,12 +32,10 @@ public class PropertyAccessor {
 			if (properties == null) {
 				properties = new Properties();
 				loadProperties();
-//				System.out.println("Properties loaded");
 			}
 			
 			// Get value
 			String value = properties.getProperty(key);
-//			System.out.println("Value loaded: " + value);
 			
 			// Check to ensure we only continue if a value was found
 			if (value == null) {
