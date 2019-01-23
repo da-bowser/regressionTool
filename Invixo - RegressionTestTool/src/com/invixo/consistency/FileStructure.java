@@ -11,7 +11,7 @@ public class FileStructure {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = Orchestrator.class.getName();
 	public static final String FILE_BASE_LOCATION									= PropertyAccessor.getProperty("BASE_DIRECTORY");
-	private static final String DIR_BASE_REGRESSION                                 = FILE_BASE_LOCATION + "PROD Data";
+	private static final String DIR_BASE_REGRESSION                                 = FILE_BASE_LOCATION + PropertyAccessor.getProperty("TARGET_ENVIRONMENT");
 	private static final String DIR_REGRESSION_COMPARE								= FILE_BASE_LOCATION + "Compare";
 	public static final String DIR_REGRESSION_COMPARE_RESULTS						= DIR_REGRESSION_COMPARE + "\\Results\\";
 	public static final String DIR_REGRESSION_COMPARE_EXEPTIONS						= DIR_REGRESSION_COMPARE + "\\Exceptions\\";
