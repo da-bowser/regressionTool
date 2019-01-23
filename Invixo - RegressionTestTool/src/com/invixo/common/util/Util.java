@@ -150,7 +150,7 @@ public class Util {
      * @param readMode		Type of read to perform FILE or DIRECTORY
      * @return	List<Path>
      */
-	public static List<Path> generateListPath(String directory, String readMode) {		
+	public static List<Path> generateListOfPaths(String directory, String readMode) {		
 		List<Path> readList = new ArrayList<Path>();
 		try {
 			if (readMode.equals("FILE")) {

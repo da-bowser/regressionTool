@@ -49,8 +49,8 @@ public class CompareHandler {
 		sourceIcoName = sourceIcoPath.getFileName().toString();
 		
 		// Get files from source and compare directories
-		sourceFiles = Util.generateListPath(sourceIcoPath.toString(), "FILE");
-		compareFiles = Util.generateListPath(compareIcoPath.toString(), "FILE");
+		sourceFiles = Util.generateListOfPaths(sourceIcoPath.toString(), "FILE");
+		compareFiles = Util.generateListOfPaths(compareIcoPath.toString(), "FILE");
 		
 		// Build message id map to match "Prod"(source) and "Test"(compare) messages
 		messageIdMap = buildMessageIdMap();
@@ -70,7 +70,7 @@ public class CompareHandler {
 		
 		// Get exceptions found for current ICO
 		List<Path> compareExceptionList;
-		compareExceptionList = Util.generateListPath(icoExceptionFilePath, "FILE");
+		compareExceptionList = Util.generateListOfPaths(icoExceptionFilePath, "FILE");
 		
 		// Get all exceptions listed in files found
 		List<String> compareExceptions = new ArrayList<String>();
@@ -96,7 +96,7 @@ public class CompareHandler {
 		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + FileStructure.DIR_REGRESSION_OUTPUT_MAPPING);
 		List<Path> mapList;
 		try {
-			mapList = Util.generateListPath(FileStructure.DIR_REGRESSION_OUTPUT_MAPPING, "FILE");
+			mapList = Util.generateListOfPaths(FileStructure.DIR_REGRESSION_OUTPUT_MAPPING, "FILE");
 			
 			// Get first entry in mapList as there is always only one mapping file!
 			Path mapFilePath = mapList.get(0);

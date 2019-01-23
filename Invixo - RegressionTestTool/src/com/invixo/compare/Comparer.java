@@ -19,8 +19,8 @@ public class Comparer {
 		logger.writeDebug(LOCATION, SIGNATURE, "Load source files for comparison from: " + FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_LAST_MSG_VERSION);
 		
 		// Load ICO's to compare
-		List<Path> sourceLibs = Util.generateListPath(FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_LAST_MSG_VERSION, "DIRECTORY");
-		List<Path> compareLibs = Util.generateListPath(FileStructure.DIR_REGRESSION_COMPARE_PAYLOAD_LAST_MSG_VERSION, "DIRECTORY");
+		List<Path> sourceLibs = Util.generateListOfPaths(FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_LAST_MSG_VERSION, "DIRECTORY");
+		List<Path> compareLibs = Util.generateListOfPaths(FileStructure.DIR_REGRESSION_COMPARE_PAYLOAD_LAST_MSG_VERSION, "DIRECTORY");
 		
 		// Start processing files for compare
 		processCompareLibs(SIGNATURE, sourceLibs, compareLibs);
