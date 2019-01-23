@@ -16,7 +16,7 @@ public class Main {
 		// NB: this should be parameterized so it can be run from a console.
 		
 		// Test extraction (this should be checked for as a program parameter!!!!
-//		extract();
+		extract();
 		
 		// Test inject (this should be checked for as a program parameter!!!!
 //		inject();  
