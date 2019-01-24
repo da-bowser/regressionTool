@@ -73,8 +73,8 @@ public class FileStructure2 {
 		final String SIGNATURE = "deleteOldRunData()";
 		try {       
 			// Cleanup: delete all files contained in "Extract Output". Only done for sub-directories part of the specified target environment
-			deletePayloadFiles(DIR_EXTRACT_OUTPUT_PRE + Main.PARAM_VAL_TARGET_ENV, Main.PARAM_VAL_TARGET_ENV);
-			logger.writeDebug(LOCATION, SIGNATURE, "Housekeeping: all old payload files deleted from root: " + DIR_EXTRACT_OUTPUT_PRE + Main.PARAM_VAL_TARGET_ENV);
+			deletePayloadFiles(DIR_EXTRACT_OUTPUT_PRE, Main.PARAM_VAL_TARGET_ENV);
+			logger.writeDebug(LOCATION, SIGNATURE, "Housekeeping: all old payload files deleted from root: " + DIR_EXTRACT_OUTPUT_PRE + " for environment: " + Main.PARAM_VAL_TARGET_ENV);
 		} catch (Exception e) {
 			String ex = "Housekeeping terminated with error! " + e;
 			logger.writeError(LOCATION, SIGNATURE, ex);
