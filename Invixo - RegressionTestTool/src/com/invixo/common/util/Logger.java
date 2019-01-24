@@ -3,18 +3,17 @@ package com.invixo.common.util;
 import java.io.FileWriter;
 import java.io.StringWriter;
 
-import com.invixo.consistency.FileStructure;
+import com.invixo.consistency.FileStructure2;
 
 
 public class Logger {
-
 	// Variables
 	public static final String LOGGING_TYPE = PropertyAccessor.getProperty("LOG_TYPE");			// CONSOLE | FILE
 	private static final String LOCATION = Logger.class.getName();
 	private static final String LOG_TYPE_ERROR_TXT = "[ERROR]";
     private static final String LOG_TYPE_DEBUG_TXT = "[DEBUG]";
 	
-	private final String logFileName = System.currentTimeMillis() + "regressionToolRunLog.txt";
+	private final String logFileName = "RunLog_" + System.currentTimeMillis() + ".txt";
 	private FileWriter fileWriter = null;
     private static Logger instance;
     private enum LoggingTypes {CONSOLE, FILE};
@@ -33,7 +32,7 @@ public class Logger {
 
                 // Initialize log file
                 if (LoggingTypes.FILE.toString().equals(LOGGING_TYPE)) {
-        			instance.fileWriter = new FileWriter(FileStructure.DIR_REGRESSION_LOG + instance.logFileName, true);            	
+        			instance.fileWriter = new FileWriter(FileStructure2.DIR_LOGS + instance.logFileName, true);            	
                 }
         	}
         	return instance;

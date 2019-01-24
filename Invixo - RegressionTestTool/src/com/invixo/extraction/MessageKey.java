@@ -24,8 +24,10 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
+import com.invixo.consistency.FileStructure2;
 import com.invixo.extraction.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
+import com.invixo.main.Main;
 
 public class MessageKey {
 	/*====================================================================================
@@ -86,8 +88,12 @@ public class MessageKey {
 		this.ico = ico;
 		this.sapMessageKey = messageKey;
 		this.sapMessageId = extractMessageIdFromKey(messageKey);
-		this.targetPathFirst = FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION 	+ this.ico.getName() + "\\";
-		this.targetPathLast = FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_LAST_MSG_VERSION 	+ this.ico.getName() + "\\";
+		
+		
+		
+		
+		this.targetPathFirst = FileStructure2.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure2.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+		this.targetPathLast = FileStructure2.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure2.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 		this.fileName = this.sapMessageId + ".txt";
 	}
 	

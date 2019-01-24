@@ -15,9 +15,9 @@ import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure;
+import com.invixo.consistency.FileStructure2;
+import com.invixo.main.Main;
 
 
 public abstract class IntegratedConfigurationMain {
@@ -36,9 +36,10 @@ public abstract class IntegratedConfigurationMain {
 	private static final String ELEMENT_ITF_RPARTY		= "{urn:com.sap.aii.mdt.api.data}receiverParty";
 	private static final String ELEMENT_ITF_RCOMPONENT	= "{urn:com.sap.aii.mdt.api.data}receiverComponent";
 	
-	private static final String MAP_FILE				= FileStructure.FILE_BASE_LOCATION + "\\systemMapping.txt";
-	private static final String SOURCE_ENV 				= PropertyAccessor.getProperty("SOURCE_ENVIRONMENT");
-	private static final String TARGET_ENV 				= PropertyAccessor.getProperty("TARGET_ENVIRONMENT");
+	private static final String MAP_FILE				= FileStructure2.DIR_CONFIG + "systemMapping.txt";
+	private static final String SOURCE_ENV_ICO_REQUESTS	= Main.PARAM_VAL_ICO_REQUEST_FILES_ENV;
+//	private static final String SOURCE_ENV 				= Main.PARAM_VAL_SOURCE_ENV;
+	private static final String TARGET_ENV 				= Main.PARAM_VAL_TARGET_ENV;
 	private static HashMap<String, String> SYSTEM_MAP	= initializeSystemMap();
 	
 	
@@ -144,9 +145,9 @@ public abstract class IntegratedConfigurationMain {
 		try {
 			// Determine source index (how the request ICO's are created)
 			int sourceIndex = -1;
-			if ("DEV".equals(SOURCE_ENV)) {
+			if ("DEV".equals(SOURCE_ENV_ICO_REQUESTS)) {
 				sourceIndex = 0;
-			} else if ("TST".equals(SOURCE_ENV)) {
+			} else if ("TST".equals(SOURCE_ENV_ICO_REQUESTS)) {
 				sourceIndex = 1;
 			} else {
 				sourceIndex = 2;
@@ -174,7 +175,7 @@ public abstract class IntegratedConfigurationMain {
 	 		}
 
 		    // Return initialized map
-		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized. Source ENV '" + SOURCE_ENV + "'. Target ENV '" + TARGET_ENV + "'. Number of entries: " + SYSTEM_MAP.size());
+		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized. Source ENV '" + SOURCE_ENV_ICO_REQUESTS + "'. Target ENV '" + TARGET_ENV + "'. Number of entries: " + SYSTEM_MAP.size());
 		    return SYSTEM_MAP;			
 		} catch (IOException e) {
 			String msg = "Error generating system mapping\n" + e;

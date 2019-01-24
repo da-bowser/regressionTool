@@ -13,6 +13,7 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.compare.Comparer;
 import com.invixo.consistency.FileStructure;
+import com.invixo.consistency.FileStructure2;
 import com.invixo.extraction.IntegratedConfiguration;
 import com.invixo.extraction.reporting.ReportWriter;
 
@@ -89,7 +90,7 @@ public class Main {
 				readAndSetCredentials(PARAM_VAL_CREDENTIALS_FILE);
 				
 				// Post parameter handling: build complete PO host and port
-				SAP_PO_HTTP_HOST_AND_PORT = PARAM_VAL_HTTP_HOST + ":" + PARAM_VAL_HTTP_PORT + "/";
+				SAP_PO_HTTP_HOST_AND_PORT = "http://" + PARAM_VAL_HTTP_HOST + ":" + PARAM_VAL_HTTP_PORT + "/";
 				
 				// Process
 				extract();
@@ -101,7 +102,7 @@ public class Main {
 				readAndSetCredentials(PARAM_VAL_CREDENTIALS_FILE);
 				
 				// Post parameter handling: build complete PO host and port
-				SAP_PO_HTTP_HOST_AND_PORT = PARAM_VAL_HTTP_HOST + ":" + PARAM_VAL_HTTP_PORT + "/";
+				SAP_PO_HTTP_HOST_AND_PORT = "http://" + PARAM_VAL_HTTP_HOST + ":" + PARAM_VAL_HTTP_PORT + "/";
 				
 				// Process
 				inject(); 
@@ -272,7 +273,7 @@ public class Main {
 		final String SIGNATURE = "extract()";
 		
 		// Clean up file structure and ensure its consistency
-		ensureFileStructureConsistency();
+		FileStructure2.startCheck();
 		
 		// Start extracting
 		ArrayList<IntegratedConfiguration> icoList = com.invixo.extraction.Orchestrator.start();
@@ -290,6 +291,9 @@ public class Main {
 	 */
 	public static void inject() {
 		final String SIGNATURE = "inject()";
+		
+		// Clean up file structure and ensure its consistency
+		FileStructure2.startCheck();
 		
 		// Start injecting
 		ArrayList<com.invixo.injection.IntegratedConfiguration> icoList = com.invixo.injection.Orchestrator.start();

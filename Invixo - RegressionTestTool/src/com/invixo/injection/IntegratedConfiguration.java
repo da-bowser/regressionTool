@@ -2,7 +2,7 @@ package com.invixo.injection;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
+//import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -15,9 +15,11 @@ import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure;
+//import com.invixo.consistency.FileStructure;
+import com.invixo.consistency.FileStructure2;
 import com.invixo.injection.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
+import com.invixo.main.Main;
 
 
 public class IntegratedConfiguration extends IntegratedConfigurationMain  {
@@ -26,7 +28,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 *====================================================================================*/
 	private static Logger logger 			= Logger.getInstance();
 	private static final String LOCATION 	= IntegratedConfiguration.class.getName();	
-	private static final String MAP_FILE	= FileStructure.DIR_REGRESSION_OUTPUT_MAPPING + "Map_" + System.currentTimeMillis() + ".txt";
+	private static final String MAP_FILE	= FileStructure2.DIR_INJECT + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV +"_msgId_map" + ".txt";
 	public static BufferedWriter mapWriter	= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID	
 	
 	
@@ -154,9 +156,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			HttpPost webServiceRequest = WebServiceHandler.buildHttpPostRequest(soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
 			
 			// Store request on file system (just for pleasant reference)
-			ir.setInjectionRequestFile(getTargetFileName(this.fileName, ir.getMessageId()));
-			webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
-			logger.writeDebug(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
+//			ir.setInjectionRequestFile(getTargetFileName(this.fileName, ir.getMessageId()));
+//			webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
+//			logger.writeDebug(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
 	        
 			// Call SAP PO Web Service (using XI protocol)
 			WebServiceHandler.callWebService(webServiceRequest);
@@ -193,11 +195,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	}
 	
 	
-	private static String getTargetFileName(String icoRequestfile, String messageId) {
-		String scenarioName = Util.getFileName(icoRequestfile, false);
-		String targetFile = FileStructure.DIR_REGRESSION_INPUT_INJECTION + scenarioName + " -- " +  messageId + ".payload";
-		return targetFile;
-	}
+//	private static String getTargetFileName(String icoRequestfile, String messageId) {
+//		String scenarioName = Util.getFileName(icoRequestfile, false);
+//		String targetFile = FileStructure2.DIR_REGRESSION_INPUT_INJECTION + scenarioName + " -- " +  messageId + ".payload";
+//		return targetFile;
+//	}
 	
 	
 	/**
@@ -207,7 +209,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String SIGNATURE = "initialize()";
 
 		// Set directory for Payloads (FIRST)
-		this.payloadDirectory = FileStructure.DIR_REGRESSION_OUTPUT_PAYLOADS_FIRST_MSG_VERSION + super.name;
+		this.payloadDirectory = FileStructure2.DIR_EXTRACT_OUTPUT_PRE + super.name + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure2.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
 		logger.writeDebug(LOCATION, SIGNATURE, "Source directory containing FIRST messages: " + this.payloadDirectory);
 	}
 	

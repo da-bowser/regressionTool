@@ -22,7 +22,7 @@ public class FileStructure2 {
 	public static final String FILE_BASE_LOCATION					= Main.PARAM_VAL_BASE_DIR;
 	
 	// Extract: input
-	private static final String DIR_EXTRACT							= FILE_BASE_LOCATION + "\\_Exctract";
+	private static final String DIR_EXTRACT							= FILE_BASE_LOCATION + "\\_Extract";
 	public static final String DIR_EXTRACT_INPUT					= DIR_EXTRACT + "\\Input\\Integrated Configurations\\";
 	
 	// Extract: output
@@ -59,12 +59,12 @@ public class FileStructure2 {
 		String SIGNATURE = "startCheck()";
 		logger.writeDebug(LOCATION, SIGNATURE, "Start file structure check");
 
+		// Ensure project folder structure is present
+		checkFolderStructure();
+		
 		// Clean-up old data from "Output"
 		deleteOldRunData();
 		
-		// Ensure project folder structure is present
-		checkFolderStructure();
-
 		logger.writeDebug(LOCATION, SIGNATURE, "File structure check completed!");
 	}
 
@@ -121,7 +121,7 @@ public class FileStructure2 {
 	public static void deletePayloadFiles(String rootDirectory, String environment) {
 		// Create pathMatcher which will match all files and directories (in the world of this tool, only files) that
 		// are located in FIRST or LAST directories for the specified environment.
-		String pattern = "^(?=.*\\\\" + environment + "\\\\.*\\\\.*\\\\).*$";
+		String pattern = "^(?=.*\\\\" + environment + "\\\\.*\\\\.*\\\\.*\\\\).*$";
 		PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("regex:" + pattern);
 		
 		// Find all matches to above regex starting from the specified DIR

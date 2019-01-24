@@ -14,15 +14,16 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.extraction.ExtractorException;
+import com.invixo.main.Main;
 
 public abstract class WebServiceHandler {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = WebServiceHandler.class.getName();
 	private static final boolean ENABLE_WS_LOGGING = Boolean.valueOf(PropertyAccessor.getProperty("ENABLE_WS_LOGGING"));	
 	private static final String ENCODING = PropertyAccessor.getProperty("ENCODING");
-	private static final String WEB_SERVICE_USER = PropertyAccessor.getProperty("USER");
-	private static final String WEB_SERVICE_PASS = PropertyAccessor.getProperty("PASSWORD");
-	private static final String ENDPOINT = PropertyAccessor.getProperty("SERVICE_HOST_PORT") + PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
+	private static final String WEB_SERVICE_USER = Main.CREDENTIAL_USER;
+	private static final String WEB_SERVICE_PASS = Main.CREDENTIAL_PASS;
+	private static final String ENDPOINT = Main.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
 	private static final int TIMEOUT = Integer.parseInt(PropertyAccessor.getProperty("TIMEOUT"));
 
 	
