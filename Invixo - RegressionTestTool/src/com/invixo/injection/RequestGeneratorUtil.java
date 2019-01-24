@@ -151,7 +151,7 @@ public class RequestGeneratorUtil {
 	        if ("EOIO".equals(ico.getQualityOfService())) {
 				startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QueueId");
 				xmlEventWriter.add(startElement);
-				value = xmlEventFactory.createCharacters("_inject");
+				value = xmlEventFactory.createCharacters("_20195000060431");
 				xmlEventWriter.add(value);
 				xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QueueId"));
 	        }
