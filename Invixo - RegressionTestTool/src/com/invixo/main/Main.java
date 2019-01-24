@@ -144,8 +144,8 @@ public class Main {
 			// line 2: password
 			CREDENTIAL_PASS = credentialLines.get(1);
 			
-		} catch (IOException e) {
-			String msg = "Error | Problem reading credential fil from :" + sourceDirectory + e.getMessage();
+		} catch (Exception e) {
+			String msg = "Error | Problem reading credential fil from :" + sourceDirectory + " " + e.getMessage();
 			throw new GeneralException(msg);
 		}
 		
