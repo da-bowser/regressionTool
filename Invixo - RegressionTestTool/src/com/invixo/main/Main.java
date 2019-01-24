@@ -116,7 +116,7 @@ public class Main {
 			} else {
 				compare();
 			}
-		} catch (GeneralException e) {
+		} catch (ValidationException e) {
 			// TODO: Not valid input, inform end user in the nicest way possible
 			System.out.println(e.toString());
 		}
@@ -124,7 +124,7 @@ public class Main {
 	}
 
 
-	private static void readAndSetCredentials(String sourceDirectory) throws GeneralException {
+	private static void readAndSetCredentials(String sourceDirectory) throws ValidationException {
 		
 		try {
 			// Get credential file
@@ -141,13 +141,13 @@ public class Main {
 			
 		} catch (Exception e) {
 			String msg = "Error | Problem reading credential fil from :" + sourceDirectory + " " + e.getMessage();
-			throw new GeneralException(msg);
+			throw new ValidationException(msg);
 		}
 		
 	}
 
 
-	private static void validateParameters(String operation) throws GeneralException {
+	private static void validateParameters(String operation) throws ValidationException {
 		// TODO: Validate
 	}
 
