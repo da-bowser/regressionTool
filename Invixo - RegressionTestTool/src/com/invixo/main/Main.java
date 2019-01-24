@@ -72,6 +72,10 @@ public class Main {
 	private static final String PARAM_KEY_SENDER_COMPONENT		= "senderComponent";
 	public static String PARAM_VAL_SENDER_COMPONENT 			= null;
 
+	// Parameter: internal test parameter to skip deletion of target env payload files when source and target env are identical 
+	private static final String PARAM_KEY_ALLOW_SAME_ENV		= "allowSameEnv";
+	public static boolean PARAM_VAL_ALLOW_SAME_ENV 				= false;
+	
 	
 	public static void main(String[] args) {
 		try {
@@ -190,6 +194,11 @@ public class Main {
 			sw.write(e.getMessage());
 		}
 		
+		// Do not allow injecting to PRD
+		if (Environment.PRD.toString().equals(PARAM_VAL_TARGET_ENV)) {
+			sw.write("Program parameter " + PARAM_KEY_TARGET_ENV + " points to PRD. This is not supported\n");
+		}	
+		
 		if (PARAM_VAL_SOURCE_ENV == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_SOURCE_ENV + " not set.\n");
 		} else if (!environmentContains(PARAM_VAL_SOURCE_ENV)) {
@@ -238,6 +247,11 @@ public class Main {
 				PARAM_VAL_XI_SENDER_ADAPTER = param.replace(PARAM_KEY_XI_SENDER_ADAPTER + "=", "");
 			} else if(param.contains(PARAM_KEY_SENDER_COMPONENT)) {
 				PARAM_VAL_SENDER_COMPONENT = param.replace(PARAM_KEY_SENDER_COMPONENT + "=", "");
+			} else if(param.contains(PARAM_KEY_ALLOW_SAME_ENV)) {
+				// Only ever set this parameter to true, if the source and target environments are actually identical
+				if (PARAM_VAL_SOURCE_ENV.equals(PARAM_VAL_TARGET_ENV)) {
+					PARAM_VAL_ALLOW_SAME_ENV = Boolean.parseBoolean(param.replace(PARAM_KEY_ALLOW_SAME_ENV + "=", ""));
+				}
 			}
 		}
 	}

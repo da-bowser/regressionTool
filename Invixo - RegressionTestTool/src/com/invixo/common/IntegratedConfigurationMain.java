@@ -40,7 +40,7 @@ public abstract class IntegratedConfigurationMain {
 	private static final String SOURCE_ENV_ICO_REQUESTS	= Main.PARAM_VAL_ICO_REQUEST_FILES_ENV;
 //	private static final String SOURCE_ENV 				= Main.PARAM_VAL_SOURCE_ENV;
 	private static final String TARGET_ENV 				= Main.PARAM_VAL_TARGET_ENV;
-	private static HashMap<String, String> SYSTEM_MAP	= initializeSystemMap();
+	protected static HashMap<String, String> SYSTEM_MAP	= initializeSystemMap();
 	
 	
 	/*====================================================================================

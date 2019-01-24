@@ -87,13 +87,9 @@ public class MessageKey {
 		this.ico = ico;
 		this.sapMessageKey = messageKey;
 		this.sapMessageId = extractMessageIdFromKey(messageKey);
-		
-		
-		
-		
 		this.targetPathFirst = FileStructure2.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure2.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
 		this.targetPathLast = FileStructure2.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure2.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
-		this.fileName = this.sapMessageId + ".txt";
+		this.fileName = this.sapMessageId + ".payload";
 	}
 	
 	

@@ -35,7 +35,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
-	private String payloadDirectory	= null;		// Directory containing payload files to be injected
+	private String sourcePayloadDirectory	= null;		// Directory containing payload files to be injected
 	private ArrayList<InjectionRequest> injections 	= new ArrayList<InjectionRequest>();
 
 	
@@ -71,8 +71,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		InjectionRequest ir = null;
 		try {
 			// Get list of all request/payload files related to ICO
-			System.out.println(this.payloadDirectory);
-			File[] files = Util.getListOfFilesInDirectory(this.payloadDirectory);
+			File[] files = Util.getListOfFilesInDirectory(this.sourcePayloadDirectory);
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of payload files to be processed: " + files.length);
 			
 			// Prepare
@@ -209,8 +208,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String SIGNATURE = "initialize()";
 
 		// Set directory for Payloads (FIRST)
-		this.payloadDirectory = FileStructure2.DIR_EXTRACT_OUTPUT_PRE + super.name + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure2.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
-		logger.writeDebug(LOCATION, SIGNATURE, "Source directory containing FIRST messages: " + this.payloadDirectory);
+		this.sourcePayloadDirectory = FileStructure2.DIR_EXTRACT_OUTPUT_PRE + super.name + "\\" + Main.PARAM_VAL_SOURCE_ENV + FileStructure2.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+		logger.writeDebug(LOCATION, SIGNATURE, "Source directory containing FIRST messages: " + this.sourcePayloadDirectory);
 	}
 	
 }

@@ -63,7 +63,11 @@ public class FileStructure2 {
 		checkFolderStructure();
 		
 		// Clean-up old data from "Output"
-		deleteOldRunData();
+		if (Main.PARAM_VAL_ALLOW_SAME_ENV) {
+			logger.writeDebug(LOCATION, SIGNATURE, "Deletion of target data skipped (due to program parameter setting)");	
+		} else {
+			deleteOldRunData();
+		}
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "File structure check completed!");
 	}
@@ -94,6 +98,7 @@ public class FileStructure2 {
 		createDirIfNotExists(DIR_EXTRACT);
 		createDirIfNotExists(DIR_EXTRACT_INPUT);
 		createDirIfNotExists(DIR_EXTRACT_OUTPUT_PRE);
+		createDirIfNotExists(DIR_INJECT);
 		createDirIfNotExists(DIR_LOGS);
 		createDirIfNotExists(DIR_REPORTS);
 		createDirIfNotExists(DIR_CONFIG);

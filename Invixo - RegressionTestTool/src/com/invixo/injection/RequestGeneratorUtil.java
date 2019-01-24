@@ -29,6 +29,7 @@ import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
 import com.invixo.consistency.FileStructure2;
+import com.invixo.main.Main;
 
 public class RequestGeneratorUtil {
 	private static Logger logger 						= Logger.getInstance();
@@ -44,10 +45,7 @@ public class RequestGeneratorUtil {
 	private static final String TARGET_SAP_NS			= "http://sap.com/xi/XI/Message/30";
 	private static final String TARGET_SAP_NS_PREFIX	= "sap";
 	
-	private static final String MAP_FILE				= FileStructure2.DIR_CONFIG + "\\systemMapping.txt";
-	private static final String SOURCE_ENV 				= PropertyAccessor.getProperty("SOURCE_ENVIRONMENT");
-	private static final String TARGET_ENV 				= PropertyAccessor.getProperty("TARGET_ENVIRONMENT");
-	private static HashMap<String, String> SYSTEM_MAP	= initializeSystemMap();
+//	private static final String MAP_FILE				= FileStructure2.DIR_CONFIG + "\\systemMapping.txt";
 	
 		
 	/**
@@ -98,15 +96,15 @@ public class RequestGeneratorUtil {
 			    	// Sender component
 			    	} else if (fetchData && ELEMENT_ITF_SCOMPONENT.equals(currentElementName)) {
 			    		if (eventReader.peek().isCharacters()) {
-			    			String sender = eventReader.peek().asCharacters().getData();
-			    			ico.setSenderComponent(SYSTEM_MAP.get(sender));
-			    			
-			    			// Check
-			    			if (ico.getSenderComponent() == null) {
-			    				String ex = "System Mapping: missing entry for source system " + sender;
-			    				logger.writeError(LOCATION, SIGNATURE, ex);
-			    				throw new InjectionException(ex);
-			    			}
+//			    			String sender = eventReader.peek().asCharacters().getData();
+			    			ico.setSenderComponent(eventReader.peek().asCharacters().getData());
+//			    			
+//			    			// Check
+//			    			if (ico.getSenderComponent() == null) {
+//			    				String ex = "System Mapping: missing entry for source system " + sender;
+//			    				logger.writeError(LOCATION, SIGNATURE, ex);
+//			    				throw new InjectionException(ex);
+//			    			}
 			    		}
 			    	
 			    	// Receiver party
@@ -326,48 +324,48 @@ public class RequestGeneratorUtil {
 	}
 		
 	
-	private static HashMap<String, String> initializeSystemMap() {
-		final String SIGNATURE = "initializeSystemMap()";
-		try {
-			// Determine source index (how the request ICO's are created)
-			int sourceIndex = -1;
-			if ("DEV".equals(SOURCE_ENV)) {
-				sourceIndex = 0;
-			} else if ("TST".equals(SOURCE_ENV)) {
-				sourceIndex = 1;
-			} else {
-				sourceIndex = 2;
-			}
-			
-			// Determine target index (which target system to map to when injecting)
-			int targetIndex = -1;
-			if ("DEV".equals(TARGET_ENV)) {
-				targetIndex = 0;
-			} else if ("TST".equals(TARGET_ENV)) {
-				targetIndex = 1;
-			} else {
-				targetIndex = 2;
-			}
-			
-			// Populate map
-	 		SYSTEM_MAP = new HashMap<String, String>();
-	 		String line;
-	 		FileReader fileReader = new FileReader(MAP_FILE);
-	 		try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
-	 			while((line = bufferedReader.readLine()) != null) {
-	 				String[] str = line.split("\\|");
-	 				SYSTEM_MAP.put(str[sourceIndex], str[targetIndex]);
-	 			}			   
-	 		}
-
-		    // Return initialized map
-		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized. Source ENV '" + SOURCE_ENV + "'. Target ENV '" + TARGET_ENV + "'. Number of entries: " + SYSTEM_MAP.size());
-		    return SYSTEM_MAP;			
-		} catch (IOException e) {
-			String msg = "Error generating system mapping\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
-		}
-	}
+//	private static HashMap<String, String> initializeSystemMap() {
+//		final String SIGNATURE = "initializeSystemMap()";
+//		try {
+//			// Determine source index (how the request ICO's are created)
+//			int sourceIndex = -1;
+//			if ("DEV".equals(SOURCE_ENV)) {
+//				sourceIndex = 0;
+//			} else if ("TST".equals(SOURCE_ENV)) {
+//				sourceIndex = 1;
+//			} else {
+//				sourceIndex = 2;
+//			}
+//			
+//			// Determine target index (which target system to map to when injecting)
+//			int targetIndex = -1;
+//			if ("DEV".equals(TARGET_ENV)) {
+//				targetIndex = 0;
+//			} else if ("TST".equals(TARGET_ENV)) {
+//				targetIndex = 1;
+//			} else {
+//				targetIndex = 2;
+//			}
+//			
+//			// Populate map
+//	 		SYSTEM_MAP = new HashMap<String, String>();
+//	 		String line;
+//	 		FileReader fileReader = new FileReader(MAP_FILE);
+//	 		try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+//	 			while((line = bufferedReader.readLine()) != null) {
+//	 				String[] str = line.split("\\|");
+//	 				SYSTEM_MAP.put(str[sourceIndex], str[targetIndex]);
+//	 			}			   
+//	 		}
+//
+//		    // Return initialized map
+//		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized. Source ENV '" + SOURCE_ENV + "'. Target ENV '" + TARGET_ENV + "'. Number of entries: " + SYSTEM_MAP.size());
+//		    return SYSTEM_MAP;			
+//		} catch (IOException e) {
+//			String msg = "Error generating system mapping\n" + e;
+//			logger.writeError(LOCATION, SIGNATURE, msg);
+//			throw new RuntimeException(msg);
+//		}
+//	}
 	
 }
