@@ -72,7 +72,7 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | ProcessingMode
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ProcessingMode");
 			xmlEventWriter.add(startElement);
-			value = xmlEventFactory.createCharacters("EO".equals(ico.getQualityOfService())?"asynchronous":"synchronous");
+			value = xmlEventFactory.createCharacters("BE".equals(ico.getQualityOfService())?"synchronous":"asynchronous");
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ProcessingMode"));
 	        
