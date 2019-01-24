@@ -3,7 +3,6 @@ package com.invixo.injection;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-//import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -16,7 +15,6 @@ import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-//import com.invixo.consistency.FileStructure;
 import com.invixo.consistency.FileStructure2;
 import com.invixo.injection.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
@@ -79,9 +77,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			if (files.length > 0) {
 				// Only create mapping file if there are files to inject and if it is not created already
 				initMappingTableWriter();
-				
-				// Extract common info from ICO
-				//RequestGeneratorUtil.extractInfoFromIcoRequest(this);
 			}
 
 			// Process each payload file
@@ -156,10 +151,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			HttpPost webServiceRequest = WebServiceHandler.buildHttpPostRequest(soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
 			
 			// Store request on file system (just for pleasant reference)
-			ir.setInjectionRequestFile(getTargetFileName(this.fileName, ir.getMessageId()));
-			webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
-			logger.writeDebug(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
-	        
+			if (Main.PARAM_VAL_STORE_INJECTION_REQ) {
+				ir.setInjectionRequestFile(getTargetFileName(this.fileName, ir.getMessageId()));
+				webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
+				logger.writeDebug(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
+			}
+			
 			// Call SAP PO Web Service (using XI protocol)
 			WebServiceHandler.callWebService(webServiceRequest);
 			

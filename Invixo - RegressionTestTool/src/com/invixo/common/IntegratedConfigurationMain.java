@@ -15,6 +15,7 @@ import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure2;
 import com.invixo.main.Main;
@@ -28,7 +29,7 @@ public abstract class IntegratedConfigurationMain {
 	private static final String LOCATION 	= IntegratedConfigurationMain.class.getName();	
 	
 	private static final String ELEMENT_QOS				= "{urn:com.sap.aii.mdt.server.adapterframework.ws}qualityOfService";
-	private static final String ELEMENT_MAX_MSG			= "{urn:com.sap.aii.mdt.server.adapterframework.ws}maxMessages";
+	private static final String ELEMENT_MAX_MSG			= "{urn:AdapterMessageMonitoringVi}maxMessages";
 	private static final String ELEMENT_ITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";
 	private static final String ELEMENT_ITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";
 	private static final String ELEMENT_ITF_SPARTY		= "{urn:com.sap.aii.mdt.api.data}senderParty";
@@ -36,9 +37,11 @@ public abstract class IntegratedConfigurationMain {
 	private static final String ELEMENT_ITF_RPARTY		= "{urn:com.sap.aii.mdt.api.data}receiverParty";
 	private static final String ELEMENT_ITF_RCOMPONENT	= "{urn:com.sap.aii.mdt.api.data}receiverComponent";
 	
+	private static final boolean OVERRULE_MSG_SIZE 		= Boolean.parseBoolean(PropertyAccessor.getProperty("OVERRULE_MSG_SIZE"));
+	private static final int MAX_MSG_SIZE_OVERRULED 	= Integer.parseInt(PropertyAccessor.getProperty("MESSAGE_SIZE_OVERRULED"));
+	
 	private static final String MAP_FILE				= FileStructure2.DIR_CONFIG + "systemMapping.txt";
 	private static final String SOURCE_ENV_ICO_REQUESTS	= Main.PARAM_VAL_ICO_REQUEST_FILES_ENV;
-//	private static final String SOURCE_ENV 				= Main.PARAM_VAL_SOURCE_ENV;
 	private static final String TARGET_ENV 				= Main.PARAM_VAL_TARGET_ENV;
 	protected static HashMap<String, String> SYSTEM_MAP	= initializeSystemMap();
 	
@@ -127,7 +130,13 @@ public abstract class IntegratedConfigurationMain {
 		return maxMessages;
 	}
 	public void setMaxMessages(int maxMessages) {
-		this.maxMessages = maxMessages;
+		final String SIGNATURE = "setMaxMessages(int)";
+		if (OVERRULE_MSG_SIZE) {
+			this.maxMessages = MAX_MSG_SIZE_OVERRULED;
+			logger.writeDebug(LOCATION, SIGNATURE, "Max message size is being overruled due to technical parameter set. Value used for all: " + MAX_MSG_SIZE_OVERRULED);
+		} else {
+			this.maxMessages = maxMessages;			
+		}
 	}
 	public Exception getEx() {
 		return this.ex;

@@ -1,144 +1,26 @@
 package com.invixo.injection;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 
 import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
-import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.PropertyAccessor;
-import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
-import com.invixo.consistency.FileStructure;
-import com.invixo.consistency.FileStructure2;
-import com.invixo.main.Main;
 
 public class RequestGeneratorUtil {
 	private static Logger logger 						= Logger.getInstance();
 	private static final String LOCATION 				= RequestGeneratorUtil.class.getName();
-	private static final String ELEMENT_INTERFACE		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderInterface";
-	private static final String ELEMENT_QOS				= "{urn:com.sap.aii.mdt.server.adapterframework.ws}qualityOfService";
-	private static final String ELEMENT_ITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";
-	private static final String ELEMENT_ITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";
-	private static final String ELEMENT_ITF_SPARTY		= "{urn:com.sap.aii.mdt.api.data}senderParty";
-	private static final String ELEMENT_ITF_SCOMPONENT	= "{urn:com.sap.aii.mdt.api.data}senderComponent";
-	private static final String ELEMENT_ITF_RPARTY		= "{urn:com.sap.aii.mdt.api.data}receiverParty";
-	private static final String ELEMENT_ITF_RCOMPONENT	= "{urn:com.sap.aii.mdt.api.data}receiverComponent";
 	private static final String TARGET_SAP_NS			= "http://sap.com/xi/XI/Message/30";
 	private static final String TARGET_SAP_NS_PREFIX	= "sap";
-	
-//	private static final String MAP_FILE				= FileStructure2.DIR_CONFIG + "\\systemMapping.txt";
-	
-		
-	/**
-	 * Extract routing info from an Integrated Configuration request file used also when extracting data from SAP PO system.
-	 * @param ico
-	 */
-	static void extractInfoFromIcoRequest(IntegratedConfiguration ico) throws InjectionException {
-		final String SIGNATURE = "extractInfoFromIcoRequest(IntegratedConfiguration)";
-		try {
-			// Read file
-			byte[] fileContent = Util.readFile(ico.getFileName());
-			
-			// Read XML file and extract data
-			XMLInputFactory factory = XMLInputFactory.newInstance();
-			StreamSource ss = new StreamSource(new ByteArrayInputStream(fileContent));
-			XMLEventReader eventReader = factory.createXMLEventReader(ss);
-			
-			boolean fetchData = false;
-			while (eventReader.hasNext()) {
-			    XMLEvent event = eventReader.nextEvent();
-			    
-			    switch(event.getEventType()) {
-			    case XMLStreamConstants.START_ELEMENT:
-			    	String currentElementName = event.asStartElement().getName().toString();
-
-			    	// interface start
-			    	if (ELEMENT_INTERFACE.equals(currentElementName)) {
-			    		fetchData = true;
-			    		
-			    	// Sender interface name
-			    	} else if (fetchData && ELEMENT_ITF_NAME.equals(currentElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			ico.setInterfaceName(eventReader.peek().asCharacters().getData());	
-			    		}
-			    		
-			    	// Sender interface namespace
-			    	} else if (fetchData && ELEMENT_ITF_NS.equals(currentElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			ico.setNamespace(eventReader.peek().asCharacters().getData());	
-			    		}
-			    		
-			    	// Sender party
-			    	} else if (fetchData && ELEMENT_ITF_SPARTY.equals(currentElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			ico.setSenderParty(eventReader.peek().asCharacters().getData());	
-			    		}
-			    		
-			    	// Sender component
-			    	} else if (fetchData && ELEMENT_ITF_SCOMPONENT.equals(currentElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-//			    			String sender = eventReader.peek().asCharacters().getData();
-			    			ico.setSenderComponent(eventReader.peek().asCharacters().getData());
-//			    			
-//			    			// Check
-//			    			if (ico.getSenderComponent() == null) {
-//			    				String ex = "System Mapping: missing entry for source system " + sender;
-//			    				logger.writeError(LOCATION, SIGNATURE, ex);
-//			    				throw new InjectionException(ex);
-//			    			}
-			    		}
-			    	
-			    	// Receiver party
-			    	} else if (fetchData && ELEMENT_ITF_RPARTY.equals(currentElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			ico.setReceiverParty(eventReader.peek().asCharacters().getData());	
-			    		}
-			    		
-			    	// Receiver component
-			    	} else if (fetchData && ELEMENT_ITF_RCOMPONENT.equals(currentElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			ico.setReceiverComponent(eventReader.peek().asCharacters().getData());	
-			    		}
-			    				    	
-			    	// Quality of Service
-			    	} else if (ELEMENT_QOS.equals(currentElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			ico.setQualityOfService(eventReader.peek().asCharacters().getData());	
-			    		}
-			    	}
-			    	break;
-			    case XMLStreamConstants.END_ELEMENT:
-			    	if (ELEMENT_INTERFACE.equals(event.asEndElement().getName().toString())) {
-			    		fetchData = false;
-			    	}
-			    	break;
-			    }
-			}
-		} catch (XMLStreamException e) {
-			String msg = "Error extracting routing info from ICO request file: " + ico.getFileName() + "\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new InjectionException(msg);
-		} 
-	}
 	
 	
 	static String generateSoapXiHeaderPart(IntegratedConfiguration ico, InjectionRequest ir) throws InjectionPayloadException {
@@ -322,50 +204,5 @@ public class RequestGeneratorUtil {
 			throw new InjectionPayloadException(msg);
 		}
 	}
-		
-	
-//	private static HashMap<String, String> initializeSystemMap() {
-//		final String SIGNATURE = "initializeSystemMap()";
-//		try {
-//			// Determine source index (how the request ICO's are created)
-//			int sourceIndex = -1;
-//			if ("DEV".equals(SOURCE_ENV)) {
-//				sourceIndex = 0;
-//			} else if ("TST".equals(SOURCE_ENV)) {
-//				sourceIndex = 1;
-//			} else {
-//				sourceIndex = 2;
-//			}
-//			
-//			// Determine target index (which target system to map to when injecting)
-//			int targetIndex = -1;
-//			if ("DEV".equals(TARGET_ENV)) {
-//				targetIndex = 0;
-//			} else if ("TST".equals(TARGET_ENV)) {
-//				targetIndex = 1;
-//			} else {
-//				targetIndex = 2;
-//			}
-//			
-//			// Populate map
-//	 		SYSTEM_MAP = new HashMap<String, String>();
-//	 		String line;
-//	 		FileReader fileReader = new FileReader(MAP_FILE);
-//	 		try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
-//	 			while((line = bufferedReader.readLine()) != null) {
-//	 				String[] str = line.split("\\|");
-//	 				SYSTEM_MAP.put(str[sourceIndex], str[targetIndex]);
-//	 			}			   
-//	 		}
-//
-//		    // Return initialized map
-//		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized. Source ENV '" + SOURCE_ENV + "'. Target ENV '" + TARGET_ENV + "'. Number of entries: " + SYSTEM_MAP.size());
-//		    return SYSTEM_MAP;			
-//		} catch (IOException e) {
-//			String msg = "Error generating system mapping\n" + e;
-//			logger.writeError(LOCATION, SIGNATURE, msg);
-//			throw new RuntimeException(msg);
-//		}
-//	}
 	
 }

@@ -1,6 +1,5 @@
 package com.invixo.common.util;
 
-
 public class XmlUtil {
 	
 	// Xml: soap envelope, general
@@ -9,5 +8,5 @@ public class XmlUtil {
 	public static final String SOAP_ENV_ROOT 	= "Envelope";
 	public static final String SOAP_ENV_HEAD 	= "Header";
 	public static final String SOAP_ENV_BODY 	= "Body";
-
+	
 }
