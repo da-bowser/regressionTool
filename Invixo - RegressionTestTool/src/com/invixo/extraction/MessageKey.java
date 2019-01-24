@@ -23,7 +23,6 @@ import javax.xml.transform.stream.StreamSource;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
-import com.invixo.consistency.FileStructure;
 import com.invixo.consistency.FileStructure2;
 import com.invixo.extraction.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
@@ -293,7 +292,7 @@ public class MessageKey {
 		}
 	
 		// Make sure the new dynamic directory is created
-		FileStructure.createDirIfNotExists(targetDir);
+		FileStructure2.createDirIfNotExists(targetDir);
 		return targetDir;
 	}
 	

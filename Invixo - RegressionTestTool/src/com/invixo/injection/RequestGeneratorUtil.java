@@ -28,6 +28,7 @@ import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
+import com.invixo.consistency.FileStructure2;
 
 public class RequestGeneratorUtil {
 	private static Logger logger 						= Logger.getInstance();
@@ -43,7 +44,7 @@ public class RequestGeneratorUtil {
 	private static final String TARGET_SAP_NS			= "http://sap.com/xi/XI/Message/30";
 	private static final String TARGET_SAP_NS_PREFIX	= "sap";
 	
-	private static final String MAP_FILE				= FileStructure.FILE_BASE_LOCATION + "\\systemMapping.txt";
+	private static final String MAP_FILE				= FileStructure2.DIR_CONFIG + "\\systemMapping.txt";
 	private static final String SOURCE_ENV 				= PropertyAccessor.getProperty("SOURCE_ENVIRONMENT");
 	private static final String TARGET_ENV 				= PropertyAccessor.getProperty("TARGET_ENVIRONMENT");
 	private static HashMap<String, String> SYSTEM_MAP	= initializeSystemMap();
