@@ -103,7 +103,7 @@ public class Main {
 			readAndSetCredentials(PARAM_VAL_CREDENTIALS_FILE);
 			
 			// Build complete PO host and port using imported parameters
-			buildCompletePOUrl(PARAM_VAL_HTTP_HOST, PARAM_VAL_HTTP_PORT);
+			SAP_PO_HTTP_HOST_AND_PORT = PARAM_VAL_HTTP_HOST + ":" + PARAM_VAL_HTTP_PORT + "/";
 			
 			// Validate input parameters and sequentially build parameters
 			validateParameters(PARAM_VAL_OPERATION);
@@ -121,11 +121,6 @@ public class Main {
 			System.out.println(e.toString());
 		}
 		
-	}
-
-	
-	private static void buildCompletePOUrl(String host, String port) {
-		SAP_PO_HTTP_HOST_AND_PORT = host + ":" + port + "/";
 	}
 
 
