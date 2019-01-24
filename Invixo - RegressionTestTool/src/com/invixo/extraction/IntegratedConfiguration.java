@@ -89,6 +89,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			
 			// Modify ICO request
 			byte[] modifiedRequestBytes = modifyIcoRequestFile(requestBytes, this);
+			logger.writeDebug(LOCATION, SIGNATURE, "ICO request modified. ");
 			
 			// Call web service (GetMessageList)
 			InputStream responseBytes = WebServiceHandler.callWebService(modifiedRequestBytes);
@@ -223,10 +224,14 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			    
 			    if (event.getEventType() == XMLEvent.START_ELEMENT) {
 			    	String currentName = event.asStartElement().getName().toString();
-
+			    	System.out.println(currentName);
+			    	
+			    	
 			    	// Enable modification for certain elements
 			    	if (		"{urn:com.sap.aii.mdt.api.data}senderComponent".equals(currentName) 
-			    			|| 	"{urn:AdapterMessageMonitoringVi}maxMessages".equals(currentName) ) {
+			    			|| 	"{urn:AdapterMessageMonitoringVi}maxMessages".equals(currentName)
+			    			|| 	"{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName".equals(currentName)
+			    			|| 	"{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName".equals(currentName)) {
 			    		modificationEnabledForElement = currentName;
 			    	}
 			    	
@@ -235,9 +240,19 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			    	
 			    	// Modify value for certain elements
 			    }  else if ((modificationEnabledForElement != null) && (event.getEventType() == XMLEvent.CHARACTERS)) {
+			    	String currentVal = event.asCharacters().getData();
+			    	
 			    	switch (modificationEnabledForElement) {
 			    	case "{urn:com.sap.aii.mdt.api.data}senderComponent" : 
 			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getSenderComponent()));
+			    		modificationEnabledForElement = null;
+			    		break;
+			    	case "{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName" : 
+			    		xmlEventWriter.add(xmlEventFactory.createCharacters(mapSystem(currentVal)));
+			    		modificationEnabledForElement = null;
+			    		break;
+			    	case "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName" : 
+			    		xmlEventWriter.add(xmlEventFactory.createCharacters(mapSystem(currentVal)));
 			    		modificationEnabledForElement = null;
 			    		break;
 			    	case "{urn:AdapterMessageMonitoringVi}maxMessages" : 
@@ -260,6 +275,14 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);
 		}
-
+	}
+	
+	
+	public static String mapSystem(String key) {
+		String value = SYSTEM_MAP.get(key);
+		if (value == null) {
+			value = "";
+		}
+		return value;
 	}
 }
