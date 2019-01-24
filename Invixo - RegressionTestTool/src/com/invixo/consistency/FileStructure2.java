@@ -172,6 +172,7 @@ public class FileStructure2 {
 		
 	}
 
+	
 	private static String generateInitialIcoExeptionContent() {
 		
 		// Get ICO request files
@@ -187,43 +188,47 @@ public class FileStructure2 {
 			Element rootElement = doc.createElement("integratedConfigurations");
 			doc.appendChild(rootElement);
 
-			// Create for each ico file found
+			// Create an integrated configuration for each input file found
 			for (Path path : icoFiles) {
-			String icoName = Util.getFileName(path.toAbsolutePath().toString(), false);
-			
-			Element icoElement = doc.createElement("integratedConfiguration");
-			rootElement.appendChild(icoElement);
-			
-			Element icoNameElement = doc.createElement("name");
-			icoNameElement.appendChild(doc.createTextNode(icoName));
-			icoElement.appendChild(icoNameElement);
-			
-			Element icoXPathExceptionsElement = doc.createElement("XPathExceptions");
-			icoElement.appendChild(icoXPathExceptionsElement);
-			
-			Element icoXPathElement = doc.createElement("XPath");
-			icoXPathElement.appendChild(doc.createTextNode("Insert XPath here..."));
-			icoXPathExceptionsElement.appendChild(icoXPathElement);
-			
-		}
+				String icoName = Util.getFileName(path.toAbsolutePath().toString(), false);
 
-			// write the content into xml file
+				// integratedConfigurations | integratedConfguration
+				Element icoElement = doc.createElement("integratedConfiguration");
+				rootElement.appendChild(icoElement);
+				
+				// integratedConfigurations | integratedConfguration | name
+				Element icoNameElement = doc.createElement("name");
+				icoNameElement.appendChild(doc.createTextNode(icoName));
+				icoElement.appendChild(icoNameElement);
+
+				// integratedConfigurations | integratedConfguration | xpathExceptions
+				Element icoXPathExceptionsElement = doc.createElement("xpathExceptions");
+				icoElement.appendChild(icoXPathExceptionsElement);
+
+				// integratedConfigurations | integratedConfguration | xpathExceptions | xpath
+				Element icoXPathElement = doc.createElement("xpath");
+				icoXPathElement.appendChild(doc.createTextNode("Insert XPath here..."));
+				icoXPathExceptionsElement.appendChild(icoXPathElement);
+
+			}
+
+			// Transform content into xml
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			DOMSource source = new DOMSource(doc);
 			
 			writer = new StringWriter();
-		    StreamResult result = new StreamResult(writer);
+			StreamResult result = new StreamResult(writer);
 			transformer.transform(source, result);
-			
-		} catch (ParserConfigurationException pce) {
-			pce.printStackTrace();
-		  } catch (TransformerException tfe) {
-			tfe.printStackTrace();
-		  }
 
-		// Return result
+		} catch (ParserConfigurationException pce) {
+			throw new RuntimeException("*generateInitialIcoExeptionContent* DocumentBuilder parse error. " + pce);
+		} catch (TransformerException tfe) {
+			throw new RuntimeException("*generateInitialIcoExeptionContent* TransformerFactory error." + tfe);
+		}
+
+		// Return writer result
 		return writer.toString();
 		
 	}

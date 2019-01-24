@@ -93,16 +93,20 @@ public class CompareHandler {
 			    	String currentStartElementName = event.asStartElement().getName().getLocalPart();
 			    	if ("name".equals(currentStartElementName)) {
 						if (this.sourceIcoName.equals(eventReader.peek().asCharacters().getData())) {
+							
+							// We are at the correct ICO element
 							correctIcoFound = true;
 						}
 					}
-			    	if ("XPath".equals(currentStartElementName) && correctIcoFound) {
+			    	if ("xpath".equals(currentStartElementName) && correctIcoFound) {
+			    		// Add exeption data if we are at the right ICO and correct element
 			    		icoExceptions.add(eventReader.peek().asCharacters().getData());
 			    	}
 			    	break;
 			    case XMLStreamConstants.END_ELEMENT:
 			    	String currentEndElementName = event.asEndElement().getName().getLocalPart();
 			    	if ("integratedConfiguration".equals(currentEndElementName)) {
+			    		// We don't want to read any more ICO data
 			    		correctIcoFound = false;
 					}
 			    	break;
@@ -114,6 +118,7 @@ public class CompareHandler {
 			throw new RuntimeException(msg);
 		}
 		
+		// Return exeptions found
 		return icoExceptions; 
 	}
 
