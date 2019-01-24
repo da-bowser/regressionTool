@@ -73,7 +73,7 @@ public class FileStructure2 {
 		final String SIGNATURE = "deleteOldRunData()";
 		try {       
 			// Cleanup: delete all files contained in "Extract Output". Only done for sub-directories part of the specified target environment
-			deletePayloadFiles(DIR_EXTRACT_OUTPUT_PRE + Main.PARAM_VAL_TARGET_ENV);
+			deletePayloadFiles(DIR_EXTRACT_OUTPUT_PRE + Main.PARAM_VAL_TARGET_ENV, Main.PARAM_VAL_TARGET_ENV);
 			logger.writeDebug(LOCATION, SIGNATURE, "Housekeeping: all old payload files deleted from root: " + DIR_EXTRACT_OUTPUT_PRE + Main.PARAM_VAL_TARGET_ENV);
 		} catch (Exception e) {
 			String ex = "Housekeeping terminated with error! " + e;
@@ -115,10 +115,10 @@ public class FileStructure2 {
 	}
 
 
-	public static void deletePayloadFiles(String rootDirectory) {
+	public static void deletePayloadFiles(String rootDirectory, String environment) {
 		// Create pathMatcher which will match all files and directories (in the world of this tool, only files) that
 		// are located in FIRST or LAST directories.
-		String pattern = "^(?=.*\\\\PRD\\\\.*\\\\.*\\\\).*$";
+		String pattern = "^(?=.*\\\\" + environment + "\\\\.*\\\\.*\\\\).*$";
 		PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("regex:" + pattern);
 		
 		// Find all matches to above regex starting from the specified DIR
