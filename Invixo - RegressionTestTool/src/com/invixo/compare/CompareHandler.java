@@ -1,16 +1,20 @@
 package com.invixo.compare;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.events.XMLEvent;
 
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.Diff;
@@ -18,7 +22,8 @@ import org.xmlunit.diff.Difference;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure;
+import com.invixo.consistency.FileStructure2;
+import com.invixo.main.Main;
 
 
 public class CompareHandler {
@@ -30,6 +35,8 @@ public class CompareHandler {
 	private static Map<String, String> messageIdMap; // Static only loaded once!
 	private	List<String> compareExceptions;
 	private String sourceIcoName;
+	private String sourceIcoFiles;
+	private String compareIcoFiles;
 
 	
 	/**
@@ -37,65 +44,96 @@ public class CompareHandler {
 	 * @param sourceIcoPath
 	 * @param compareIcoPath
 	 */
-	public CompareHandler(Path sourceIcoPath, Path compareIcoPath) {
+	public CompareHandler(String sourceIcoPath, String compareIcoPath, String icoName) {
 		String SIGNATURE = "CompareHandler - *Class Constructor*";
 		logger.writeDebug(LOCATION, SIGNATURE, "Initialize compare data of ICO compare");
 		
 		// Set current ICO
-		sourceIcoName = sourceIcoPath.getFileName().toString();
+		this.sourceIcoName = icoName;
+		
+		this.sourceIcoFiles = sourceIcoPath;
+		this.compareIcoFiles = compareIcoPath;
 		
 		// Get files from source and compare directories
 		sourceFiles = Util.generateListOfPaths(sourceIcoPath.toString(), "FILE");
 		compareFiles = Util.generateListOfPaths(compareIcoPath.toString(), "FILE");
 		
 		// Build message id map to match "Prod"(source) and "Test"(compare) messages
-		messageIdMap = buildMessageIdMap();
+		messageIdMap = buildMessageIdMap(FileStructure2.DIR_INJECT);
 		
 		// Build exception map to be used to exclude data elements in later compare
-		compareExceptions = buildCompareExceptionMap(FileStructure.DIR_REGRESSION_COMPARE_EXEPTIONS + sourceIcoName + "\\");
+		compareExceptions = buildCompareExceptionMap(FileStructure2.DIR_CONFIG + "\\compareExceptions.xml");
 		
 	}
 
 	
-	private static List<String> buildCompareExceptionMap(String icoExceptionFilePath) {
+	private List<String> buildCompareExceptionMap(String icoExceptionFilePath) {
 		String SIGNATURE = "buildCompareExceptionMap";
 		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of exceptions using data from: " + icoExceptionFilePath);
 		
-		// Make sure the ICO has an exception folder if compare exclusions are needed in future compare runs
-		FileStructure.createDirIfNotExists(icoExceptionFilePath);
+		// Get all exceptions listed in files found 
+		List<String> compareExceptions = extractIcoCompareExceptionsFromFile(icoExceptionFilePath);
 		
-		// Get exceptions found for current ICO
-		List<Path> compareExceptionList;
-		compareExceptionList = Util.generateListOfPaths(icoExceptionFilePath, "FILE");
-		
-		// Get all exceptions listed in files found
-		List<String> compareExceptions = new ArrayList<String>();
-		for (Path path : compareExceptionList) {
-			try {
-				// Appends to compareExceptions list for each file found - currently only one exception file is expected, but who knows!
-				Files.lines(path).collect(Collectors.toCollection(() -> compareExceptions));
-				
-			} catch (IOException e) {
-				String msg = "ERROR | Reading exceptions from: " + icoExceptionFilePath + e.getMessage();
-				throw new RuntimeException(msg);
-			}
-		}
 		
 		// Return exception map
 		return compareExceptions;
 	}
 
 	
-	private static Map<String, String> buildMessageIdMap() {
+	private List<String> extractIcoCompareExceptionsFromFile(String icoExceptionFilePath) {
+		final String SIGNATURE = "extractIcoCompareExceptionsFromFile(InputStream)";
+		List<String> icoExceptions = new ArrayList<String>();
+		
+		try {
+			InputStream fileStream = new FileInputStream(icoExceptionFilePath);
+			
+			XMLInputFactory factory = XMLInputFactory.newInstance();
+			XMLEventReader eventReader = factory.createXMLEventReader(fileStream);
+			boolean correctIcoFound = false;
+			while (eventReader.hasNext()) {
+			    XMLEvent event = eventReader.nextEvent();
+			    
+			    switch(event.getEventType()) {
+			    case XMLStreamConstants.START_ELEMENT:
+			    	String currentStartElementName = event.asStartElement().getName().getLocalPart();
+			    	if ("name".equals(currentStartElementName)) {
+						if (this.sourceIcoName.equals(eventReader.peek().asCharacters().getData())) {
+							correctIcoFound = true;
+						}
+					}
+			    	if ("xpath".equals(currentStartElementName) && correctIcoFound) {
+			    		icoExceptions.add(eventReader.peek().asCharacters().getData());
+			    	}
+			    	break;
+			    case XMLStreamConstants.END_ELEMENT:
+			    	String currentEndElementName = event.asEndElement().getName().getLocalPart();
+			    	if ("ico".equals(currentEndElementName)) {
+			    		correctIcoFound = false;
+					}
+			    	break;
+			    }
+			}
+		} catch (Exception e) {
+			String msg = "Error extracting exception.\n" + e.getMessage();
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new RuntimeException(msg);
+		}
+		
+		return icoExceptions; 
+	}
+
+
+	private static Map<String, String> buildMessageIdMap(String mappingDir) {
 		String SIGNATURE = "buildMessageIdMap";
 		
-		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + FileStructure.DIR_REGRESSION_OUTPUT_MAPPING);
-		List<Path> mapList;
+		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + mappingDir);
+		
 		try {
-			mapList = Util.generateListOfPaths(FileStructure.DIR_REGRESSION_OUTPUT_MAPPING, "FILE");
+			// Build path to mapping file generated during inject
+			String mappingFilePath = mappingDir + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
 			
-			// Get first entry in mapList as there is always only one mapping file!
-			Path mapFilePath = mapList.get(0);
+			// Read file to Path
+			Path mapFilePath = new File(mappingFilePath).toPath();	
 			
 			// Create map splitting on delimiter | from map file
 	        Map<String, String> mapFromFile = Util.createMapFromPath(mapFilePath, "\\|", 0, 1);
@@ -104,7 +142,8 @@ public class CompareHandler {
 	        return mapFromFile;
 	        
 		} catch (IOException e) {
-			String msg = "ERROR | Can't read msgId map from: " + FileStructure.DIR_REGRESSION_OUTPUT_MAPPING + e.getMessage();
+			String msg = "ERROR | Can't read msgId map from: " + mappingDir + "\n" + e.getMessage();
+			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
 		}
 	}
@@ -125,25 +164,31 @@ public class CompareHandler {
 		String SIGNATURE = "prepareFilesAndCompare()";
 		logger.writeDebug(LOCATION, SIGNATURE, "Start prepare and compare. Source files: " + this.sourceFiles.size()  + " Target files: " + this.compareFiles.size());
 
-		// Start looping over source files
-		int fileCompareCount = 0;
-		Path currentSourcePath;
-		for (int i = 0; i < sourceFiles.size(); i++) {
+		if(this.sourceFiles.size() == this.compareFiles.size()) {
+			// Start looping over source files
+			int fileCompareCount = 0;
+			Path currentSourcePath;
+			for (int i = 0; i < sourceFiles.size(); i++) {
 
-			// Get matching compare file using message id map
-			currentSourcePath = sourceFiles.get(i); 
+				// Get matching compare file using message id map
+				currentSourcePath = sourceFiles.get(i); 
 
-			// Locate matching compare file based on source msgId
-			Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, CompareHandler.messageIdMap);
+				// Locate matching compare file based on source msgId
+				Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, CompareHandler.messageIdMap);
 
-			// Do compare
-			compareFiles(currentSourcePath, comparePathMatch);
+				// Do compare
+				compareFiles(currentSourcePath, comparePathMatch);
 
-			// Increment compare count
-			fileCompareCount++;
+				// Increment compare count
+				fileCompareCount++;
+			}
+			
+			logger.writeDebug(LOCATION, SIGNATURE, "Prepare and compare done. Files compared: " + fileCompareCount); 
+		} else {
+			String msg = "Compare error, source and compare files mismatch sources: " + this.sourceFiles.size() + " targets: " + this.compareFiles.size();
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new RuntimeException(msg);
 		}
-
-		logger.writeDebug(LOCATION, SIGNATURE, "Prepare and compare done. Files compared: " + fileCompareCount); 
 		
 	}
 	
@@ -180,7 +225,8 @@ public class CompareHandler {
 			return compareFileFound;
 			
 		} catch (NullPointerException e) {
-			String msg = "ERROR | No matching message id found for: " + sourceMsgId + " " + e.getMessage();
+			String msg = "No matching message id found for: " + sourceMsgId + " " + e.getMessage();
+			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
 		}
 	}
@@ -201,6 +247,8 @@ public class CompareHandler {
 	
 	
 	private void doXmlCompare(Path sourcePath, Path comparePath) {
+		String SIGNATURE = "doXmlCompare()";
+		
 		String sourceFileString = null;
 		String compareFileString = null;
 
@@ -222,7 +270,8 @@ public class CompareHandler {
 			handleCompareResult(xmlDiff, sourcePath.getFileName().toString(), comparePath.getFileName().toString());
 
 		} catch (FileNotFoundException e) {
-			String msg = "ERROR | Problem converting source and/or compare payloads to string: " + e.getMessage();
+			String msg = "Problem converting source and/or compare payloads to string\n" + e.getMessage();
+			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
 		}
 	}
@@ -249,8 +298,8 @@ public class CompareHandler {
 	private void writeCompareResultToFile(String sourceFileName, String compareFileName, String result,
 			int diffErrors) {
 		// Make sure we have a results+ICO directory to write results
-		String targetResultDir = FileStructure.DIR_REGRESSION_COMPARE_RESULTS + this.sourceIcoName;
-		FileStructure.createDirIfNotExists(targetResultDir);
+		String targetResultDir = FileStructure2.DIR_REPORTS + this.sourceIcoName;
+		FileStructure2.createDirIfNotExists(targetResultDir);
 
 		// Build final result path
 		String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss").format(new Date());

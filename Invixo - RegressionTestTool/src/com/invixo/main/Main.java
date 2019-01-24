@@ -338,10 +338,7 @@ public class Main {
 	/**
 	 * Start a file comparison
 	 */
-	public static void compare() {
-		// Clean up file structure and ensure its consistency
-		FileStructure2.startCheck();
-		
+	public static void compare() {		
 		// Start comparing
 		Comparer.startCompare();
 	}
