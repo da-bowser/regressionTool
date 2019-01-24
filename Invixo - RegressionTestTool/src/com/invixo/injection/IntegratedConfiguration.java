@@ -2,6 +2,7 @@ package com.invixo.injection;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 //import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -80,7 +81,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 				initMappingTableWriter();
 				
 				// Extract common info from ICO
-				RequestGeneratorUtil.extractInfoFromIcoRequest(this);
+				//RequestGeneratorUtil.extractInfoFromIcoRequest(this);
 			}
 
 			// Process each payload file
@@ -155,9 +156,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			HttpPost webServiceRequest = WebServiceHandler.buildHttpPostRequest(soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
 			
 			// Store request on file system (just for pleasant reference)
-//			ir.setInjectionRequestFile(getTargetFileName(this.fileName, ir.getMessageId()));
-//			webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
-//			logger.writeDebug(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
+			ir.setInjectionRequestFile(getTargetFileName(this.fileName, ir.getMessageId()));
+			webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
+			logger.writeDebug(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
 	        
 			// Call SAP PO Web Service (using XI protocol)
 			WebServiceHandler.callWebService(webServiceRequest);
@@ -194,11 +195,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	}
 	
 	
-//	private static String getTargetFileName(String icoRequestfile, String messageId) {
-//		String scenarioName = Util.getFileName(icoRequestfile, false);
-//		String targetFile = FileStructure2.DIR_REGRESSION_INPUT_INJECTION + scenarioName + " -- " +  messageId + ".payload";
-//		return targetFile;
-//	}
+	private static String getTargetFileName(String icoRequestfile, String messageId) {
+		String scenarioName = Util.getFileName(icoRequestfile, false);
+		String targetFile = FileStructure2.FILE_BASE_LOCATION + scenarioName + " -- " +  messageId + ".payload";
+		return targetFile;
+	}
 	
 	
 	/**

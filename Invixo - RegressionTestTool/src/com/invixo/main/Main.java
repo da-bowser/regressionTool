@@ -220,8 +220,17 @@ public class Main {
 
 
 	private static void validateCompareParameters() throws ValidationException  {
-		// TODO Auto-generated method stub
+		StringWriter sw = new StringWriter();
 		
+		if (PARAM_VAL_SOURCE_ENV == null) {
+			sw.write("Obligatory program parameter " + PARAM_KEY_SOURCE_ENV + " not set.\n");
+		} else if (!environmentContains(PARAM_VAL_SOURCE_ENV)) {
+			sw.write("Program parameter " + PARAM_KEY_SOURCE_ENV + " contains unsupported value. Value provided is: '" + PARAM_VAL_SOURCE_ENV + "'");			
+		}	
+		
+		if (!sw.toString().equals("")) {
+			throw new ValidationException(sw.toString());
+		}
 	}
 
 
@@ -324,6 +333,10 @@ public class Main {
 	 * Start a file comparison
 	 */
 	public static void compare() {
+		// Clean up file structure and ensure its consistency
+		FileStructure2.startCheck();
+		
+		// Start comparing
 		Comparer.startCompare();
 	}
 	
