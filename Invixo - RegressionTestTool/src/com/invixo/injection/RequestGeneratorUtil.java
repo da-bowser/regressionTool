@@ -136,7 +136,16 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | ReliableMessaging | QualityOfService
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService");
 			xmlEventWriter.add(startElement);
-			value = xmlEventFactory.createCharacters("EO".equals(ico.getQualityOfService())?"ExactlyOnce":"BestEffort");		// EOIO emitted for now. Not sure of impact
+			
+			if ("EO".equals(ico.getQualityOfService())) {
+				value = xmlEventFactory.createCharacters("ExactlyOnce");
+			} else if ("BE".equals(ico.getQualityOfService())) {
+				value = xmlEventFactory.createCharacters("BestEffort");
+			} else {
+				value = xmlEventFactory.createCharacters("ExactlyOnceInOrder");
+			}
+			
+			//value = xmlEventFactory.createCharacters("EO".equals(ico.getQualityOfService())?"ExactlyOnce":"BestEffort");		// EOIO emitted for now. Not sure of impact
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService"));
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ReliableMessaging"));
