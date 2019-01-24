@@ -132,7 +132,7 @@ public class RequestGeneratorUtil {
 			xmlEventWriter.add(startElement);
 			attr = xmlEventFactory.createAttribute(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_NS, "mustUnderstand", "1");
 	        xmlEventWriter.add(attr);
-			
+	        			
 			// Create element: Envelope | Header | Main | ReliableMessaging | QualityOfService
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService");
 			xmlEventWriter.add(startElement);
@@ -144,12 +144,21 @@ public class RequestGeneratorUtil {
 			} else {
 				value = xmlEventFactory.createCharacters("ExactlyOnceInOrder");
 			}
-			
-			//value = xmlEventFactory.createCharacters("EO".equals(ico.getQualityOfService())?"ExactlyOnce":"BestEffort");		// EOIO emitted for now. Not sure of impact
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService"));
-			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ReliableMessaging"));
 
+			// Create element: Envelope | Header | Main | ReliableMessaging | QueueId
+	        if ("EOIO".equals(ico.getQualityOfService())) {
+				startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QueueId");
+				xmlEventWriter.add(startElement);
+				value = xmlEventFactory.createCharacters("_inject");
+				xmlEventWriter.add(value);
+				xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QueueId"));
+	        }
+
+	        // Close tag: Envelope | Header | Main | ReliableMessaging
+			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ReliableMessaging"));
+	        
 			// Close tag: Envelope | Header
 	        xmlEventWriter.add(xmlEventFactory.createEndElement(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_NS, XmlUtil.SOAP_ENV_HEAD));
 			
