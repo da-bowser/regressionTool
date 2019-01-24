@@ -46,6 +46,9 @@ public class FileStructure2 {
 
 	
 	public static void main(String[] args) throws Exception  {
+		// Test deletion of extract files for a given environment
+		String baseDir = "c:\\Users\\dhek\\Desktop\\Invixo\\RegressionTestTool\\New\\_Extract\\Output\\";
+		deletePayloadFiles(baseDir, "TST");
 	}
 	
 	
@@ -117,7 +120,7 @@ public class FileStructure2 {
 
 	public static void deletePayloadFiles(String rootDirectory, String environment) {
 		// Create pathMatcher which will match all files and directories (in the world of this tool, only files) that
-		// are located in FIRST or LAST directories.
+		// are located in FIRST or LAST directories for the specified environment.
 		String pattern = "^(?=.*\\\\" + environment + "\\\\.*\\\\.*\\\\).*$";
 		PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("regex:" + pattern);
 		

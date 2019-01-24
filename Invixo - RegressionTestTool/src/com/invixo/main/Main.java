@@ -37,10 +37,10 @@ public class Main {
 	
 	// Parameter: location of a credentials file (expected to contain 2 lines. First line contains user name only, second line contains password
 	private static final String PARAM_KEY_CREDENTIALS_FILE		= "credentialsFile";
-	public static String PARAM_VAL_CREDENTIALS_FILE 			= null;
+	private static String PARAM_VAL_CREDENTIALS_FILE 			= null;
 	
 	// Data read from credentials file (line 1 and 2)
-	private static final String CREDENTIAL_USER					= null;
+	public static String CREDENTIAL_USER						= null;
 	public static String CREDENTIAL_PASS 						= null;
 	
 	// Parameter: SAP PO host name. Example: ipod.invixo.com
@@ -68,16 +68,17 @@ public class Main {
 			System.out.println(param);
 		}
 		
-		// NB: this should be parameterized so it can be run from a console.
+		// Validate input parameters and set program constants
+		// TODO
 		
-		// Test extraction (this should be checked for as a program parameter!!!!
-//		extract();
-		
-		// Test inject (this should be checked for as a program parameter!!!!
-//		inject();  
-		
-		// Test compare (this should be checked for as a program parameter!!!!
-//		compare();
+		// Execute
+		if (Operation.extract.toString().equals(PARAM_VAL_OPERATION)) {
+			extract();
+		} else if (Operation.inject.toString().equals(PARAM_VAL_OPERATION)) {
+			inject(); 
+		} else {
+			compare();
+		}
 	}
 
 	
