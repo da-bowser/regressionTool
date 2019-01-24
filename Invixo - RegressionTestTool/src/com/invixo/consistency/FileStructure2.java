@@ -1,6 +1,9 @@
 package com.invixo.consistency;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,6 +11,19 @@ import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
@@ -43,12 +59,17 @@ public class FileStructure2 {
 	public static final String DIR_LOGS								= FILE_BASE_LOCATION + "\\Logs\\";
 	public static final String DIR_REPORTS							= FILE_BASE_LOCATION + "\\Reports\\";
 	public static final String DIR_CONFIG							= FILE_BASE_LOCATION + "\\Config\\";
+	
+	// Critical config files
+	private static final String FILE_CONFIG_SYSTEM_MAPPING			= DIR_CONFIG + "systemMapping.txt";
+	private static final String FILE_CONFIG_COPMARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
+
 
 	
 	public static void main(String[] args) throws Exception  {
-		// Test deletion of extract files for a given environment
-		String baseDir = "c:\\Users\\dhek\\Desktop\\Invixo\\RegressionTestTool\\New\\_Extract\\Output\\";
-		deletePayloadFiles(baseDir, "TST");
+		// Test createtion of critical system files
+		Main.PARAM_VAL_BASE_DIR = "C:\\jschjoedt\\Data\\Projects\\LM\\Regressionstest\\Produkt";
+		checkBaseFiles();
 	}
 	
 	
@@ -61,6 +82,9 @@ public class FileStructure2 {
 
 		// Ensure project folder structure is present
 		checkFolderStructure();
+		
+		// Ensure critical run files exists
+		checkBaseFiles();
 		
 		// Clean-up old data from "Output"
 		if (Main.PARAM_VAL_ALLOW_SAME_ENV) {
@@ -120,6 +144,88 @@ public class FileStructure2 {
 			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_PRD_FIRST);
 			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_PRD_LAST);
 		}
+	}
+
+	public static void checkBaseFiles() {
+		String SIGNATURE = "checkBaseFiles()";
+		
+		File systemMappingFile = new File(FILE_CONFIG_SYSTEM_MAPPING);
+		File compareExceptionsFile = new File(FILE_CONFIG_COPMARE_EXEPTIONS);
+		
+		// Make sure system mapping file exists
+		if (systemMappingFile.exists()) {
+			logger.writeDebug(LOCATION, SIGNATURE, FILE_CONFIG_COPMARE_EXEPTIONS + " exists!");
+		} else {
+			logger.writeDebug(LOCATION, SIGNATURE, "System critical file: " + FILE_CONFIG_COPMARE_EXEPTIONS + " is missing and will be created!");
+			Util.writeFileToFileSystem(FILE_CONFIG_SYSTEM_MAPPING, "".getBytes());
+		}
+		
+		// Make sure ico exeption file exists
+		if (compareExceptionsFile.exists()) {
+			logger.writeDebug(LOCATION, SIGNATURE, FILE_CONFIG_SYSTEM_MAPPING + " exists!");
+		} else {
+			logger.writeDebug(LOCATION, SIGNATURE, "System critical file: " + FILE_CONFIG_SYSTEM_MAPPING + " is missing and will be created!");
+			String initialIcoExceptionContent = generateInitialIcoExeptionContent();
+			Util.writeFileToFileSystem(FILE_CONFIG_COPMARE_EXEPTIONS, initialIcoExceptionContent.getBytes());
+		}
+		
+		
+	}
+
+	private static String generateInitialIcoExeptionContent() {
+		
+		// Get ICO request files
+		List<Path> icoFiles = Util.generateListOfPaths(DIR_EXTRACT_INPUT, "FILE");
+		StringWriter writer = new StringWriter();
+		try {
+
+			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+			// root elements
+			Document doc = docBuilder.newDocument();
+			Element rootElement = doc.createElement("integratedConfigurations");
+			doc.appendChild(rootElement);
+
+			// Create for each ico file found
+			for (Path path : icoFiles) {
+			String icoName = Util.getFileName(path.toAbsolutePath().toString(), false);
+			
+			Element icoElement = doc.createElement("integratedConfiguration");
+			rootElement.appendChild(icoElement);
+			
+			Element icoNameElement = doc.createElement("name");
+			icoNameElement.appendChild(doc.createTextNode(icoName));
+			icoElement.appendChild(icoNameElement);
+			
+			Element icoXPathExceptionsElement = doc.createElement("XPathExceptions");
+			icoElement.appendChild(icoXPathExceptionsElement);
+			
+			Element icoXPathElement = doc.createElement("XPath");
+			icoXPathElement.appendChild(doc.createTextNode("Insert XPath here..."));
+			icoXPathExceptionsElement.appendChild(icoXPathElement);
+			
+		}
+
+			// write the content into xml file
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			DOMSource source = new DOMSource(doc);
+			
+			writer = new StringWriter();
+		    StreamResult result = new StreamResult(writer);
+			transformer.transform(source, result);
+			
+		} catch (ParserConfigurationException pce) {
+			pce.printStackTrace();
+		  } catch (TransformerException tfe) {
+			tfe.printStackTrace();
+		  }
+
+		// Return result
+		return writer.toString();
+		
 	}
 
 

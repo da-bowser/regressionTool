@@ -35,8 +35,6 @@ public class CompareHandler {
 	private static Map<String, String> messageIdMap; // Static only loaded once!
 	private	List<String> compareExceptions;
 	private String sourceIcoName;
-	private String sourceIcoFiles;
-	private String compareIcoFiles;
 
 	
 	/**
@@ -50,9 +48,6 @@ public class CompareHandler {
 		
 		// Set current ICO
 		this.sourceIcoName = icoName;
-		
-		this.sourceIcoFiles = sourceIcoPath;
-		this.compareIcoFiles = compareIcoPath;
 		
 		// Get files from source and compare directories
 		sourceFiles = Util.generateListOfPaths(sourceIcoPath.toString(), "FILE");
@@ -101,13 +96,13 @@ public class CompareHandler {
 							correctIcoFound = true;
 						}
 					}
-			    	if ("xpath".equals(currentStartElementName) && correctIcoFound) {
+			    	if ("XPath".equals(currentStartElementName) && correctIcoFound) {
 			    		icoExceptions.add(eventReader.peek().asCharacters().getData());
 			    	}
 			    	break;
 			    case XMLStreamConstants.END_ELEMENT:
 			    	String currentEndElementName = event.asEndElement().getName().getLocalPart();
-			    	if ("ico".equals(currentEndElementName)) {
+			    	if ("integratedConfiguration".equals(currentEndElementName)) {
 			    		correctIcoFound = false;
 					}
 			    	break;
