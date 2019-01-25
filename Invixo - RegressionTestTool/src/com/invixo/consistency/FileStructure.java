@@ -3,7 +3,6 @@ package com.invixo.consistency;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -119,7 +118,7 @@ public class FileStructure {
 		createDirIfNotExists(DIR_REPORTS);
 		createDirIfNotExists(DIR_CONFIG);
 		
-		// Lastly generate dynamic output folders based on ICO request files
+		// Generate dynamic output folders based on ICO request files
 		List<Path> icoFiles = Util.generateListOfPaths(DIR_EXTRACT_INPUT, "FILE");
 		for (Path path : icoFiles) {
 			// Build path
@@ -128,7 +127,7 @@ public class FileStructure {
 			// Create ICO directory
 			createDirIfNotExists(icoDynamicPath);
 			
-			// Also create output folders for DEV, TST, PROD
+			// Create output folders for DEV, TST, PROD
 			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_DEV_FIRST);
 			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_DEV_LAST);
 			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_TST_FIRST);
@@ -138,6 +137,7 @@ public class FileStructure {
 		}
 	}
 
+	
 	public static void checkBaseFiles() {
 		String SIGNATURE = "checkBaseFiles()";
 		
@@ -152,7 +152,7 @@ public class FileStructure {
 			Util.writeFileToFileSystem(FILE_CONFIG_SYSTEM_MAPPING, "".getBytes());
 		}
 		
-		// Make sure ico exeption file exists
+		// Make sure ico exception file exists
 		if (compareExceptionsFile.exists()) {
 			logger.writeDebug(LOCATION, SIGNATURE, FILE_CONFIG_SYSTEM_MAPPING + " exists!");
 		} else {
@@ -160,27 +160,23 @@ public class FileStructure {
 			String initialIcoExceptionContent = generateInitialIcoExeptionContent();
 			Util.writeFileToFileSystem(FILE_CONFIG_COPMARE_EXEPTIONS, initialIcoExceptionContent.getBytes());
 		}
-		
-		
 	}
 
 	
 	private static String generateInitialIcoExeptionContent() {
-		
 		// Get ICO request files
 		List<Path> icoFiles = Util.generateListOfPaths(DIR_EXTRACT_INPUT, "FILE");
 		StringWriter writer = new StringWriter();
 		try {
-
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 
-			// root elements
+			// Root elements
 			Document doc = docBuilder.newDocument();
 			Element rootElement = doc.createElement("integratedConfigurations");
 			doc.appendChild(rootElement);
 
-			// Create an integrated configuration for each input file found
+			// Create an Integrated Configuration for each input file found
 			for (Path path : icoFiles) {
 				String icoName = Util.getFileName(path.toAbsolutePath().toString(), false);
 
@@ -213,7 +209,6 @@ public class FileStructure {
 			writer = new StringWriter();
 			StreamResult result = new StreamResult(writer);
 			transformer.transform(source, result);
-
 		} catch (ParserConfigurationException pce) {
 			throw new RuntimeException("*generateInitialIcoExeptionContent* DocumentBuilder parse error. " + pce);
 		} catch (TransformerException tfe) {
@@ -222,7 +217,6 @@ public class FileStructure {
 
 		// Return writer result
 		return writer.toString();
-		
 	}
 
 
