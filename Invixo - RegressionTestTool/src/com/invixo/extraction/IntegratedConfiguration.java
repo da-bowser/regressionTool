@@ -70,7 +70,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * Process a single Integrated Configuration object.
 	 * This also includes all MessageKeys related to this object.
 	 * @param file
-	 * @throws ExtractorException
 	 */
 	public void processSingleIco(String file) {
 		final String SIGNATURE = "processSingleIco(String)";
@@ -78,9 +77,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);
 			
 			// Extract data from ICO request file
-			extractInfoFromIcoRequest("{urn:com.sap.aii.mdt.server.adapterframework.ws}interface");
+			extractInfoFromIcoRequest();
 			
-			// CHECK
+			// Check extracted info
 			checkDataExtract();
 			
 			// Read ICO file request
@@ -153,12 +152,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 
 	
-	/**
-	 * Implementation specific object initialization
-	 */
-	protected void initialize() throws GeneralException {}
-	
-	
 	
 	/*====================================================================================
 	 *------------- Class methods
@@ -167,6 +160,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * Get list of 'messageKey' contained in a single response file.
 	 * @param file
 	 * @return
+	 * @throws ExtractorException
 	 */
 	private static ArrayList<String> extractMessageKeysFromSingleResponseFile(InputStream responseBytes) throws ExtractorException {
 		final String SIGNATURE = "extractMessageKeysFromSingleResponseFile(InputStream)";
@@ -201,6 +195,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * Parse ICO request xml and create a modified copy of it with updated properties.
 	 * @param requestBytes
 	 * @param ico
+	 * @throws ExtractorException
 	 */
 	private static byte[] modifyIcoRequestFile(byte[] requestBytes, IntegratedConfiguration ico) throws ExtractorException {
 		final String SIGNATURE = "modifyIcoRequestFile(byte[], IntegratedConfiguration)";
@@ -240,19 +235,17 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			    	
 			    	// Modify value for certain elements
 			    }  else if ((modificationEnabledForElement != null) && (event.getEventType() == XMLEvent.CHARACTERS)) {
-			    	String currentVal = event.asCharacters().getData();
-			    	
 			    	switch (modificationEnabledForElement) {
 			    	case "{urn:com.sap.aii.mdt.api.data}senderComponent" : 
 			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getSenderComponent()));
 			    		modificationEnabledForElement = null;
 			    		break;
 			    	case "{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName" : 
-			    		xmlEventWriter.add(xmlEventFactory.createCharacters(mapSystem(currentVal)));
+			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getReceiverComponent()));
 			    		modificationEnabledForElement = null;
 			    		break;
 			    	case "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName" : 
-			    		xmlEventWriter.add(xmlEventFactory.createCharacters(mapSystem(currentVal)));
+			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getSenderComponent()));
 			    		modificationEnabledForElement = null;
 			    		break;
 			    	case "{urn:AdapterMessageMonitoringVi}maxMessages" : 
@@ -276,13 +269,5 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			throw new ExtractorException(msg);
 		}
 	}
-	
-	
-	public static String mapSystem(String key) {
-		String value = SYSTEM_MAP.get(key);
-		if (value == null) {
-			value = "";
-		}
-		return value;
-	}
+
 }

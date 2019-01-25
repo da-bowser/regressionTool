@@ -21,8 +21,8 @@ public class Main {
 	private static Logger logger 			= Logger.getInstance();
 	private static final String LOCATION	= Main.class.getName();
 	
-	enum Environment { DEV, TST, PRD };
-	enum Operation { extract, inject, compare };
+	public enum Environment { DEV, TST, PRD };
+	public enum Operation { extract, inject, compare };
 	
 	// Parameter: dictates which environment *all* ICO request files are based on. (used for translation/mapping of sender system)
 	private static final String PARAM_KEY_ICO_REQUEST_FILES_ENV = "icoRequestFilesEnv";

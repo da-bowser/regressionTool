@@ -118,9 +118,9 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | Interface
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "Interface");
 			xmlEventWriter.add(startElement);
-	        attr = xmlEventFactory.createAttribute("namespace", ico.getNamespace());
+	        attr = xmlEventFactory.createAttribute("namespace", ico.getSenderNamespace());
 	        xmlEventWriter.add(attr);
-			value = xmlEventFactory.createCharacters(ico.getinterfaceName());
+			value = xmlEventFactory.createCharacters(ico.getSenderInterface());
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "Interface"));
 

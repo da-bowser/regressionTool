@@ -233,14 +233,14 @@ public class ReportWriter {
 		xmlWriter.writeCharacters(ico.getSenderComponent());
 		xmlWriter.writeEndElement();
 
-		// Create element: ExtractReport | IntegratedConfiguration | Interface
-		xmlWriter.writeStartElement(XML_PREFIX, "Interface", XML_NS);
-		xmlWriter.writeCharacters(ico.getinterfaceName());
+		// Create element: ExtractReport | IntegratedConfiguration | Receiver Interface
+		xmlWriter.writeStartElement(XML_PREFIX, "ReceiverInterface", XML_NS);
+		xmlWriter.writeCharacters(ico.getReceiverInterfaceName());
 		xmlWriter.writeEndElement();
 		
-		// Create element: ExtractReport | IntegratedConfiguration | Namespace
-		xmlWriter.writeStartElement(XML_PREFIX, "Namespace", XML_NS);
-		xmlWriter.writeCharacters(ico.getNamespace());
+		// Create element: ExtractReport | IntegratedConfiguration | Receiver Namespace
+		xmlWriter.writeStartElement(XML_PREFIX, "ReceiverNamespace", XML_NS);
+		xmlWriter.writeCharacters(ico.getReceiverNamespace());
 		xmlWriter.writeEndElement();
 
 		// Create element: ExtractReport | IntegratedConfiguration | ReceiverParty

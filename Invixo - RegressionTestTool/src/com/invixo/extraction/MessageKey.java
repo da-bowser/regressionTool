@@ -87,8 +87,8 @@ public class MessageKey {
 		this.ico = ico;
 		this.sapMessageKey = messageKey;
 		this.sapMessageId = extractMessageIdFromKey(messageKey);
-		this.targetPathFirst = FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
-		this.targetPathLast = FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+		this.targetPathFirst 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+		this.targetPathLast 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 		this.fileName = this.sapMessageId + ".payload";
 	}
 	
@@ -148,7 +148,7 @@ public class MessageKey {
 		final String SIGNATURE = "processMessageKey(String, boolean, String)";
 		try {
 			// Build request payload
-			int version = getFirstPayload ? 0 : -1;
+			int version = getFirstPayload ? 0 : -1;		// 0 = FIRST, -1 = LAST
 			InputStream wsRequest = createNewRequest(messageKey, version);
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service request payload created for Message Key " + messageKey + " with version " + version);
 			

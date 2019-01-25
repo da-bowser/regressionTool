@@ -9,10 +9,15 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 
+/**
+ * This Class uses SAP PO Message API.
+ * It injects message payloads to SAP PO.
+ */
 public class Orchestrator {
-	private static Logger logger 						= Logger.getInstance();
-	private static final String LOCATION 				= Orchestrator.class.getName();
-	private static ArrayList<IntegratedConfiguration> icoList 	= new ArrayList<IntegratedConfiguration>();
+	private static Logger logger = Logger.getInstance();
+	private static final String LOCATION = Orchestrator.class.getName();
+	private static ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
+	
 	
 	public static void main(String[] args) {
 		start();
@@ -29,7 +34,7 @@ public class Orchestrator {
 			
 			// Get list of all ICO request files to be processed
 			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_EXTRACT_INPUT);
-			logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files: " + files.length);
+			logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files to be processed: " + files.length);
 			
 			// Process each ICO request file
 			for (File file : files) {
@@ -66,8 +71,11 @@ public class Orchestrator {
 			ico = new IntegratedConfiguration(file.getAbsolutePath());
 			icoList.add(ico);
 
-			// Extract common info 
-			ico.extractInfoFromIcoRequest("{urn:com.sap.aii.mdt.server.adapterframework.ws}senderInterface");
+			// Extract data from ICO request file
+			ico.extractInfoFromIcoRequest();
+			
+			// Check extracted info
+			ico.checkDataExtract();
 			
 			// Process
 			ico.injectAllMessagesForSingleIco();

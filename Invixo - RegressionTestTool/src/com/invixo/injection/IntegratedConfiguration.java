@@ -64,6 +64,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 *====================================================================================*/
 	/**
 	 * Inject FIRST payloads to SAP PO based on single ICO request file
+	 * @throws InjectionPayloadException
 	 */
 	public void injectAllMessagesForSingleIco() throws InjectionException {
 		final String SIGNATURE = "injectAllMessagesForSingleIco()";
@@ -150,9 +151,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			// Build Request to be sent via Web Service call
 			HttpPost webServiceRequest = WebServiceHandler.buildHttpPostRequest(soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
 			
-			// Store request on file system (just for pleasant reference)
+			// Store request on file system (only relevant for debugging purposes)
 			if (Main.PARAM_VAL_STORE_INJECTION_REQ) {
-				ir.setInjectionRequestFile(getTargetFileName(this.fileName, ir.getMessageId()));
+				ir.setInjectionRequestFile(getTargetFileName(this.getName(), ir.getMessageId()));
 				webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
 				logger.writeDebug(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
 			}
@@ -192,9 +193,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	}
 	
 	
-	private static String getTargetFileName(String icoRequestfile, String messageId) {
-		String scenarioName = Util.getFileName(icoRequestfile, false);
-		String targetFile = FileStructure.FILE_BASE_LOCATION + scenarioName + " -- " +  messageId + ".payload";
+	private static String getTargetFileName(String icoName, String messageId) {
+		String targetFile = FileStructure.FILE_BASE_LOCATION + icoName + " -- " +  messageId + ".xiMultiPartReqMsg";
 		return targetFile;
 	}
 	
