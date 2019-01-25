@@ -64,12 +64,17 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 *====================================================================================*/
 	/**
 	 * Inject FIRST payloads to SAP PO based on single ICO request file
-	 * @throws InjectionPayloadException
 	 */
-	public void injectAllMessagesForSingleIco() throws InjectionException {
-		final String SIGNATURE = "injectAllMessagesForSingleIco()";
+	public void startInjection() {
+		final String SIGNATURE = "startInjection()";
 		InjectionRequest ir = null;
 		try {
+			// Extract data from ICO request file
+			extractInfoFromIcoRequest();
+			
+			// Check extracted info
+			checkDataExtract();
+			
 			// Get list of all request/payload files related to ICO
 			File[] files = Util.getListOfFilesInDirectory(this.sourcePayloadDirectory);
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of payload files to be processed: " + files.length);
@@ -84,10 +89,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			for (File file : files) {
 				ir = new InjectionRequest();
 				injections.add(ir);
+				
+				// NB: message injection for single payloads terminates on first error!
 				injectMessage(file.getAbsolutePath(), ir);
 			}
+		} catch (GeneralException|InjectionException e) {
+			this.setEx(e);
 		} catch (InjectionPayloadException e) {
-			// Add error to current payload injection
 			if (ir != null ) {
 				ir.setError(e);
 			}
@@ -110,9 +118,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 
 	/**
 	 * Initialize writer enabling writing to mapping file for source/target SAP message IDs
-	 * @throws InjectionPayloadException
+	 * @throws InjectionException
 	 */
-	private static void initMappingTableWriter() throws InjectionPayloadException {
+	private static void initMappingTableWriter() throws InjectionException {
 		final String SIGNATURE = "initMappingTableWriter()";
 		try {
 			if (mapWriter == null) {
@@ -122,7 +130,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		} catch (IOException e) {
 			String msg = "Error initializing SAP MessageId mapping file "+ MAP_FILE + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new InjectionPayloadException(msg);
+			throw new InjectionException(msg);
 		}
 	}
 	

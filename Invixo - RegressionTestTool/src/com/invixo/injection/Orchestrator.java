@@ -25,11 +25,11 @@ public class Orchestrator {
 
 	
 	/**
-	 * Main entry point for injecting all payload files related to any given ICO.
+	 * Main entry point for injecting all payload files related to all Integrated Configurations
 	 */
 	public static ArrayList<IntegratedConfiguration> start() {
-		final String SIGNATURE = "start()";
 		try {
+			final String SIGNATURE = "start()";
 			logger.writeDebug(LOCATION, SIGNATURE, "Start processing all ICO's...");
 			
 			// Get list of all ICO request files to be processed
@@ -43,10 +43,6 @@ public class Orchestrator {
 			
 			logger.writeDebug(LOCATION, SIGNATURE, "Finished processing all ICO's...");
 			return icoList;
-		} catch (InjectionException e) {
-			String ex = "Processing terminated with error!";
-			logger.writeError(LOCATION, SIGNATURE, ex);
-			throw new RuntimeException(ex);
 		} finally {
 			try {
 				// Close resources
@@ -56,12 +52,12 @@ public class Orchestrator {
 				}
 			} catch (IOException e) {
 				// Too bad...
-			}
+			}	
 		}
 	}
 	
 	
-	private static void processSingleIco(File file) throws InjectionException {
+	private static void processSingleIco(File file) {
 		final String SIGNATURE = "processSingleIco(File)";
 		IntegratedConfiguration ico = null;
 		try {
@@ -70,25 +66,13 @@ public class Orchestrator {
 			// Prepare
 			ico = new IntegratedConfiguration(file.getAbsolutePath());
 			icoList.add(ico);
-
-			// Extract data from ICO request file
-			ico.extractInfoFromIcoRequest();
-			
-			// Check extracted info
-			ico.checkDataExtract();
 			
 			// Process
-			ico.injectAllMessagesForSingleIco();
-
-		} catch (GeneralException|InjectionException e) {
-			if (ico != null) {
-				ico.setEx(e);
-			} else {
-				// If ICO could not be instantiated then something is horrible wrong.
-				String msg = "Fatal error! Could not instantiate ICO for file: " + file.getAbsolutePath() + "\n" + e;
-				logger.writeError(LOCATION, SIGNATURE, msg);
-				throw new RuntimeException(msg);
-			}
+			ico.startInjection();
+		} catch (GeneralException e) {
+			String ex = "Error instantiating Integrated Configuration object! " + e;
+			logger.writeError(LOCATION, SIGNATURE, ex);
+			throw new RuntimeException(e);
 		} finally {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Processing ICO finished");
 		}

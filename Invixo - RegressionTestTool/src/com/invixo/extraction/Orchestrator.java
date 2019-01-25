@@ -9,8 +9,10 @@ import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 
 /**
- * This Class uses SAP PO Message API.
+ * This program uses SAP PO Message API.
  * It extracts message payloads from SAP PO database.
+ *
+ * Configuration of program is done in the 'messageExtractor.properties' file part of the project.
  */
 public class Orchestrator {
 	private static Logger logger = Logger.getInstance();
@@ -18,13 +20,14 @@ public class Orchestrator {
 	private static ArrayList<IntegratedConfiguration> icoExtractList = new ArrayList<IntegratedConfiguration>();
 	
 
+	
 	public static void main(String[] args) {
 		try {	
 			// Test process for all files
 			start();
 
 		} catch (Exception e) {
-			System.err.println("\nMessage caught in Main: \n" + e);
+			System.err.println("\nMessage caught in MAIN: \n" + e);
 		}
 	}
 	
@@ -34,8 +37,7 @@ public class Orchestrator {
 	 */
 	public static ArrayList<IntegratedConfiguration> start() {
 		final String SIGNATURE = "start()";
-		logger.writeDebug(LOCATION, SIGNATURE, "Start processing all ICO's...");
-		
+
 		// Get list of all request files to be processed
 		File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_EXTRACT_INPUT);
 		logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files to be processed: " + files.length);
@@ -58,7 +60,7 @@ public class Orchestrator {
 			icoExtractList.add(ico);
 
 			// Process
-			ico.processSingleIco(file.getAbsolutePath());
+			ico.startExtraction();
 		} catch (GeneralException e) {
 			String ex = "Error instantiating Integrated Configuration object! " + e;
 			logger.writeError(LOCATION, SIGNATURE, ex);

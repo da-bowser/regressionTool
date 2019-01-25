@@ -71,10 +71,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * This also includes all MessageKeys related to this object.
 	 * @param file
 	 */
-	public void processSingleIco(String file) {
-		final String SIGNATURE = "processSingleIco(String)";
+	public void startExtraction() {
+		final String SIGNATURE = "startExtraction(String)";
 		try {
-			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);
+			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + this.fileName);
 			
 			// Extract data from ICO request file
 			extractInfoFromIcoRequest();
@@ -83,8 +83,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			checkDataExtract();
 			
 			// Read ICO file request
-			byte[] requestBytes = Util.readFile(file);
-			logger.writeDebug(LOCATION, SIGNATURE, "ICO request file read: " + file);
+			byte[] requestBytes = Util.readFile(this.fileName);
+			logger.writeDebug(LOCATION, SIGNATURE, "ICO request file read: " + this.fileName);
 			
 			// Modify ICO request
 			byte[] modifiedRequestBytes = modifyIcoRequestFile(requestBytes, this);
@@ -219,8 +219,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			    
 			    if (event.getEventType() == XMLEvent.START_ELEMENT) {
 			    	String currentName = event.asStartElement().getName().toString();
-			    	System.out.println(currentName);
-			    	
 			    	
 			    	// Enable modification for certain elements
 			    	if (		"{urn:com.sap.aii.mdt.api.data}senderComponent".equals(currentName) 

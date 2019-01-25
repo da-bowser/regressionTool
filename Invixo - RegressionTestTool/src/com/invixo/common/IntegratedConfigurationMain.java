@@ -336,7 +336,6 @@ public class IntegratedConfigurationMain {
 			    switch(event.getEventType()) {
 			    case XMLStreamConstants.START_ELEMENT:
 			    	String currentStartElementName = event.asStartElement().getName().toString();
-			    	System.out.println("START: " + currentStartElementName);
 
 					// Quality of Service
 					if (ELEMENT_QOS.equals(currentStartElementName)) {
@@ -410,7 +409,6 @@ public class IntegratedConfigurationMain {
 			    	
 			    case XMLStreamConstants.END_ELEMENT:
 			    	String currentEndElementName = event.asEndElement().getName().toString();
-			    	System.out.println("END: " + currentEndElementName);
 			    	
 			    	if (ELEMENT_SITF_ROOT.equals(currentEndElementName)) {
 			    		fetchSenderData = false;

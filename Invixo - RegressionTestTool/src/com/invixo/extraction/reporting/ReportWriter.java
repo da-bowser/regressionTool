@@ -85,7 +85,7 @@ public class ReportWriter {
 			xmlWriter.writeStartElement(XML_PREFIX, "FetchPayLoadLast", XML_NS);
 			xmlWriter.writeCharacters("" + this.fetchPayloadLast);
 			xmlWriter.writeEndElement();			
-			
+					
 			// Close element: ExtractReport | Header
 			xmlWriter.writeEndElement();	
 			
@@ -218,6 +218,16 @@ public class ReportWriter {
 		// Create element Details
 		xmlWriter.writeStartElement(XML_PREFIX, "Details", XML_NS);
 
+		// Create element: ExtractReport | Header | ExtractFromTime
+		xmlWriter.writeStartElement(XML_PREFIX, "ExtractFromTime", XML_NS);
+		xmlWriter.writeCharacters(ico.getFetchFromTime());
+		xmlWriter.writeEndElement();			
+
+		// Create element: ExtractReport | Header | ExtractToTime
+		xmlWriter.writeStartElement(XML_PREFIX, "ExtractToTime", XML_NS);
+		xmlWriter.writeCharacters(ico.getFetchToTime());
+		xmlWriter.writeEndElement();	
+		
 		// Create element: InjectReport | IntegratedConfiguration | QoS
 		xmlWriter.writeStartElement(XML_PREFIX, "QoS", XML_NS);
 		xmlWriter.writeCharacters(ico.getQualityOfService());
