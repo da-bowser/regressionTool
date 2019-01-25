@@ -75,13 +75,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		final String SIGNATURE = "startExtraction(String)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + this.fileName);
-			
-			// Extract data from ICO request file
-			extractInfoFromIcoRequest();
-			
-			// Check extracted info
-			checkDataExtract();
-			
+					
 			// Read ICO file request
 			byte[] requestBytes = Util.readFile(this.fileName);
 			logger.writeDebug(LOCATION, SIGNATURE, "ICO request file read: " + this.fileName);
@@ -107,7 +101,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				logger.writeDebug(LOCATION, SIGNATURE, "-----> (" + counter + ") MessageKey processing finished");
 				counter++;
 			}	
-		} catch (GeneralException|ExtractorException e) {
+		} catch (ExtractorException e) {
 			this.ex = e;
 		} finally {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Finished processing ICO request file");

@@ -69,12 +69,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String SIGNATURE = "startInjection()";
 		InjectionRequest ir = null;
 		try {
-			// Extract data from ICO request file
-			extractInfoFromIcoRequest();
-			
-			// Check extracted info
-			checkDataExtract();
-			
 			// Get list of all request/payload files related to ICO
 			File[] files = Util.getListOfFilesInDirectory(this.sourcePayloadDirectory);
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of payload files to be processed: " + files.length);
@@ -93,7 +87,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 				// NB: message injection for single payloads terminates on first error!
 				injectMessage(file.getAbsolutePath(), ir);
 			}
-		} catch (GeneralException|InjectionException e) {
+		} catch (InjectionException e) {
 			this.setEx(e);
 		} catch (InjectionPayloadException e) {
 			if (ir != null ) {

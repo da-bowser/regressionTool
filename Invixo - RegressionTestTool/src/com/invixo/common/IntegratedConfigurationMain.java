@@ -99,6 +99,12 @@ public class IntegratedConfigurationMain {
 	public IntegratedConfigurationMain(String icoFileName) throws GeneralException {
 		this.fileName = icoFileName;
 		this.name = Util.getFileName(icoFileName, false);
+
+		// Extract data from ICO request file
+		extractInfoFromIcoRequest();
+		
+		// Check extracted info
+		checkDataExtract();
 	}
 	
 

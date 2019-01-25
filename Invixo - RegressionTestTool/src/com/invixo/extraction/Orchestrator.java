@@ -22,13 +22,8 @@ public class Orchestrator {
 
 	
 	public static void main(String[] args) {
-		try {	
-			// Test process for all files
-			start();
-
-		} catch (Exception e) {
-			System.err.println("\nMessage caught in MAIN: \n" + e);
-		}
+		// Test process for all files
+		start();
 	}
 	
 
