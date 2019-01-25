@@ -3,7 +3,6 @@ package com.invixo.injection;
 import java.util.UUID;
 
 public class InjectionRequest {
-
 	private String messageId = UUID.randomUUID().toString();
 	private String sourcePayloadFile = null;
 	private String injectionRequestFile = null;

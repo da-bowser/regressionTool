@@ -36,6 +36,7 @@ public class MessageKey {
 	private static final String LOCATION = MessageKey.class.getName();	
 	
 	
+	
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
@@ -214,7 +215,7 @@ public class MessageKey {
 	 * @param messageKey
 	 * @param version
 	 * @return
-	 * @throws Exception
+	 * @throws ExtractorException
 	 */
 	private ByteArrayInputStream createNewRequest(String messageKey, int version) throws ExtractorException {
 		final String SIGNATURE = "createNewRequest(String, int)";

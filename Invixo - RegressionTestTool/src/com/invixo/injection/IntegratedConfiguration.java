@@ -31,6 +31,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	public static BufferedWriter mapWriter	= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID	
 	
 	
+	
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
@@ -44,7 +45,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 *====================================================================================*/
 	public IntegratedConfiguration(String icoFileName) throws GeneralException {
 		super(icoFileName);
-		
 		initialize();
 	}
 			
