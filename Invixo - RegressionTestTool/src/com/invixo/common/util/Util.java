@@ -44,7 +44,7 @@ public class Util {
 			Path path = Paths.get(filePath);
 			Files.write(path, fileContent);			
 		} catch (IOException e) {
-			throw new RuntimeException("*writeFileToFileSystem* Error writing to file system for file" + filePath + "\n" + e);
+			throw new RuntimeException("*writeFileToFileSystem* Error writing to file system for file " + filePath + "\n" + e);
 		}
 	}
 	

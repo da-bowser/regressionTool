@@ -1,27 +1,32 @@
 package com.invixo.extraction;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+//import java.io.ByteArrayInputStream;
+//import java.io.ByteArrayOutputStream;
+//import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 
-import javax.xml.stream.XMLEventFactory;
+//import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
+//import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
-import javax.xml.transform.stream.StreamSource;
+//import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.common.util.XmlUtil;
+import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.webServices.WebServiceHandler;
+import com.invixo.main.GlobalParameters;
 
 
 public class IntegratedConfiguration extends IntegratedConfigurationMain {
@@ -35,6 +40,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	public static final boolean EXTRACT_FIRST_PAYLOAD = Boolean.parseBoolean(PropertyAccessor.getProperty("EXTRACT_FIRST_PAYLOAD"));
 	public static final boolean EXTRACT_LAST_PAYLOAD = Boolean.parseBoolean(PropertyAccessor.getProperty("EXTRACT_LAST_PAYLOAD"));
 		
+	// Debugging
+	private static final boolean LOG_GET_MSG_REQ = Boolean.parseBoolean(PropertyAccessor.getProperty("LOG_GET_MSG_REQUEST"));
+	private static final String LOG_GET_MSG_REQ_PATH = PropertyAccessor.getProperty("LOG_GET_MSG_REQUEST_PATH");
 	
 	
 	/*====================================================================================
@@ -46,12 +54,30 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	
 	
 	/*====================================================================================
+	 *------------- Main (for testing purposes)
+	 *====================================================================================*/	
+	public static void main(String[] args) throws GeneralException {
+		// Test GetMessageList request creation
+		String file = "c:\\Users\\dhek\\Desktop\\_beginning_\\_Extract\\Input\\Integrated Configurations\\Varemodtagelse - Sys_P_WMS_ODENSE oa_GoodsNotification_ODE_to_Sys_PRD_011_ia_GoodsReceipt.xml";
+		String mappingFile = "c:\\Users\\dhek\\Desktop\\_beginning_\\Config\\systemMapping.txt";
+		IntegratedConfiguration ico = new IntegratedConfiguration(file, mappingFile, "PRD", "TST");
+		createGetMessageListRequest(ico);
+	}
+	
+	
+	
+	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
 	public IntegratedConfiguration(String icoFileName) throws GeneralException {
 		super(icoFileName);
 	}
 
+	
+	public IntegratedConfiguration(String icoFileName, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
+		super(icoFileName, mapfilePath, sourceEnv, targetEnv);
+	}
+	
 	
 	
 	/*====================================================================================
@@ -76,16 +102,27 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + this.fileName);
 					
+			// Create request for GetMessageList
+			byte[] requestBytes = createGetMessageListRequest(this);
+			logger.writeDebug(LOCATION, SIGNATURE, "GetMessageList request created");
+			
+			if (LOG_GET_MSG_REQ) {
+				FileStructure.createDirIfNotExists(LOG_GET_MSG_REQ_PATH);
+				String file = LOG_GET_MSG_REQ_PATH + "GetMessageListReq_" + this.getName() + "_" + System.currentTimeMillis() + ".xml";
+				Util.writeFileToFileSystem(file, requestBytes);
+				logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessageList request message to be sent to SAP PO is stored here: " + file);
+			}
+			
 			// Read ICO file request
-			byte[] requestBytes = Util.readFile(this.fileName);
-			logger.writeDebug(LOCATION, SIGNATURE, "ICO request file read: " + this.fileName);
+//			byte[] requestBytes = Util.readFile(this.fileName);
+//			logger.writeDebug(LOCATION, SIGNATURE, "ICO request file read: " + this.fileName);
 			
 			// Modify ICO request
-			byte[] modifiedRequestBytes = modifyIcoRequestFile(requestBytes, this);
-			logger.writeDebug(LOCATION, SIGNATURE, "ICO request modified. ");
+//			byte[] modifiedRequestBytes = modifyIcoRequestFile(requestBytes, this);
+//			logger.writeDebug(LOCATION, SIGNATURE, "ICO request modified. ");
 			
 			// Call web service (GetMessageList)
-			InputStream responseBytes = WebServiceHandler.callWebService(modifiedRequestBytes);
+			InputStream responseBytes = WebServiceHandler.callWebService(requestBytes);
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessageList) called");
 			
 			// Extract MessageKeys from web Service response
@@ -186,80 +223,252 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	
 	
 	/**
-	 * Parse ICO request xml and create a modified copy of it with updated properties.
-	 * @param requestBytes
+	 * Create request message for GetMessageList
 	 * @param ico
-	 * @throws ExtractorException
+	 * @return
 	 */
-	private static byte[] modifyIcoRequestFile(byte[] requestBytes, IntegratedConfiguration ico) throws ExtractorException {
-		final String SIGNATURE = "modifyIcoRequestFile(byte[], IntegratedConfiguration)";
+	public static byte[] createGetMessageListRequest(IntegratedConfiguration ico) {
+		final String SIGNATURE = "createGetMessageListRequest(IntegratedConfiguration)";
 		try {
-			String modificationEnabledForElement = null;
+			final String XML_NS_URN_PREFIX	= "urn";
+			final String XML_NS_URN_NS		= "urn:AdapterMessageMonitoringVi";
+			final String XML_NS_URN1_PREFIX	= "urn1";
+			final String XML_NS_URN1_NS		= "urn:com.sap.aii.mdt.server.adapterframework.ws";
+			final String XML_NS_URN2_PREFIX	= "urn2";
+			final String XML_NS_URN2_NS		= "urn:com.sap.aii.mdt.api.data";
 			
-			// Create XML Writer (creating a modified copy of the request ICO file)
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			StringWriter stringWriter = new StringWriter();
 			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
-			XMLEventWriter xmlEventWriter = xMLOutputFactory.createXMLEventWriter(baos, "UTF-8");
-			XMLEventFactory xmlEventFactory = XMLEventFactory.newFactory();
+			XMLStreamWriter xmlWriter = xMLOutputFactory.createXMLStreamWriter(stringWriter);
+
+			// Add xml version and encoding to output
+			xmlWriter.writeStartDocument(GlobalParameters.ENCODING, "1.0");
+
+			// Create element: Envelope
+			xmlWriter.writeStartElement(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_ROOT, XmlUtil.SOAP_ENV_NS);
+			xmlWriter.writeNamespace(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_NS);
+			xmlWriter.writeNamespace(XML_NS_URN_PREFIX, XML_NS_URN_NS);
+			xmlWriter.writeNamespace(XML_NS_URN1_PREFIX, XML_NS_URN1_NS);
+			xmlWriter.writeNamespace(XML_NS_URN2_PREFIX, XML_NS_URN2_NS);
+			xmlWriter.writeNamespace("lang", "java/lang");
+
+			// Create element: Envelope | Body
+			xmlWriter.writeStartElement(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_BODY, XmlUtil.SOAP_ENV_NS);
+
+			// Create element: Envelope | Body | getMessageList
+			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "getMessageList", XML_NS_URN_NS);
+
+			// Create element: Envelope | Body | getMessageList | filter
+			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "filter", XML_NS_URN_NS);
 			
-			// Create XML Reader (reading request ICO file)
-	        XMLInputFactory factory = XMLInputFactory.newInstance();
-			StreamSource ss = new StreamSource(new ByteArrayInputStream(requestBytes));
-			XMLEventReader eventReader = factory.createXMLEventReader(ss);
+			// Create element: Envelope | Body | getMessageList | filter | archive
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "archive", XML_NS_URN1_NS);
+			xmlWriter.writeCharacters("false");
+			xmlWriter.writeEndElement();
+
+			// Create element: Envelope | Body | getMessageList | filter | dateType
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "dateType", XML_NS_URN1_NS);
+			xmlWriter.writeEndElement();
 			
-			// Read and modify ICO request
-			while (eventReader.hasNext()) {
-			    XMLEvent event = eventReader.nextEvent();
-			    
-			    if (event.getEventType() == XMLEvent.START_ELEMENT) {
-			    	String currentName = event.asStartElement().getName().toString();
-			    	
-			    	// Enable modification for certain elements
-			    	if (		"{urn:com.sap.aii.mdt.api.data}senderComponent".equals(currentName) 
-			    			|| 	"{urn:AdapterMessageMonitoringVi}maxMessages".equals(currentName)
-			    			|| 	"{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName".equals(currentName)
-			    			|| 	"{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName".equals(currentName)) {
-			    		modificationEnabledForElement = currentName;
-			    	}
-			    	
-			    	// Always add event
-			    	xmlEventWriter.add(event);
-			    	
-			    	// Modify value for certain elements
-			    }  else if ((modificationEnabledForElement != null) && (event.getEventType() == XMLEvent.CHARACTERS)) {
-			    	switch (modificationEnabledForElement) {
-			    	case "{urn:com.sap.aii.mdt.api.data}senderComponent" : 
-			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getSenderComponent()));
-			    		modificationEnabledForElement = null;
-			    		break;
-			    	case "{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName" : 
-			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getReceiverComponent()));
-			    		modificationEnabledForElement = null;
-			    		break;
-			    	case "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName" : 
-			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getSenderComponent()));
-			    		modificationEnabledForElement = null;
-			    		break;
-			    	case "{urn:AdapterMessageMonitoringVi}maxMessages" : 
-			    		xmlEventWriter.add(xmlEventFactory.createCharacters("" + ico.getMaxMessages()));
-			    		modificationEnabledForElement = null;
-			    		break;
-			    	}
-		    	} else {
-		    		xmlEventWriter.add(event);
-		    	}
+			// Create element: Envelope | Body | getMessageList | filter | direction
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "direction", XML_NS_URN1_NS);
+			xmlWriter.writeCharacters("OUTBOUND");
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | fromTime
+			if (ico.getFetchFromTime() != null) {
+				xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "fromTime", XML_NS_URN1_NS);
+				xmlWriter.writeCharacters(ico.getFetchFromTime());
+				xmlWriter.writeEndElement();	
 			}
 			
-			baos.flush();
-			xmlEventWriter.flush();
-			xmlEventWriter.close();
+			// Create element: Envelope | Body | getMessageList | filter | interface
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "interface", XML_NS_URN1_NS);
+
+			// Create element: Envelope | Body | getMessageList | filter | interface | name
+			xmlWriter.writeStartElement(XML_NS_URN2_PREFIX, "name", XML_NS_URN2_NS);
+			xmlWriter.writeCharacters(ico.getReceiverInterfaceName());
+			xmlWriter.writeEndElement();
 			
-			return baos.toByteArray();	
-		} catch (IOException|XMLStreamException e) {
-			String msg = "Error modifying ICO request.\n" + e.getMessage();
+			// Create element: Envelope | Body | getMessageList | filter | interface | namespace
+			xmlWriter.writeStartElement(XML_NS_URN2_PREFIX, "namespace", XML_NS_URN2_NS);
+			xmlWriter.writeCharacters(ico.getReceiverNamespace());
+			xmlWriter.writeEndElement();
+			
+			// Close element: Envelope | Body | getMessageList | filter | interface
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | nodeId
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "nodeId", XML_NS_URN1_NS);
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | onlyFaultyMessages
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "onlyFaultyMessages", XML_NS_URN1_NS);
+			xmlWriter.writeCharacters("false");
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | qualityOfService
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "qualityOfService", XML_NS_URN1_NS);
+			xmlWriter.writeCharacters(ico.getQualityOfService());
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | receiverName
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "receiverName", XML_NS_URN1_NS);
+			xmlWriter.writeCharacters(ico.getReceiverComponent());
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | retries
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "retries", XML_NS_URN1_NS);
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | retryInterval
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "retryInterval", XML_NS_URN1_NS);
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | senderInterface
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "senderInterface", XML_NS_URN1_NS);
+
+			// Create element: Envelope | Body | getMessageList | filter | senderInterface | name
+			xmlWriter.writeStartElement(XML_NS_URN2_PREFIX, "name", XML_NS_URN2_NS);
+			xmlWriter.writeCharacters(ico.getSenderInterface());
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | senderInterface | namespace
+			xmlWriter.writeStartElement(XML_NS_URN2_PREFIX, "namespace", XML_NS_URN2_NS);
+			xmlWriter.writeCharacters(ico.getSenderNamespace());
+			xmlWriter.writeEndElement();
+			
+			// Close element: Envelope | Body | getMessageList | filter | senderInterface
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | senderName
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "senderName", XML_NS_URN1_NS);
+			xmlWriter.writeCharacters(ico.getSenderComponent());
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | status
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "status", XML_NS_URN1_NS);
+			xmlWriter.writeCharacters("success");
+			xmlWriter.writeEndElement();
+
+			// Create element: Envelope | Body | getMessageList | filter | timesFailed
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "timesFailed", XML_NS_URN1_NS);
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | toTime
+			if (ico.getFetchToTime() != null) {
+	 			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "toTime", XML_NS_URN1_NS);
+				xmlWriter.writeCharacters(ico.getFetchToTime());
+				xmlWriter.writeEndElement();
+			}
+			
+			// Create element: Envelope | Body | getMessageList | filter | wasEdited
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "wasEdited", XML_NS_URN1_NS);
+			xmlWriter.writeCharacters("false");
+			xmlWriter.writeEndElement();
+			
+			// Close element: Envelope | Body | getMessageList | filter
+			xmlWriter.writeEndElement();
+			
+			// Create element: Envelope | Body | getMessageList | filter | maxMessages
+			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "maxMessages", XML_NS_URN1_NS);
+			xmlWriter.writeCharacters("" + ico.getMaxMessages());
+			xmlWriter.writeEndElement();
+			
+			// Close tags
+			xmlWriter.writeEndElement(); // Envelope | Body | getMessageList
+			xmlWriter.writeEndElement(); // Envelope | Body
+			xmlWriter.writeEndElement(); // Envelope
+
+			// Finalize writing
+			xmlWriter.flush();
+			xmlWriter.close();
+			stringWriter.flush();
+			
+			return stringWriter.toString().getBytes();
+		} catch (XMLStreamException e) {
+			String msg = "Error creating SOAP request for GetMessageList. " + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new ExtractorException(msg);
+			throw new RuntimeException(msg);
 		}
 	}
+	
+	
+//	/**
+//	 * Parse ICO request xml and create a modified copy of it with updated properties.
+//	 * @param requestBytes
+//	 * @param ico
+//	 * @throws ExtractorException
+//	 */
+//	private static byte[] modifyIcoRequestFile(byte[] requestBytes, IntegratedConfiguration ico) throws ExtractorException {
+//		final String SIGNATURE = "modifyIcoRequestFile(byte[], IntegratedConfiguration)";
+//		try {
+//			String modificationEnabledForElement = null;
+//			
+//			// Create XML Writer (creating a modified copy of the request ICO file)
+//			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
+//			XMLEventWriter xmlEventWriter = xMLOutputFactory.createXMLEventWriter(baos, "UTF-8");
+//			XMLEventFactory xmlEventFactory = XMLEventFactory.newFactory();
+//			
+//			// Create XML Reader (reading request ICO file)
+//	        XMLInputFactory factory = XMLInputFactory.newInstance();
+//			StreamSource ss = new StreamSource(new ByteArrayInputStream(requestBytes));
+//			XMLEventReader eventReader = factory.createXMLEventReader(ss);
+//			
+//			// Read and modify ICO request
+//			while (eventReader.hasNext()) {
+//			    XMLEvent event = eventReader.nextEvent();
+//			    
+//			    if (event.getEventType() == XMLEvent.START_ELEMENT) {
+//			    	String currentName = event.asStartElement().getName().toString();
+//			    	
+//			    	// Enable modification for certain elements
+//			    	if (		"{urn:com.sap.aii.mdt.api.data}senderComponent".equals(currentName) 
+//			    			|| 	"{urn:AdapterMessageMonitoringVi}maxMessages".equals(currentName)
+//			    			|| 	"{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName".equals(currentName)
+//			    			|| 	"{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName".equals(currentName)) {
+//			    		modificationEnabledForElement = currentName;
+//			    	}
+//			    	
+//			    	// Always add event
+//			    	xmlEventWriter.add(event);
+//			    	
+//			    	// Modify value for certain elements
+//			    }  else if ((modificationEnabledForElement != null) && (event.getEventType() == XMLEvent.CHARACTERS)) {
+//			    	switch (modificationEnabledForElement) {
+//			    	case "{urn:com.sap.aii.mdt.api.data}senderComponent" : 
+//			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getSenderComponent()));
+//			    		modificationEnabledForElement = null;
+//			    		break;
+//			    	case "{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName" : 
+//			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getReceiverComponent()));
+//			    		modificationEnabledForElement = null;
+//			    		break;
+//			    	case "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName" : 
+//			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getSenderComponent()));
+//			    		modificationEnabledForElement = null;
+//			    		break;
+//			    	case "{urn:AdapterMessageMonitoringVi}maxMessages" : 
+//			    		xmlEventWriter.add(xmlEventFactory.createCharacters("" + ico.getMaxMessages()));
+//			    		modificationEnabledForElement = null;
+//			    		break;
+//			    	}
+//		    	} else {
+//		    		xmlEventWriter.add(event);
+//		    	}
+//			}
+//			
+//			baos.flush();
+//			xmlEventWriter.flush();
+//			xmlEventWriter.close();
+//			
+//			return baos.toByteArray();	
+//		} catch (IOException|XMLStreamException e) {
+//			String msg = "Error modifying ICO request.\n" + e.getMessage();
+//			logger.writeError(LOCATION, SIGNATURE, msg);
+//			throw new ExtractorException(msg);
+//		}
+//	}
 
 }

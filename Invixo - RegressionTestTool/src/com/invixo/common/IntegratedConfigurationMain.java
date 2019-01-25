@@ -31,11 +31,11 @@ public class IntegratedConfigurationMain {
 	// XML Elements: Sender details
 	private static final String ELEMENT_SITF_SCOMPONENT	= "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName";
 	private static final String ELEMENT_SITF_ROOT		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderInterface";
-	private static final String ELEMENT_SITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";
-	private static final String ELEMENT_SITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";
+	private static final String ELEMENT_SITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";				 //TODO
+	private static final String ELEMENT_SITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";		 //TODO
 	
 	// XML Elements: Receiver details
-	private static final String ELEMENT_RITF_COMPONENT	= "{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName";
+	private static final String ELEMENT_RITF_COMPONENT	= "{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName";	 //TODO
 	private static final String ELEMENT_RITF_ROOT		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}interface";
 	private static final String ELEMENT_RITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";
 	private static final String ELEMENT_RITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";
@@ -53,7 +53,7 @@ public class IntegratedConfigurationMain {
 	private static final String MAP_FILE				= FileStructure.DIR_CONFIG + "systemMapping.txt";
 	private static final String SOURCE_ENV_ICO_REQUESTS	= Main.PARAM_VAL_ICO_REQUEST_FILES_ENV;
 	private static final String TARGET_ENV 				= Main.PARAM_VAL_TARGET_ENV;
-	private static HashMap<String, String> SYSTEM_MAP	= initializeSystemMap();
+	private static HashMap<String, String> SYSTEM_MAP	= null;
 	
 	
 	/*====================================================================================
@@ -97,8 +97,14 @@ public class IntegratedConfigurationMain {
 	 *------------- Constructors
 	 *====================================================================================*/
 	public IntegratedConfigurationMain(String icoFileName) throws GeneralException {
+		this(icoFileName, MAP_FILE, SOURCE_ENV_ICO_REQUESTS, TARGET_ENV);
+	}
+	
+
+	public IntegratedConfigurationMain(String icoFileName, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
 		this.fileName = icoFileName;
 		this.name = Util.getFileName(icoFileName, false);
+		SYSTEM_MAP = initializeSystemMap(mapfilePath, sourceEnv, targetEnv);
 
 		// Extract data from ICO request file
 		extractInfoFromIcoRequest();
@@ -107,7 +113,7 @@ public class IntegratedConfigurationMain {
 		checkDataExtract();
 	}
 	
-
+	
 	
 	/*====================================================================================
 	 *------------- Getters and Setters
@@ -223,14 +229,14 @@ public class IntegratedConfigurationMain {
 	/*====================================================================================
 	 *------------- Class methods
 	 *====================================================================================*/
-	private static HashMap<String, String> initializeSystemMap() {
-		final String SIGNATURE = "initializeSystemMap()";
+	private static HashMap<String, String> initializeSystemMap(String mapFilePath, String sourceEnv, String targetEnv) {
+		final String SIGNATURE = "initializeSystemMap(String, String, String)";
 		try {
 			// Determine source index (how the request ICO's are created)
 			int sourceIndex = -1;
-			if (Main.Environment.DEV.toString().equals(SOURCE_ENV_ICO_REQUESTS)) {
+			if (Main.Environment.DEV.toString().equals(sourceEnv)) {
 				sourceIndex = 0;
-			} else if (Main.Environment.TST.toString().equals(SOURCE_ENV_ICO_REQUESTS)) {
+			} else if (Main.Environment.TST.toString().equals(sourceEnv)) {
 				sourceIndex = 1;
 			} else {
 				sourceIndex = 2;
@@ -238,9 +244,9 @@ public class IntegratedConfigurationMain {
 			
 			// Determine target index (which target system to map to when injecting)
 			int targetIndex = -1;
-			if (Main.Environment.DEV.toString().equals(TARGET_ENV)) {
+			if (Main.Environment.DEV.toString().equals(targetEnv)) {
 				targetIndex = 0;
-			} else if (Main.Environment.TST.toString().equals(TARGET_ENV)) {
+			} else if (Main.Environment.TST.toString().equals(targetEnv)) {
 				targetIndex = 1;
 			} else {
 				targetIndex = 2;
@@ -249,7 +255,7 @@ public class IntegratedConfigurationMain {
 			// Populate map
 	 		SYSTEM_MAP = new HashMap<String, String>();
 	 		String line;
-	 		FileReader fileReader = new FileReader(MAP_FILE);
+	 		FileReader fileReader = new FileReader(mapFilePath);
 	 		try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
 	 			while((line = bufferedReader.readLine()) != null) {
 	 				String[] str = line.split("\\|");
@@ -258,7 +264,7 @@ public class IntegratedConfigurationMain {
 	 		}
 
 		    // Return initialized map
-		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized. Source ENV '" + SOURCE_ENV_ICO_REQUESTS + "'. Target ENV '" + TARGET_ENV + "'. Number of entries: " + SYSTEM_MAP.size());
+		    logger.writeDebug(LOCATION, SIGNATURE, "System mapping initialized. Source ENV '" + sourceEnv + "'. Target ENV '" + targetEnv + "'. Number of entries: " + SYSTEM_MAP.size());
 		    return SYSTEM_MAP;			
 		} catch (IOException e) {
 			String msg = "Error generating system mapping\n" + e;
@@ -342,7 +348,7 @@ public class IntegratedConfigurationMain {
 			    switch(event.getEventType()) {
 			    case XMLStreamConstants.START_ELEMENT:
 			    	String currentStartElementName = event.asStartElement().getName().toString();
-
+			    	
 					// Quality of Service
 					if (ELEMENT_QOS.equals(currentStartElementName)) {
 						if (eventReader.peek().isCharacters()) {

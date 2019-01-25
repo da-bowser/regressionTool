@@ -75,9 +75,13 @@ public class Main {
 	private static final String PARAM_KEY_ALLOW_SAME_ENV		= "allowSameEnv";
 	public static boolean PARAM_VAL_ALLOW_SAME_ENV 				= false;
 	
-	// Parameter: internal test parameter to store injection request messages on file system
-	private static final String PARAM_KEY_STORE_INJECTION_REQ	= "debugStoreInjectionRequest";
-	public static boolean PARAM_VAL_STORE_INJECTION_REQ 		= false;
+	// Parameter: From time (for extraction)
+	private static final String PARAM_KEY_FROM_TIME				= "fromTime";
+	public static String PARAM_VAL_FROM_TIME 					= null;
+
+	// Parameter: To time (for extraction)
+	private static final String PARAM_KEY_TO_TIME				= "toTime";
+	public static String PARAM_VAL_TO_TIME 						= null;
 	
 	
 	public static void main(String[] args) {
@@ -264,13 +268,15 @@ public class Main {
 				if (PARAM_VAL_SOURCE_ENV.equals(PARAM_VAL_TARGET_ENV)) {
 					PARAM_VAL_ALLOW_SAME_ENV = Boolean.parseBoolean(param.replace(PARAM_KEY_ALLOW_SAME_ENV + "=", ""));
 				}
-			} else if(param.contains(PARAM_KEY_STORE_INJECTION_REQ)) {
-				PARAM_VAL_STORE_INJECTION_REQ = Boolean.parseBoolean(param.replace(PARAM_KEY_STORE_INJECTION_REQ + "=", ""));
-			}
+			} else if(param.contains(PARAM_KEY_FROM_TIME)) {
+				PARAM_VAL_FROM_TIME = param.replace(PARAM_KEY_FROM_TIME + "=", "");
+			} else if(param.contains(PARAM_KEY_TO_TIME)) {
+				PARAM_VAL_TO_TIME = param.replace(PARAM_KEY_TO_TIME + "=", "");
+			}	
 		}
 	}
 
-
+	
 	private static void readAndSetCredentials(String sourceDirectory) throws ValidationException {
 		try {
 			// Get credential file

@@ -14,6 +14,7 @@ import org.apache.http.client.methods.HttpPost;
 import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.injection.webServices.WebServiceHandler;
@@ -25,10 +26,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	/*====================================================================================
 	 *------------- Class variables
 	 *====================================================================================*/
-	private static Logger logger 			= Logger.getInstance();
-	private static final String LOCATION 	= IntegratedConfiguration.class.getName();	
-	private static final String MAP_FILE	= FileStructure.DIR_INJECT + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV +"_msgId_map" + ".txt";
-	public static BufferedWriter mapWriter	= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID	
+	private static Logger logger 						= Logger.getInstance();
+	private static final String LOCATION 				= IntegratedConfiguration.class.getName();	
+	private static final boolean LOG_MULTIPART_MSG 		= Boolean.parseBoolean(PropertyAccessor.getProperty("LOG_MULTIPART_MSG"));
+	private static final String LOG_MULTIPART_MSG_PATH 	= PropertyAccessor.getProperty("LOG_MULTIPART_MSG_PATH");
+	private static final String MAP_FILE				= FileStructure.DIR_INJECT + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV +"_msgId_map" + ".txt";
+	public static BufferedWriter mapWriter				= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID	
 	
 	
 	
@@ -47,7 +50,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		super(icoFileName);
 		initialize();
 	}
-			
+	
+	
+	public IntegratedConfiguration(String icoFileName, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
+		super(icoFileName, mapfilePath, sourceEnv, targetEnv);
+		initialize();
+	}
+	
 	
 	
 	/*====================================================================================
@@ -154,10 +163,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			HttpPost webServiceRequest = WebServiceHandler.buildHttpPostRequest(soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
 			
 			// Store request on file system (only relevant for debugging purposes)
-			if (Main.PARAM_VAL_STORE_INJECTION_REQ) {
-				ir.setInjectionRequestFile(getTargetFileName(this.getName(), ir.getMessageId()));
+			if (LOG_MULTIPART_MSG) {
+				FileStructure.createDirIfNotExists(LOG_MULTIPART_MSG_PATH);
+				ir.setInjectionRequestFile(getTargetFileName(LOG_MULTIPART_MSG_PATH, this.getName(), ir.getMessageId()));
 				webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
-				logger.writeDebug(LOCATION, SIGNATURE, "Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
+				logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
 			}
 			
 			// Call SAP PO Web Service (using XI protocol)
@@ -195,8 +205,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	}
 	
 	
-	private static String getTargetFileName(String icoName, String messageId) {
-		String targetFile = FileStructure.FILE_BASE_LOCATION + icoName + " -- " +  messageId + ".xiMultiPartReqMsg";
+	private static String getTargetFileName(String path, String icoName, String messageId) {
+		String targetFile = path + icoName + " -- " +  messageId + ".xiMultiPartReqMsg";
 		return targetFile;
 	}
 	
