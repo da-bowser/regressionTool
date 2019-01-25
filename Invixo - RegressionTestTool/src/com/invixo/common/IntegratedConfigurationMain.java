@@ -31,11 +31,11 @@ public class IntegratedConfigurationMain {
 	// XML Elements: Sender details
 	private static final String ELEMENT_SITF_SCOMPONENT	= "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName";
 	private static final String ELEMENT_SITF_ROOT		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderInterface";
-	private static final String ELEMENT_SITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";				 //TODO
-	private static final String ELEMENT_SITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";		 //TODO
+	private static final String ELEMENT_SITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";
+	private static final String ELEMENT_SITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";
 	
 	// XML Elements: Receiver details
-	private static final String ELEMENT_RITF_COMPONENT	= "{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName";	 //TODO
+	private static final String ELEMENT_RITF_COMPONENT	= "{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName";
 	private static final String ELEMENT_RITF_ROOT		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}interface";
 	private static final String ELEMENT_RITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";
 	private static final String ELEMENT_RITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";
@@ -195,13 +195,27 @@ public class IntegratedConfigurationMain {
 		this.qualityOfService = qualityOfService;
 	}
 	public String getFetchFromTime() {
-		return fetchFromTime;
+		if (Main.PARAM_VAL_FROM_TIME == null) {
+			// Not part of program parameter
+			// Return whatever (if any) value provided in file request
+			return fetchFromTime;
+		} else {
+			// Overrule value in file request (if any) with the program parameter
+			return Main.PARAM_VAL_FROM_TIME;
+		}
 	}
 	public void setFetchFromTime(String fetchFromTime) {
 		this.fetchFromTime = fetchFromTime;
 	}
 	public String getFetchToTime() {
-		return fetchToTime;
+		if (Main.PARAM_VAL_TO_TIME == null) {
+			// Not part of program parameter
+			// Return whatever (if any) value provided in file request
+			return fetchToTime;	
+		} else {
+			// Overrule value in file request (if any) with the program parameter
+			return Main.PARAM_VAL_TO_TIME;
+		}
 	}
 	public void setFetchToTime(String fetchToTime) {
 		this.fetchToTime = fetchToTime;
