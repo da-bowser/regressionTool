@@ -33,7 +33,7 @@ public abstract class WebServiceHandler {
 		InputStream response = null;
 		try {		
 			URL url = new URL(ENDPOINT);
-			logMessage(SIGNATURE, "---------------Web Service Call: begin -----------------------");
+			logMessage(SIGNATURE, "--------------- Web Service Call: begin -----------------------");
 			logMessage(SIGNATURE, "Endpoint: " + url.toString());
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("POST");
@@ -70,7 +70,7 @@ public abstract class WebServiceHandler {
 				throw new RuntimeException("Error calling web service with endpoint: " + ENDPOINT + ". See the trace for details.");
 			}
 			
-			// Return the web service response
+			// Return web service response
 			ByteArrayInputStream bais = new ByteArrayInputStream(response.readAllBytes());
 			return bais;
 		} catch (IOException e) {
@@ -88,7 +88,7 @@ public abstract class WebServiceHandler {
 					// Too bad...
 				}
 			}
-			logMessage(SIGNATURE, "---------------Web Service Call: end -----------------------\n");
+			logMessage(SIGNATURE, "--------------- Web Service Call: end -----------------------\n");
 		}
 	}
 	
