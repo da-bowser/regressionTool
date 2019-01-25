@@ -142,7 +142,7 @@ public class FileStructure {
 		String SIGNATURE = "checkBaseFiles()";
 		
 		File systemMappingFile = new File(FILE_CONFIG_SYSTEM_MAPPING);
-		File compareExceptionsFile = new File(FILE_CONFIG_COPMARE_EXEPTIONS);
+		//File compareExceptionsFile = new File(FILE_CONFIG_COPMARE_EXEPTIONS);
 		
 		// Make sure system mapping file exists
 		if (systemMappingFile.exists()) {
@@ -152,11 +152,9 @@ public class FileStructure {
 			Util.writeFileToFileSystem(FILE_CONFIG_SYSTEM_MAPPING, "".getBytes());
 		}
 		
-		// Make sure ico exception file exists
-		if (compareExceptionsFile.exists()) {
-			logger.writeDebug(LOCATION, SIGNATURE, FILE_CONFIG_SYSTEM_MAPPING + " exists!");
-		} else {
-			logger.writeDebug(LOCATION, SIGNATURE, "System critical file: " + FILE_CONFIG_SYSTEM_MAPPING + " is missing and will be created!");
+		// Always create the ICO exception file with current ICO request files when a new run i started / overwrite if exists
+		if (Main.PARAM_VAL_OPERATION.equals("extract")) {
+			logger.writeDebug(LOCATION, SIGNATURE, Main.PARAM_VAL_OPERATION + " scenario found, create a new " + FILE_CONFIG_SYSTEM_MAPPING + " to make sure all ICO's are represented for later compare run");
 			String initialIcoExceptionContent = generateInitialIcoExeptionContent();
 			Util.writeFileToFileSystem(FILE_CONFIG_COPMARE_EXEPTIONS, initialIcoExceptionContent.getBytes());
 		}
