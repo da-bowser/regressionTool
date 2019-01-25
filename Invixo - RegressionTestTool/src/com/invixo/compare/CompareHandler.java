@@ -22,7 +22,7 @@ import org.xmlunit.diff.Difference;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure2;
+import com.invixo.consistency.FileStructure;
 import com.invixo.main.Main;
 
 
@@ -54,10 +54,10 @@ public class CompareHandler {
 		compareFiles = Util.generateListOfPaths(compareIcoPath.toString(), "FILE");
 		
 		// Build message id map to match "Prod"(source) and "Test"(compare) messages
-		messageIdMap = buildMessageIdMap(FileStructure2.DIR_INJECT);
+		messageIdMap = buildMessageIdMap(FileStructure.DIR_INJECT);
 		
 		// Build exception map to be used to exclude data elements in later compare
-		compareExceptions = buildCompareExceptionMap(FileStructure2.DIR_CONFIG + "\\compareExceptions.xml");
+		compareExceptions = buildCompareExceptionMap(FileStructure.DIR_CONFIG + "\\compareExceptions.xml");
 		
 	}
 
@@ -298,8 +298,8 @@ public class CompareHandler {
 	private void writeCompareResultToFile(String sourceFileName, String compareFileName, String result,
 			int diffErrors) {
 		// Make sure we have a results+ICO directory to write results
-		String targetResultDir = FileStructure2.DIR_REPORTS + this.sourceIcoName;
-		FileStructure2.createDirIfNotExists(targetResultDir);
+		String targetResultDir = FileStructure.DIR_REPORTS + this.sourceIcoName;
+		FileStructure.createDirIfNotExists(targetResultDir);
 
 		// Build final result path
 		String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss").format(new Date());

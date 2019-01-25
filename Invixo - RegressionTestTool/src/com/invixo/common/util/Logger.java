@@ -3,7 +3,7 @@ package com.invixo.common.util;
 import java.io.FileWriter;
 import java.io.StringWriter;
 
-import com.invixo.consistency.FileStructure2;
+import com.invixo.consistency.FileStructure;
 
 
 public class Logger {
@@ -32,7 +32,7 @@ public class Logger {
 
                 // Initialize log file
                 if (LoggingTypes.FILE.toString().equals(LOGGING_TYPE)) {
-        			instance.fileWriter = new FileWriter(FileStructure2.DIR_LOGS + instance.logFileName, true);            	
+        			instance.fileWriter = new FileWriter(FileStructure.DIR_LOGS + instance.logFileName, true);            	
                 }
         	}
         	return instance;

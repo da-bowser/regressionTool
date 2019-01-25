@@ -15,7 +15,7 @@ import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure2;
+import com.invixo.consistency.FileStructure;
 import com.invixo.injection.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
 import com.invixo.main.Main;
@@ -27,7 +27,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 *====================================================================================*/
 	private static Logger logger 			= Logger.getInstance();
 	private static final String LOCATION 	= IntegratedConfiguration.class.getName();	
-	private static final String MAP_FILE	= FileStructure2.DIR_INJECT + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV +"_msgId_map" + ".txt";
+	private static final String MAP_FILE	= FileStructure.DIR_INJECT + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV +"_msgId_map" + ".txt";
 	public static BufferedWriter mapWriter	= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID	
 	
 	
@@ -194,7 +194,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	
 	private static String getTargetFileName(String icoRequestfile, String messageId) {
 		String scenarioName = Util.getFileName(icoRequestfile, false);
-		String targetFile = FileStructure2.FILE_BASE_LOCATION + scenarioName + " -- " +  messageId + ".payload";
+		String targetFile = FileStructure.FILE_BASE_LOCATION + scenarioName + " -- " +  messageId + ".payload";
 		return targetFile;
 	}
 	
@@ -206,7 +206,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String SIGNATURE = "initialize()";
 
 		// Set directory for Payloads (FIRST)
-		this.sourcePayloadDirectory = FileStructure2.DIR_EXTRACT_OUTPUT_PRE + super.name + "\\" + Main.PARAM_VAL_SOURCE_ENV + FileStructure2.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+		this.sourcePayloadDirectory = FileStructure.DIR_EXTRACT_OUTPUT_PRE + super.name + "\\" + Main.PARAM_VAL_SOURCE_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
 		logger.writeDebug(LOCATION, SIGNATURE, "Source directory containing FIRST messages: " + this.sourcePayloadDirectory);
 	}
 	

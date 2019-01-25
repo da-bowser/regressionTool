@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import com.invixo.common.GeneralException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure2;
+import com.invixo.consistency.FileStructure;
 
 public class Orchestrator {
 	private static Logger logger 						= Logger.getInstance();
@@ -28,7 +28,7 @@ public class Orchestrator {
 			logger.writeDebug(LOCATION, SIGNATURE, "Start processing all ICO's...");
 			
 			// Get list of all ICO request files to be processed
-			File[] files = Util.getListOfFilesInDirectory(FileStructure2.DIR_EXTRACT_INPUT);
+			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_EXTRACT_INPUT);
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files: " + files.length);
 			
 			// Process each ICO request file

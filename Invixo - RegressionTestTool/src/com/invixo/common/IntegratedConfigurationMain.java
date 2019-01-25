@@ -17,7 +17,7 @@ import javax.xml.transform.stream.StreamSource;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure2;
+import com.invixo.consistency.FileStructure;
 import com.invixo.main.Main;
 
 
@@ -40,7 +40,7 @@ public abstract class IntegratedConfigurationMain {
 	private static final boolean OVERRULE_MSG_SIZE 		= Boolean.parseBoolean(PropertyAccessor.getProperty("OVERRULE_MSG_SIZE"));
 	private static final int MAX_MSG_SIZE_OVERRULED 	= Integer.parseInt(PropertyAccessor.getProperty("MESSAGE_SIZE_OVERRULED"));
 	
-	private static final String MAP_FILE				= FileStructure2.DIR_CONFIG + "systemMapping.txt";
+	private static final String MAP_FILE				= FileStructure.DIR_CONFIG + "systemMapping.txt";
 	private static final String SOURCE_ENV_ICO_REQUESTS	= Main.PARAM_VAL_ICO_REQUEST_FILES_ENV;
 	private static final String TARGET_ENV 				= Main.PARAM_VAL_TARGET_ENV;
 	protected static HashMap<String, String> SYSTEM_MAP	= initializeSystemMap();

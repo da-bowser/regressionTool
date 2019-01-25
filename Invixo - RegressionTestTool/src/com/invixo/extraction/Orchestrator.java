@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import com.invixo.common.GeneralException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure2;
+import com.invixo.consistency.FileStructure;
 
 /**
  * This program uses SAP PO Message API.
@@ -40,7 +40,7 @@ public class Orchestrator {
 		final String SIGNATURE = "start()";
 
 		// Get list of all request files to be processed
-		File[] files = Util.getListOfFilesInDirectory(FileStructure2.DIR_EXTRACT_INPUT);
+		File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_EXTRACT_INPUT);
 		logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files: " + files.length);
 			
 		// Process each ICO request file

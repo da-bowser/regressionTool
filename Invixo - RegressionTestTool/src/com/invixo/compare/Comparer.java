@@ -5,7 +5,6 @@ import java.util.List;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
-import com.invixo.consistency.FileStructure2;
 import com.invixo.main.Main;
 
 public class Comparer {
@@ -19,12 +18,12 @@ public class Comparer {
 		logger.writeDebug(LOCATION, SIGNATURE, "Start compare");
 		
 		// Get number of ICO's to handle
-		List<Path> sourceIcoFiles = Util.generateListOfPaths(FileStructure2.DIR_EXTRACT_INPUT, "FILE");
+		List<Path> sourceIcoFiles = Util.generateListOfPaths(FileStructure.DIR_EXTRACT_INPUT, "FILE");
 
 		// Start processing files for compare
 		processCompareLibs(SIGNATURE, sourceIcoFiles);
 		
-		logger.writeDebug(LOCATION, SIGNATURE, "Compare completed," + " results can be found here: " + FileStructure2.DIR_REPORTS);
+		logger.writeDebug(LOCATION, SIGNATURE, "Compare completed," + " results can be found here: " + FileStructure.DIR_REPORTS);
 
 
 	}
@@ -49,7 +48,7 @@ public class Comparer {
 
 	private static String buildEnvironmentComparePath(Path currentSourcePath, String environment, String icoName) {
 		String comparePath;
-		comparePath = FileStructure2.DIR_EXTRACT_OUTPUT_PRE + icoName + "\\" + environment + FileStructure2.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+		comparePath = FileStructure.DIR_EXTRACT_OUTPUT_PRE + icoName + "\\" + environment + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 		return comparePath;
 		
 	}

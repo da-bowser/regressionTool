@@ -13,7 +13,6 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.compare.Comparer;
 import com.invixo.consistency.FileStructure;
-import com.invixo.consistency.FileStructure2;
 import com.invixo.extraction.IntegratedConfiguration;
 import com.invixo.extraction.reporting.ReportWriter;
 
@@ -302,7 +301,7 @@ public class Main {
 		final String SIGNATURE = "extract()";
 		
 		// Clean up file structure and ensure its consistency
-		FileStructure2.startCheck();
+		FileStructure.startCheck();
 		
 		// Start extracting
 		ArrayList<IntegratedConfiguration> icoList = com.invixo.extraction.Orchestrator.start();
@@ -322,7 +321,7 @@ public class Main {
 		final String SIGNATURE = "inject()";
 		
 		// Clean up file structure and ensure its consistency
-		FileStructure2.startCheck();
+		FileStructure.startCheck();
 		
 		// Start injecting
 		ArrayList<com.invixo.injection.IntegratedConfiguration> icoList = com.invixo.injection.Orchestrator.start();
@@ -343,15 +342,7 @@ public class Main {
 		Comparer.startCompare();
 	}
 	
-	
-	/**
-	 * Ensure the file structure is consistent for this program to run.
-	 * This includes generating missing directories and file templates.
-	 */
-	private static void ensureFileStructureConsistency() {
-		FileStructure.startCheck();
-	}
-	
+
 
 	public static boolean operationContains(String value) {
 	    for (Operation operation : Operation.values()) {
