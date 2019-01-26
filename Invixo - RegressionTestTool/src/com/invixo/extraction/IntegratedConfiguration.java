@@ -1,22 +1,16 @@
 package com.invixo.extraction;
 
-//import java.io.ByteArrayInputStream;
-//import java.io.ByteArrayOutputStream;
-//import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 
-//import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
-//import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
-//import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
@@ -106,21 +100,14 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			byte[] requestBytes = createGetMessageListRequest(this);
 			logger.writeDebug(LOCATION, SIGNATURE, "GetMessageList request created");
 			
+			// Write request to file system if debug for this is enabled (property)
 			if (LOG_GET_MSG_REQ) {
 				FileStructure.createDirIfNotExists(LOG_GET_MSG_REQ_PATH);
 				String file = LOG_GET_MSG_REQ_PATH + "GetMessageListReq_" + this.getName() + "_" + System.currentTimeMillis() + ".xml";
 				Util.writeFileToFileSystem(file, requestBytes);
 				logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessageList request message to be sent to SAP PO is stored here: " + file);
 			}
-			
-			// Read ICO file request
-//			byte[] requestBytes = Util.readFile(this.fileName);
-//			logger.writeDebug(LOCATION, SIGNATURE, "ICO request file read: " + this.fileName);
-			
-			// Modify ICO request
-//			byte[] modifiedRequestBytes = modifyIcoRequestFile(requestBytes, this);
-//			logger.writeDebug(LOCATION, SIGNATURE, "ICO request modified. ");
-			
+						
 			// Call web service (GetMessageList)
 			InputStream responseBytes = WebServiceHandler.callWebService(requestBytes);
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessageList) called");
@@ -392,83 +379,5 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			throw new RuntimeException(msg);
 		}
 	}
-	
-	
-//	/**
-//	 * Parse ICO request xml and create a modified copy of it with updated properties.
-//	 * @param requestBytes
-//	 * @param ico
-//	 * @throws ExtractorException
-//	 */
-//	private static byte[] modifyIcoRequestFile(byte[] requestBytes, IntegratedConfiguration ico) throws ExtractorException {
-//		final String SIGNATURE = "modifyIcoRequestFile(byte[], IntegratedConfiguration)";
-//		try {
-//			String modificationEnabledForElement = null;
-//			
-//			// Create XML Writer (creating a modified copy of the request ICO file)
-//			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
-//			XMLEventWriter xmlEventWriter = xMLOutputFactory.createXMLEventWriter(baos, "UTF-8");
-//			XMLEventFactory xmlEventFactory = XMLEventFactory.newFactory();
-//			
-//			// Create XML Reader (reading request ICO file)
-//	        XMLInputFactory factory = XMLInputFactory.newInstance();
-//			StreamSource ss = new StreamSource(new ByteArrayInputStream(requestBytes));
-//			XMLEventReader eventReader = factory.createXMLEventReader(ss);
-//			
-//			// Read and modify ICO request
-//			while (eventReader.hasNext()) {
-//			    XMLEvent event = eventReader.nextEvent();
-//			    
-//			    if (event.getEventType() == XMLEvent.START_ELEMENT) {
-//			    	String currentName = event.asStartElement().getName().toString();
-//			    	
-//			    	// Enable modification for certain elements
-//			    	if (		"{urn:com.sap.aii.mdt.api.data}senderComponent".equals(currentName) 
-//			    			|| 	"{urn:AdapterMessageMonitoringVi}maxMessages".equals(currentName)
-//			    			|| 	"{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName".equals(currentName)
-//			    			|| 	"{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName".equals(currentName)) {
-//			    		modificationEnabledForElement = currentName;
-//			    	}
-//			    	
-//			    	// Always add event
-//			    	xmlEventWriter.add(event);
-//			    	
-//			    	// Modify value for certain elements
-//			    }  else if ((modificationEnabledForElement != null) && (event.getEventType() == XMLEvent.CHARACTERS)) {
-//			    	switch (modificationEnabledForElement) {
-//			    	case "{urn:com.sap.aii.mdt.api.data}senderComponent" : 
-//			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getSenderComponent()));
-//			    		modificationEnabledForElement = null;
-//			    		break;
-//			    	case "{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName" : 
-//			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getReceiverComponent()));
-//			    		modificationEnabledForElement = null;
-//			    		break;
-//			    	case "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName" : 
-//			    		xmlEventWriter.add(xmlEventFactory.createCharacters(ico.getSenderComponent()));
-//			    		modificationEnabledForElement = null;
-//			    		break;
-//			    	case "{urn:AdapterMessageMonitoringVi}maxMessages" : 
-//			    		xmlEventWriter.add(xmlEventFactory.createCharacters("" + ico.getMaxMessages()));
-//			    		modificationEnabledForElement = null;
-//			    		break;
-//			    	}
-//		    	} else {
-//		    		xmlEventWriter.add(event);
-//		    	}
-//			}
-//			
-//			baos.flush();
-//			xmlEventWriter.flush();
-//			xmlEventWriter.close();
-//			
-//			return baos.toByteArray();	
-//		} catch (IOException|XMLStreamException e) {
-//			String msg = "Error modifying ICO request.\n" + e.getMessage();
-//			logger.writeError(LOCATION, SIGNATURE, msg);
-//			throw new ExtractorException(msg);
-//		}
-//	}
 
 }
