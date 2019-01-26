@@ -21,6 +21,7 @@ import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
@@ -34,6 +35,10 @@ public class MessageKey {
 	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = MessageKey.class.getName();	
+	
+	// Debugging
+	private static final boolean LOG_GETMSG_BYTES_RESP = Boolean.parseBoolean(PropertyAccessor.getProperty("LOG_GETMSG_BYTES_RESP"));
+	private static final String LOG_GETMSG_BYTES_RESP_PATH = PropertyAccessor.getProperty("LOG_GETMSG_BYTES_RESP_PATH");
 	
 	
 	
@@ -182,6 +187,14 @@ public class MessageKey {
 	private String storePayload(byte[] content, Boolean isFirst) throws ExtractorException {
 		final String SIGNATURE = "storePayload(byte[], Boolean, String)";
 		try {
+			// Write GetMessageBytesJavaLangStringIntBoolean response to file system if debug for this is enabled (property)
+			if (LOG_GETMSG_BYTES_RESP) {
+				FileStructure.createDirIfNotExists(LOG_GETMSG_BYTES_RESP_PATH);
+				String file = LOG_GETMSG_BYTES_RESP_PATH + "MsgBytesResp_" + this.sapMessageId + "_" + System.currentTimeMillis() + ".xml";
+				Util.writeFileToFileSystem(file, content);
+				logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessageBytesJavaLangStringIntBoolean response message is stored here: " + file);
+			}
+			
 			// Get multipart message from XML payload contained in Web Service response XML file
 			MimeMultipart mmp = getMultipartMessageFromResponse(content);
 			logger.writeDebug(LOCATION, SIGNATURE, "Multipart message generated");
@@ -298,13 +311,23 @@ public class MessageKey {
 	 * Extract the MimeMultipart message from web service response (getMessageBytesJavaLangStringIntBoolean)
 	 * @param responseBytes
 	 * @return
+	 * @throws ExtractorException
 	 */
 	private MimeMultipart getMultipartMessageFromResponse(byte[] responseBytes) throws ExtractorException {
-		final String SIGNATURE = "getMultipartMessageFromResponse(bute[])";
+		final String SIGNATURE = "getMultipartMessageFromResponse(byte[])";
 		try {
 			// Extract base64 payload
 			String encodedPayload = this.extractEncodedPayload(responseBytes);
 
+			// Check if payload was found
+			if ("".equals(encodedPayload)) {
+				String msg = "Web Service response contains no payload.";
+				logger.writeError(LOCATION, SIGNATURE, "Web Service response contains no payload.");
+				throw new ExtractorException(msg);
+			} else {
+				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains a payload.");
+			}
+			
 			// Decode base64
 			byte[] decodedPayload = Base64.getMimeDecoder().decode(encodedPayload.getBytes());
 
