@@ -94,7 +94,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	public void startExtraction() {
 		final String SIGNATURE = "startExtraction(String)";
 		try {
-			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + this.fileName);
+			logger.writeDebug(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO request file: " + this.fileName);
 					
 			// Create request for GetMessageList
 			byte[] requestBytes = createGetMessageListRequest(this);
@@ -120,9 +120,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			int counter = 1;
 			for (String key : this.responseMessageKeys) {
 				// Process a single Message Key
-				logger.writeDebug(LOCATION, SIGNATURE, "-----> (" + counter + ") MessageKey processing started for key: " + key);
+				logger.writeDebug(LOCATION, SIGNATURE, "-----> [ICO " + this.internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing started for key: " + key);
 				this.processSingleMessageKey(key);
-				logger.writeDebug(LOCATION, SIGNATURE, "-----> (" + counter + ") MessageKey processing finished");
+				logger.writeDebug(LOCATION, SIGNATURE, "-----> [ICO " + this.internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing finished");
 				counter++;
 			}	
 		} catch (ExtractorException e) {

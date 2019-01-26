@@ -85,7 +85,12 @@ public class Main {
 	
 	
 	public static void main(String[] args) {
+		final String SIGNATURE = "main(String[])";
+		long startTime = 0;
 		try {
+			// Get start time
+			startTime = Util.getTime();
+			
 			// Set internal parameters based on program input arguments		
 			setInternalParameters(args);
 			
@@ -127,6 +132,9 @@ public class Main {
 		} catch (ValidationException e) {
 			// TODO: Not valid input, inform end user in the nicest way possible
 			e.printStackTrace(System.err);
+		} finally {
+			long endTime = Util.getTime();
+			logger.writeDebug(LOCATION, SIGNATURE, "Program execution took (seconds): " + Util.measureTimeTaken(startTime, endTime));
 		}
 	}
 
@@ -313,8 +321,7 @@ public class Main {
 		ArrayList<IntegratedConfiguration> icoList = com.invixo.extraction.Orchestrator.start();
 		
 		// Write report
-		ReportWriter report = new ReportWriter();
-		report.interpretResult(icoList);
+		ReportWriter report = new ReportWriter(icoList);
 		String reportName = report.create(icoList);
 		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}

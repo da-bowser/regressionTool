@@ -35,6 +35,8 @@ public class MessageKey {
 	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = MessageKey.class.getName();	
+	public static final String PAYLOAD_FOUND = "Found";
+	public static final String PAYLOAD_NOT_FOUND = "Not found";
 	
 	// Debugging
 	private static final boolean LOG_GETMSG_BYTES_RESP = Boolean.parseBoolean(PropertyAccessor.getProperty("LOG_GETMSG_BYTES_RESP"));
@@ -48,7 +50,8 @@ public class MessageKey {
 	private String sapMessageKey = null;			// SAP Message Key from Web Service response of GetMessageList
 	private String sapMessageId = null;				// SAP Message Id 
 	private IntegratedConfiguration ico	= null;		// Integrated Configuration
-
+	private String xiMessageInResponse = null;		// Indicates if a payload/message was returned by SAP PO or not
+	
 	// Target file(s)
 	private String targetPathFirst = null;			// Path (no filename) to create target payload file, FIRST	
 	private String targetPathLast = null;			// Path (no filename) to create target payload file, LAST
@@ -90,12 +93,12 @@ public class MessageKey {
 	 *------------- Constructors
 	 *====================================================================================*/
 	public MessageKey(IntegratedConfiguration ico, String messageKey) {
-		this.ico = ico;
-		this.sapMessageKey = messageKey;
-		this.sapMessageId = extractMessageIdFromKey(messageKey);
+		this.ico 				= ico;
+		this.sapMessageKey 		= messageKey;
+		this.sapMessageId 		= extractMessageIdFromKey(messageKey);
 		this.targetPathFirst 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
 		this.targetPathLast 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
-		this.fileName = this.sapMessageId + ".payload";
+		this.fileName 			= this.sapMessageId + ".payload";
 	}
 	
 	
@@ -112,6 +115,15 @@ public class MessageKey {
 		return sapMessageId;
 	}
 
+	public String getXiMessageInResponse() {
+		return xiMessageInResponse;
+	}
+
+
+	public void setXiMessageInResponse(String xiMessageInResponse) {
+		this.xiMessageInResponse = xiMessageInResponse;
+	}
+	
 
 	public String getTargetPathFirst() {
 		return targetPathFirst;
@@ -148,7 +160,7 @@ public class MessageKey {
 	 * This method is responsible for extracting the actual payload data from the multipart message and storing the payload on file system.
 	 * @param messageKey
 	 * @param getFirstPayload
-	 * @throws Exception
+	 * @throws ExtractorException
 	 */
 	public void processMessageKey(String messageKey, boolean getFirstPayload) throws ExtractorException {
 		final String SIGNATURE = "processMessageKey(String, boolean, String)";
@@ -171,6 +183,8 @@ public class MessageKey {
 			ExtractorException ex = new ExtractorException(msg);
 			this.ex = ex;
 			throw ex;
+		} catch (NoMsgFoundException e) {
+			// Do nothing (an instance property has already been set indicating this).
 		}
 	}
 
@@ -180,11 +194,11 @@ public class MessageKey {
 	 * This multipart message is interpreted and the SAP PO main payload extracted and stored on file system.
 	 * @param content
 	 * @param isFirst
-	 * @param requestICOFileName
 	 * @return
-	 * @throws Exception
+	 * @throws NoMsgFoundException
+	 * @throws ExtractorException
 	 */
-	private String storePayload(byte[] content, Boolean isFirst) throws ExtractorException {
+	private String storePayload(byte[] content, Boolean isFirst) throws NoMsgFoundException, ExtractorException {
 		final String SIGNATURE = "storePayload(byte[], Boolean, String)";
 		try {
 			// Write GetMessageBytesJavaLangStringIntBoolean response to file system if debug for this is enabled (property)
@@ -209,7 +223,6 @@ public class MessageKey {
 			
 			// Store body on file system for later injection or comparison
 			String fileName = targetDirectory + this.fileName;
-
 			Util.writeFileToFileSystem(fileName, bp.getInputStream().readAllBytes());
 			logger.writeDebug(LOCATION, SIGNATURE, "Payload file written to file system");
 			
@@ -311,9 +324,10 @@ public class MessageKey {
 	 * Extract the MimeMultipart message from web service response (getMessageBytesJavaLangStringIntBoolean)
 	 * @param responseBytes
 	 * @return
+	 * @throws NoMsgFoundException
 	 * @throws ExtractorException
 	 */
-	private MimeMultipart getMultipartMessageFromResponse(byte[] responseBytes) throws ExtractorException {
+	private MimeMultipart getMultipartMessageFromResponse(byte[] responseBytes) throws NoMsgFoundException, ExtractorException {
 		final String SIGNATURE = "getMultipartMessageFromResponse(byte[])";
 		try {
 			// Extract base64 payload
@@ -322,10 +336,12 @@ public class MessageKey {
 			// Check if payload was found
 			if ("".equals(encodedPayload)) {
 				String msg = "Web Service response contains no payload.";
-				logger.writeError(LOCATION, SIGNATURE, "Web Service response contains no payload.");
-				throw new ExtractorException(msg);
+				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains no XI message.");
+				this.setXiMessageInResponse(PAYLOAD_NOT_FOUND);
+				throw new NoMsgFoundException(msg);
 			} else {
-				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains a payload.");
+				this.setXiMessageInResponse(PAYLOAD_FOUND);
+				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains a XI message.");
 			}
 			
 			// Decode base64

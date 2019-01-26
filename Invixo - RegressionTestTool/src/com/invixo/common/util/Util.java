@@ -17,6 +17,17 @@ import java.util.stream.Stream;
 
 public class Util {
 
+	public static long getTime() {
+		return System.nanoTime();
+	}
+
+	
+	public static double measureTimeTaken(long start, long end) {
+		double milliseconds = (end - start) / 1000000.0;
+		double seconds = milliseconds / 1000.0;
+		return seconds; 
+	}
+	
 	
 	public static String inputstreamToString(InputStream is, String encoding) {
 		String result = null;

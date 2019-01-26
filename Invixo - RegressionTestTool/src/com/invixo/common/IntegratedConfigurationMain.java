@@ -54,6 +54,7 @@ public class IntegratedConfigurationMain {
 	private static final String SOURCE_ENV_ICO_REQUESTS	= Main.PARAM_VAL_ICO_REQUEST_FILES_ENV;
 	private static final String TARGET_ENV 				= Main.PARAM_VAL_TARGET_ENV;
 	private static HashMap<String, String> SYSTEM_MAP	= null;
+	private static int counter							= 1;
 	
 	
 	/*====================================================================================
@@ -61,6 +62,7 @@ public class IntegratedConfigurationMain {
 	 *====================================================================================*/
 	protected String name = null;					// Name of ICO
 	protected String fileName = null;				// Complete path to ICO request file
+	protected int internalObjectId = -1;			// Internal object id (this is based on a simple counter)				
 	
 	// Extracts from ICO request file: SENDER
 	protected String senderParty = null;			// NOT EXTRACTED YET (need to see how it works and where to extract from)
@@ -102,6 +104,11 @@ public class IntegratedConfigurationMain {
 	
 
 	public IntegratedConfigurationMain(String icoFileName, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
+		// Set internal object id
+		this.internalObjectId = counter;
+		counter++;
+		
+		// Init others
 		this.fileName = icoFileName;
 		this.name = Util.getFileName(icoFileName, false);
 		SYSTEM_MAP = initializeSystemMap(mapfilePath, sourceEnv, targetEnv);
