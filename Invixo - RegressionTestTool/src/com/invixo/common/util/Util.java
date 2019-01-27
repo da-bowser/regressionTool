@@ -190,7 +190,7 @@ public class Util {
 	/**
 	 * Create MAP from an input file using a delimiter
 	 * @param filePath			Source file
-	 * @param fileDelimiter		Delimiter used to seperate values in file
+	 * @param fileDelimiter		Delimiter used to separate values in file
 	 * @param keyIndex			Column in file to get key data from
 	 * @param valueIndex		Column in file to get value data from
 	 * @return					Map<String, String>

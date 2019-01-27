@@ -23,12 +23,13 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.injection.InjectionPayloadException;
+import com.invixo.main.GlobalParameters;
 import com.invixo.main.Main;
 
 public class WebServiceHandler {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = WebServiceHandler.class.getName();
-	private static final String ENCODING = PropertyAccessor.getProperty("ENCODING");
+	private static final String ENCODING = GlobalParameters.ENCODING;
 	private static final String WEB_SERVICE_USER = Main.CREDENTIAL_USER;
 	private static final String WEB_SERVICE_PASS = Main.CREDENTIAL_PASS;
 	private static final String SERVICE_HOST_PORT = Main.SAP_PO_HTTP_HOST_AND_PORT;
