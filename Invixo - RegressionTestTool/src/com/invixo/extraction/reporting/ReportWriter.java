@@ -35,7 +35,7 @@ public class ReportWriter {
 	private int	countMsgKeyOk					= 0;	// Total, ok (FIRST and LAST exists)
 	private int	countMsgVersionFirstNopayload	= 0;	// Total, missing FIRST
 	private int	countMsgVersionLastNopayload	= 0;	// Total, missing LAST
-	private int	countMsgPaylodsCreated			= 0;	// Total FIRST and LAST created payloads
+	private int	countMsgPayloadsCreated			= 0;	// Total FIRST and LAST created payloads
 
 
 	public ReportWriter(ArrayList<IntegratedConfiguration> icoList) {
@@ -50,6 +50,10 @@ public class ReportWriter {
 		// Set total number of ICO's processed
 		this.countIcoTotal = icoList.size();
 
+		// Determine if FIRST / LAST payload where to be extracted
+		this.fetchPayloadFirst = IntegratedConfiguration.EXTRACT_FIRST_PAYLOAD;
+		this.fetchPayloadLast = IntegratedConfiguration.EXTRACT_LAST_PAYLOAD;
+		
 		// Determine number of successfully and erroneous ICOs
 		for (IntegratedConfiguration ico : icoList) {
 			if (ico.getEx() == null) {
@@ -61,10 +65,6 @@ public class ReportWriter {
 				this.countIcoErr++;
 			}
 		}
-
-		// Determine if FIRST / LAST payload where to be extracted
-		this.fetchPayloadFirst = IntegratedConfiguration.EXTRACT_FIRST_PAYLOAD;
-		this.fetchPayloadLast = IntegratedConfiguration.EXTRACT_LAST_PAYLOAD;
 	}
 
 
@@ -74,7 +74,7 @@ public class ReportWriter {
 
 		// Determine number of successfully and erroneous MessageKeys
 		for (MessageKey key : ico.getMessageKeys()) {
-			countMsgPaylodsCreated += key.getPayloadFilesCreated();
+			countMsgPayloadsCreated += key.getPayloadFilesCreated();
 
 			if (key.getEx() == null) {
 				
@@ -104,7 +104,7 @@ public class ReportWriter {
 					}
 				}
 				
-				// Check: FIRST and LAST paylods is enabled
+				// Check: FIRST and LAST payloads is enabled
 				if (fetchPayloadFirst && fetchPayloadLast) {
 					// Check: No technical error, but either FIRST or LAST payload is missing
 					if (	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst()) 
@@ -425,7 +425,7 @@ public class ReportWriter {
 					}
 				}
 				
-				// Check: FIRST and LAST paylods is enabled
+				// Check: FIRST and LAST payloads is enabled
 				if (fetchPayloadFirst && fetchPayloadLast) {
 					// Check: No technical error, but either FIRST or LAST payload is missing
 					if (	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst()) 
@@ -539,7 +539,7 @@ public class ReportWriter {
 		
 		// Create element: ExtractReport | MessageKeysOverview | PayloadsFilesCreatedTotal
 		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotal", XML_NS);
-		xmlWriter.writeCharacters("" + this.countMsgPaylodsCreated);
+		xmlWriter.writeCharacters("" + this.countMsgPayloadsCreated);
 		xmlWriter.writeEndElement();	
 				
 		// Close element: ExtractReport | MessageKeysOverview
