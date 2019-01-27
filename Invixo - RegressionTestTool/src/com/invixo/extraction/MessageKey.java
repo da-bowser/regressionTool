@@ -50,7 +50,9 @@ public class MessageKey {
 	private String sapMessageKey = null;			// SAP Message Key from Web Service response of GetMessageList
 	private String sapMessageId = null;				// SAP Message Id 
 	private IntegratedConfiguration ico	= null;		// Integrated Configuration
-	private String xiMessageInResponse = null;		// Indicates if a payload/message was returned by SAP PO or not
+	private String xiMessageInResponseFirst = "unknown";	// (First) 	Indicates if a payload/message was returned by SAP PO or not
+	private String xiMessageInResponseLast	= "unknown";	// (Last) 	Indicates if a payload/message was returned by SAP PO or not
+	private int payloadFilesCreated = 0;			// Total number of payload files created on file system
 	
 	// Target file(s)
 	private String targetPathFirst = null;			// Path (no filename) to create target payload file, FIRST	
@@ -115,30 +117,33 @@ public class MessageKey {
 		return sapMessageId;
 	}
 
-	public String getXiMessageInResponse() {
-		return xiMessageInResponse;
+	public String getXiMessageInResponseFirst() {
+		return xiMessageInResponseFirst;
 	}
 
-
-	public void setXiMessageInResponse(String xiMessageInResponse) {
-		this.xiMessageInResponse = xiMessageInResponse;
+	public void setXiMessageInResponseFirst(String xiMessageInResponseFirst) {
+		this.xiMessageInResponseFirst = xiMessageInResponseFirst;
 	}
-	
+
+	public String getXiMessageInResponseLast() {
+		return xiMessageInResponseLast;
+	}
+
+	public void setXiMessageInResponseLast(String xiMessageInResponseLast) {
+		this.xiMessageInResponseLast = xiMessageInResponseLast;
+	}	
 
 	public String getTargetPathFirst() {
 		return targetPathFirst;
 	}
 
-
 	public String getTargetPathLast() {
 		return targetPathLast;
 	}
 
-
 	public String getFileName() {
 		return fileName;
 	}
-
 
 	public Exception getEx() {
 		return ex;
@@ -146,6 +151,10 @@ public class MessageKey {
 	
 	public void setEx(ExtractorException e) {
 		this.ex = e;
+	}
+	
+	public int getPayloadFilesCreated() {
+		return payloadFilesCreated;
 	}
 	
 	
@@ -165,6 +174,8 @@ public class MessageKey {
 	public void processMessageKey(String messageKey, boolean getFirstPayload) throws ExtractorException {
 		final String SIGNATURE = "processMessageKey(String, boolean, String)";
 		try {
+			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [" + ((getFirstPayload)?"FIRST":"LAST") + "] processing started...");
+			
 			// Build request payload
 			int version = getFirstPayload ? 0 : -1;		// 0 = FIRST, -1 = LAST
 			InputStream wsRequest = createNewRequest(messageKey, version);
@@ -185,6 +196,8 @@ public class MessageKey {
 			throw ex;
 		} catch (NoMsgFoundException e) {
 			// Do nothing (an instance property has already been set indicating this).
+		} finally {
+			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [" + ((getFirstPayload)?"FIRST":"LAST") + "] processing finished...");
 		}
 	}
 
@@ -210,7 +223,7 @@ public class MessageKey {
 			}
 			
 			// Get multipart message from XML payload contained in Web Service response XML file
-			MimeMultipart mmp = getMultipartMessageFromResponse(content);
+			MimeMultipart mmp = getMultipartMessageFromResponse(content, isFirst);
 			logger.writeDebug(LOCATION, SIGNATURE, "Multipart message generated");
 			
 			// Get main payload (classic SAP PO main payload) from multipart message
@@ -225,6 +238,9 @@ public class MessageKey {
 			String fileName = targetDirectory + this.fileName;
 			Util.writeFileToFileSystem(fileName, bp.getInputStream().readAllBytes());
 			logger.writeDebug(LOCATION, SIGNATURE, "Payload file written to file system");
+			
+			// Increment counter indicating number of payload files created in total
+			payloadFilesCreated++;
 			
 			return fileName;
 		} catch (ArrayIndexOutOfBoundsException|MessagingException|IOException e) {
@@ -323,12 +339,13 @@ public class MessageKey {
 	/**
 	 * Extract the MimeMultipart message from web service response (getMessageBytesJavaLangStringIntBoolean)
 	 * @param responseBytes
+	 * @param isFirst
 	 * @return
 	 * @throws NoMsgFoundException
 	 * @throws ExtractorException
 	 */
-	private MimeMultipart getMultipartMessageFromResponse(byte[] responseBytes) throws NoMsgFoundException, ExtractorException {
-		final String SIGNATURE = "getMultipartMessageFromResponse(byte[])";
+	private MimeMultipart getMultipartMessageFromResponse(byte[] responseBytes, Boolean isFirst) throws NoMsgFoundException, ExtractorException {
+		final String SIGNATURE = "getMultipartMessageFromResponse(byte[], Boolean)";
 		try {
 			// Extract base64 payload
 			String encodedPayload = this.extractEncodedPayload(responseBytes);
@@ -337,10 +354,10 @@ public class MessageKey {
 			if ("".equals(encodedPayload)) {
 				String msg = "Web Service response contains no payload.";
 				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains no XI message.");
-				this.setXiMessageInResponse(PAYLOAD_NOT_FOUND);
+				if (isFirst) this.setXiMessageInResponseFirst(PAYLOAD_NOT_FOUND); else this.setXiMessageInResponseLast(PAYLOAD_NOT_FOUND);
 				throw new NoMsgFoundException(msg);
 			} else {
-				this.setXiMessageInResponse(PAYLOAD_FOUND);
+				if (isFirst) this.setXiMessageInResponseFirst(PAYLOAD_FOUND); else this.setXiMessageInResponseLast(PAYLOAD_FOUND);
 				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains a XI message.");
 			}
 			

@@ -29,10 +29,13 @@ public class ReportWriter {
 	private boolean	fetchPayloadLast = false;
 
 	// MessageKey general
-	private int	countMsgKeyTotal		= 0;
-	private int	countMsgKeyErr			= 0;
-	private int	countMsgKeyOk			= 0;
-	private int	countMsgKeyNopayload	= 0;
+	private int	countMsgKeyTotal				= 0;	// Total message keys processed
+	private int	countMsgKeyTechErr				= 0;	// Total, with technical error
+	private int	countMsgKeyTechOkButNoPayload	= 0;	// Total, no technical error, but FIRST and/or LAST does not exist
+	private int	countMsgKeyOk					= 0;	// Total, ok (FIRST and LAST exists)
+	private int	countMsgVersionFirstNopayload	= 0;	// Total, missing FIRST
+	private int	countMsgVersionLastNopayload	= 0;	// Total, missing LAST
+	private int	countMsgPaylodsCreated			= 0;	// Total FIRST and LAST created payloads
 
 
 	public ReportWriter(ArrayList<IntegratedConfiguration> icoList) {
@@ -67,21 +70,39 @@ public class ReportWriter {
 
 	private void evaluateMessageKeys(IntegratedConfiguration ico) {
 		// Set total number of MessageKeys processed
-		this.countMsgKeyTotal = ico.getMessageKeys().size();
+		this.countMsgKeyTotal += ico.getMessageKeys().size();
 
 		// Determine number of successfully and erroneous MessageKeys
 		for (MessageKey key : ico.getMessageKeys()) {
+			countMsgPaylodsCreated += key.getPayloadFilesCreated();
+
 			if (key.getEx() == null) {
-				if (MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponse())) {
-					// No exception occurred and a XI message was returned by Web Service.
-					// All is good
+				
+				// Check: No technical error, but either FIRST or LAST payload is missing
+				if (	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst()) 
+					|| 	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+					this.countMsgKeyTechOkButNoPayload++;
+				} 
+
+				// Check: No technical error and FIRST or LAST payload was found
+				if (	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst()) 
+					&& 	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast())) {
 					this.countMsgKeyOk++;
-				} else {
-					// No exception occurred, but an XI message was not returned by Web Service
-					this.countMsgKeyNopayload++;
 				}
+				
+				// Check: No exception occurred, but FIRST XI message was not returned by Web Service
+				if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst())) {
+					this.countMsgVersionFirstNopayload++;	
+				} 
+
+				// Check: No exception occurred, but LAST XI message was not returned by Web Service
+				if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+					this.countMsgVersionLastNopayload++;
+				}
+				
 			} else {
-				this.countMsgKeyErr++;
+				// Technical error
+				this.countMsgKeyTechErr++;
 			}
 		}
 	}
@@ -99,8 +120,11 @@ public class ReportWriter {
 			xmlWriter.writeStartElement(XML_PREFIX, "ExtractReport", XML_NS);
 			xmlWriter.writeNamespace(XML_PREFIX, XML_NS);
 
-			// Add structure: ExtractReport | Overview
-			addIntegrationConfigurationOverview(xmlWriter);
+			// Add structure: ExtractReport | IcoOverview
+			addIntegrationConfigurationGlobalOverview(xmlWriter);
+			
+			// Add structure: ExtractReport | MessageKeysOverview
+			addMessageKeysGlobalOverview(xmlWriter);
 
 			// Create element: ExtractReport | Details
 			xmlWriter.writeStartElement(XML_PREFIX, "Details", XML_NS);
@@ -126,36 +150,36 @@ public class ReportWriter {
 	}
 
 
-	private void addIntegrationConfigurationOverview(XMLStreamWriter xmlWriter) throws XMLStreamException {
-		// Create element: ExtractReport | Overview
-		xmlWriter.writeStartElement(XML_PREFIX, "Overview", XML_NS);
+	private void addIntegrationConfigurationGlobalOverview(XMLStreamWriter xmlWriter) throws XMLStreamException {
+		// Create element: ExtractReport | IcoOverview
+		xmlWriter.writeStartElement(XML_PREFIX, "IcoOverview", XML_NS);
 
-		// Create element: ExtractReport | Overview | Total
+		// Create element: ExtractReport | IcoOverview | Total
 		xmlWriter.writeStartElement(XML_PREFIX, "Total", XML_NS);
 		xmlWriter.writeCharacters("" + this.countIcoTotal);
 		xmlWriter.writeEndElement();
 
-		// Create element: ExtractReport | Overview | Success
+		// Create element: ExtractReport | IcoOverview | Success
 		xmlWriter.writeStartElement(XML_PREFIX, "Success", XML_NS);
 		xmlWriter.writeCharacters("" + this.countIcoOk);
 		xmlWriter.writeEndElement();
 
-		// Create element: ExtractReport | Overview | Error
-		xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+		// Create element: ExtractReport | IcoOverview | TechnicalError
+		xmlWriter.writeStartElement(XML_PREFIX, "TechnicalError", XML_NS);
 		xmlWriter.writeCharacters("" + this.countIcoErr);
 		xmlWriter.writeEndElement();
 
-		// Create element: ExtractReport | Overview | FetchPayLoadFirst
+		// Create element: ExtractReport | IcoOverview | FetchPayLoadFirst
 		xmlWriter.writeStartElement(XML_PREFIX, "FetchPayLoadFirst", XML_NS);
 		xmlWriter.writeCharacters("" + this.fetchPayloadFirst);
 		xmlWriter.writeEndElement();
 
-		// Create element: ExtractReport | Overview | FetchPayLoadLast
+		// Create element: ExtractReport | IcoOverview | FetchPayLoadLast
 		xmlWriter.writeStartElement(XML_PREFIX, "FetchPayLoadLast", XML_NS);
 		xmlWriter.writeCharacters("" + this.fetchPayloadLast);
 		xmlWriter.writeEndElement();
 
-		// Close element: ExtractReport | Overview
+		// Close element: ExtractReport | IcoOverview
 		xmlWriter.writeEndElement();
 	}
 
@@ -201,10 +225,10 @@ public class ReportWriter {
 
 	private void addMessageKeysStructure(XMLStreamWriter xmlWriter,	IntegratedConfiguration ico) throws XMLStreamException {
 		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys
-		xmlWriter.writeStartElement(XML_PREFIX, "MessageKeys", XML_NS);
-
+		xmlWriter.writeStartElement(XML_PREFIX, "MessageKeys", XML_NS);	
+		
 		// Add structure: ExtractReport | IntegratedConfiguration | MessageKeys | Overview
-		addMessageKeysOverview(xmlWriter, ico);
+		addMessageKeysLocalOverview(xmlWriter, ico);
 
 		// Build MessageKey list
 		ArrayList<MessageKey> keys = ico.getMessageKeys();
@@ -212,8 +236,8 @@ public class ReportWriter {
 			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List
 			xmlWriter.writeStartElement(XML_PREFIX, "List", XML_NS);
 
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | Error
-			xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | TechnicalError
+			xmlWriter.writeStartElement(XML_PREFIX, "TechnicalError", XML_NS);
 			if (key.getEx() != null) {
 				StringWriter sw = new StringWriter();
 				key.getEx().printStackTrace(new PrintWriter(sw));
@@ -221,14 +245,15 @@ public class ReportWriter {
 			}
 			xmlWriter.writeEndElement();
 			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | PayloadExist
-			xmlWriter.writeStartElement(XML_PREFIX, "PayloadExist", XML_NS);
-			if (MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponse())) {
-				xmlWriter.writeCharacters("true");
-			} else {
-				xmlWriter.writeCharacters("false");
-			}
-			xmlWriter.writeEndElement();			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayloadMissing
+			xmlWriter.writeStartElement(XML_PREFIX, "FirstPayloadMissing", XML_NS);
+			xmlWriter.writeCharacters(key.getXiMessageInResponseFirst());
+			xmlWriter.writeEndElement();	
+			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayloadMissing
+			xmlWriter.writeStartElement(XML_PREFIX, "LastPayloadMissing", XML_NS);
+			xmlWriter.writeCharacters(key.getXiMessageInResponseLast());
+			xmlWriter.writeEndElement();		
 
 			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | Key
 			xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);
@@ -247,7 +272,8 @@ public class ReportWriter {
 
 			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FileName
 			xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);
-			if (MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponse())) {
+			if (	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst())
+				&& 	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast()) ) {
 				xmlWriter.writeCharacters(key.getFileName());
 			}
 			xmlWriter.writeEndElement();
@@ -321,7 +347,46 @@ public class ReportWriter {
 	}
 
 
-	private void addMessageKeysOverview(XMLStreamWriter xmlWriter, IntegratedConfiguration ico) throws XMLStreamException {
+	private void addMessageKeysLocalOverview(XMLStreamWriter xmlWriter, IntegratedConfiguration ico) throws XMLStreamException {
+		// Calc overview numbers
+		int keysTotal = ico.getMessageKeys().size();
+		int keysOk = 0;			// No technical errors, both FIRST and LAST was found
+		int keysTechOk = 0;		// No technical errors, but either FIST and/or LAST is missing
+		int keysError = 0;		// Technical error
+		int keysNoFirstPayload = 0;
+		int keysNoLastPayload = 0;
+		int keysPayloadsCreated = 0;
+		
+		for (MessageKey key : ico.getMessageKeys()) {
+			keysPayloadsCreated += key.getPayloadFilesCreated();
+			if (key.getEx() == null) {
+				
+				// Check: No technical error, but either FIRST or LAST payload is missing
+				if (	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst()) 
+					|| 	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+					keysTechOk++;
+				} 
+
+				// Check: No technical error and FIRST or LAST payload was found
+				if (	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst()) 
+					&& 	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast())) {
+					keysOk++;
+				}
+				
+				// Check: No exception occurred, but FIRST XI message was not returned by Web Service
+				if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst())) {
+					keysNoFirstPayload++;	
+				} 
+
+				// Check: No exception occurred, but LAST XI message was not returned by Web Service
+				if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+					keysNoLastPayload++;
+				}
+			} else {
+				keysError++;
+			}
+		}		
+		
 		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview
 		xmlWriter.writeStartElement(XML_PREFIX, "Overview", XML_NS);
 
@@ -330,27 +395,86 @@ public class ReportWriter {
 		xmlWriter.writeCharacters("" + ico.getMaxMessages());
 		xmlWriter.writeEndElement();				
 		
-		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | Total
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | Actual
+		xmlWriter.writeStartElement(XML_PREFIX, "Actual", XML_NS);
+		xmlWriter.writeCharacters("" + keysTotal);
+		xmlWriter.writeEndElement();
+
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | SuccessAllPayloadsFound
+		xmlWriter.writeStartElement(XML_PREFIX, "SuccessAllPayloadsFound", XML_NS);
+		xmlWriter.writeCharacters("" + keysOk);
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | SuccessNotAllPayloadsFound
+		xmlWriter.writeStartElement(XML_PREFIX, "SuccessNotAllPayloadsFound", XML_NS);
+		xmlWriter.writeCharacters("" + keysTechOk);
+		xmlWriter.writeEndElement();
+
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | TechnicalError
+		xmlWriter.writeStartElement(XML_PREFIX, "TechnicalError", XML_NS);
+		xmlWriter.writeCharacters("" + keysError);
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | FirstPayloadMissing
+		xmlWriter.writeStartElement(XML_PREFIX, "FirstPayloadMissing", XML_NS);
+		xmlWriter.writeCharacters("" + keysNoFirstPayload);
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | LastPayloadMissing
+		xmlWriter.writeStartElement(XML_PREFIX, "LastPayloadMissing", XML_NS);
+		xmlWriter.writeCharacters("" + keysNoLastPayload);
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | PayloadsFilesCreatedTotal
+		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotal", XML_NS);
+		xmlWriter.writeCharacters("" + keysPayloadsCreated);
+		xmlWriter.writeEndElement();	
+				
+		// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview
+		xmlWriter.writeEndElement();
+	}
+	
+	
+	private void addMessageKeysGlobalOverview(XMLStreamWriter xmlWriter) throws XMLStreamException {
+		// Create element: ExtractReport | MessageKeysOverview
+		xmlWriter.writeStartElement(XML_PREFIX, "MessageKeysOverview", XML_NS);
+		
+		// Create element: ExtractReport | MessageKeysOverview | Total
 		xmlWriter.writeStartElement(XML_PREFIX, "Total", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgKeyTotal);
 		xmlWriter.writeEndElement();
 
-		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | Success
-		xmlWriter.writeStartElement(XML_PREFIX, "Success", XML_NS);
+		// Create element: ExtractReport | MessageKeysOverview | SuccessAllPayloadsFound
+		xmlWriter.writeStartElement(XML_PREFIX, "SuccessAllPayloadsFound", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgKeyOk);
-		xmlWriter.writeEndElement();
-
-		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | Error
-		xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
-		xmlWriter.writeCharacters("" + this.countMsgKeyErr);
+		xmlWriter.writeEndElement();	
+		
+		// Create element: ExtractReport | MessageKeysOverview | SuccessNotAllPayloadsFound
+		xmlWriter.writeStartElement(XML_PREFIX, "SuccessNotAllPayloadsFound", XML_NS);
+		xmlWriter.writeCharacters("" + this.countMsgKeyTechOkButNoPayload);
 		xmlWriter.writeEndElement();
 		
-		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | NoPayload
-		xmlWriter.writeStartElement(XML_PREFIX, "NoPayload", XML_NS);
-		xmlWriter.writeCharacters("" + this.countMsgKeyNopayload);
-		xmlWriter.writeEndElement();					
+		// Create element: ExtractReport | MessageKeysOverview | TechnicalError
+		xmlWriter.writeStartElement(XML_PREFIX, "TechnicalError", XML_NS);
+		xmlWriter.writeCharacters("" + this.countMsgKeyTechErr);
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | MessageKeysOverview | FirstPayloadMissing
+		xmlWriter.writeStartElement(XML_PREFIX, "FirstPayloadMissing", XML_NS);
+		xmlWriter.writeCharacters("" + this.countMsgVersionFirstNopayload);
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | MessageKeysOverview | LastPayloadMissing
+		xmlWriter.writeStartElement(XML_PREFIX, "LastPayloadMissing", XML_NS);
+		xmlWriter.writeCharacters("" + this.countMsgVersionLastNopayload);
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | MessageKeysOverview | PayloadsFilesCreatedTotal
+		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotal", XML_NS);
+		xmlWriter.writeCharacters("" + this.countMsgPaylodsCreated);
+		xmlWriter.writeEndElement();	
 				
-		// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview
+		// Close element: ExtractReport | MessageKeysOverview
 		xmlWriter.writeEndElement();
 	}
 }

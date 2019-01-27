@@ -142,7 +142,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @throws ExtractorException
 	 */
 	private void processSingleMessageKey(String key) throws ExtractorException {
-		final String SIGNATURE = "processSingleMessageKey(String)";
 		MessageKey msgKey = null;
 		try {
 			// Create a new MessageKey object
@@ -154,13 +153,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Fetch payload: FIRST
 			if (EXTRACT_FIRST_PAYLOAD) {
 				msgKey.processMessageKey(key, true);
-				logger.writeDebug(LOCATION, SIGNATURE, "MessageKey processing finished for FIRST payload");
 			}
 			
 			// Fetch payload: LAST
 			if (EXTRACT_LAST_PAYLOAD) {
 				msgKey.processMessageKey(key, false);
-				logger.writeDebug(LOCATION, SIGNATURE, "MessageKey processing finished for LAST payload");
 			}			
 		} catch (ExtractorException e) {
 			if (msgKey != null) {
