@@ -217,8 +217,7 @@ public class ReportWriter {
 		// Add detail info per ICO
 		for (IntegratedConfiguration ico : icoList) {
 			// Create element: ExtractReport | IntegratedConfiguration
-			xmlWriter.writeStartElement(XML_PREFIX, "IntegratedConfiguration",
-					XML_NS);
+			xmlWriter.writeStartElement(XML_PREFIX, "IntegratedConfiguration", XML_NS);
 
 			// Create element: ExtractReport | IntegratedConfiguration | Error
 			xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
@@ -301,7 +300,7 @@ public class ReportWriter {
 			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FileName
 			xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);
 			if (	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst())
-				&& 	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast()) ) {
+				|| 	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast()) ) {
 				xmlWriter.writeCharacters(key.getFileName());
 			}
 			xmlWriter.writeEndElement();
