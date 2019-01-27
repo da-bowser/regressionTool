@@ -23,16 +23,16 @@ import org.xmlunit.diff.Difference;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
+import com.invixo.main.GlobalParameters;
 import com.invixo.main.Main;
 
 
 public class CompareHandler {
-	
-	private static Logger logger 					= Logger.getInstance();
-	private static final String LOCATION 			= CompareHandler.class.getName();
+	private static Logger logger = Logger.getInstance();
+	private static final String LOCATION = CompareHandler.class.getName();
 	private List<Path> sourceFiles;
 	private List<Path> compareFiles;
-	private static Map<String, String> messageIdMap; // Static only loaded once!
+	private static Map<String, String> messageIdMap;
 	private	List<String> compareExceptions;
 	private String sourceIcoName;
 
@@ -41,6 +41,7 @@ public class CompareHandler {
 	 * Class constructor
 	 * @param sourceIcoPath
 	 * @param compareIcoPath
+	 * @param icoName
 	 */
 	public CompareHandler(String sourceIcoPath, String compareIcoPath, String icoName) {
 		String SIGNATURE = "CompareHandler - *Class Constructor*";
@@ -63,7 +64,7 @@ public class CompareHandler {
 
 	
 	private List<String> buildCompareExceptionMap(String icoExceptionFilePath) {
-		String SIGNATURE = "buildCompareExceptionMap";
+		String SIGNATURE = "buildCompareExceptionMap(String)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of exceptions using data from: " + icoExceptionFilePath);
 		
 		// Get all exceptions listed in files found 
@@ -76,12 +77,10 @@ public class CompareHandler {
 
 	
 	private List<String> extractIcoCompareExceptionsFromFile(String icoExceptionFilePath) {
-		final String SIGNATURE = "extractIcoCompareExceptionsFromFile(InputStream)";
+		final String SIGNATURE = "extractIcoCompareExceptionsFromFile(String)";
 		List<String> icoExceptions = new ArrayList<String>();
-		
 		try {
-			InputStream fileStream = new FileInputStream(icoExceptionFilePath);
-			
+			InputStream fileStream = new FileInputStream(icoExceptionFilePath);		
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(fileStream);
 			boolean correctIcoFound = false;
@@ -118,17 +117,16 @@ public class CompareHandler {
 			throw new RuntimeException(msg);
 		}
 		
-		// Return exeptions found
+		// Return exceptions found
 		return icoExceptions; 
 	}
 
 
 	private static Map<String, String> buildMessageIdMap(String mappingDir) {
-		String SIGNATURE = "buildMessageIdMap";
-		
-		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + mappingDir);
-		
+		String SIGNATURE = "buildMessageIdMap(String)";
 		try {
+			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + mappingDir);
+			
 			// Build path to mapping file generated during inject
 			String mappingFilePath = mappingDir + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
 			
@@ -194,7 +192,7 @@ public class CompareHandler {
 	
 	
 	private static Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> map) {
-		String SIGNATURE = "getMatchingCompareFile()";
+		String SIGNATURE = "getMatchingCompareFile(Path, List<Path>, Map<String, String>)";
 		
 		// Extract message id from filename 
 		String sourceMsgId = Util.getFileName(sourceFilePath.getFileName().toString(), false);
@@ -232,7 +230,7 @@ public class CompareHandler {
 	}
 	
 	private void compareFiles(Path sourcePath, Path comparePath) {
-		String SIGNATURE = "compareFiles()";
+		String SIGNATURE = "compareFiles(Path, Path)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Start comparring: " + sourcePath + " and " + comparePath);
 		
 		// TODO: how do we check the mime-type of the message, xml, text, etc - for now we assume payloads are always xml.
@@ -247,15 +245,13 @@ public class CompareHandler {
 	
 	
 	private void doXmlCompare(Path sourcePath, Path comparePath) {
-		String SIGNATURE = "doXmlCompare()";
-		
+		String SIGNATURE = "doXmlCompare(Path, Path)";
 		String sourceFileString = null;
 		String compareFileString = null;
-
 		try {
 			// Prepare files for compare
-			sourceFileString = Util.inputstreamToString(new FileInputStream(sourcePath.toFile()), "UTF-8");
-			compareFileString = Util.inputstreamToString(new FileInputStream(comparePath.toFile()), "UTF-8");
+			sourceFileString = Util.inputstreamToString(new FileInputStream(sourcePath.toFile()), GlobalParameters.ENCODING);
+			compareFileString = Util.inputstreamToString(new FileInputStream(comparePath.toFile()), GlobalParameters.ENCODING);
 
 			// Compare string representations of source and compare payloads
 			Diff xmlDiff = DiffBuilder
@@ -277,8 +273,7 @@ public class CompareHandler {
 	}
 	
 	private void handleCompareResult(Diff xmlDiff, String sourceFileName, String compareFileName) {
-		String SIGNATURE = "handleCompareResult()";
-
+		String SIGNATURE = "handleCompareResult(Diff, String, String)";
 		String result =	"Result:\n--------------------------------------------------\n";
 		
 		Iterable<Difference> diffs = xmlDiff.getDifferences();
@@ -295,8 +290,7 @@ public class CompareHandler {
 	}
 
 
-	private void writeCompareResultToFile(String sourceFileName, String compareFileName, String result,
-			int diffErrors) {
+	private void writeCompareResultToFile(String sourceFileName, String compareFileName, String result, int diffErrors) {
 		// Make sure we have a results+ICO directory to write results
 		String targetResultDir = FileStructure.DIR_REPORTS + this.sourceIcoName;
 		FileStructure.createDirIfNotExists(targetResultDir);
@@ -309,5 +303,4 @@ public class CompareHandler {
 		Util.writeFileToFileSystem(resultFilePath , result.getBytes());
 	}
 
-	
 }

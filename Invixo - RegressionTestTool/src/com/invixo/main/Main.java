@@ -13,8 +13,6 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.compare.Comparer;
 import com.invixo.consistency.FileStructure;
-import com.invixo.extraction.IntegratedConfiguration;
-import com.invixo.extraction.reporting.ReportWriter;
 
 public class Main {
 	
@@ -106,7 +104,7 @@ public class Main {
 				readAndSetCredentials(PARAM_VAL_CREDENTIALS_FILE);
 				
 				// Post parameter handling: build complete PO host and port
-				SAP_PO_HTTP_HOST_AND_PORT = "http://" + PARAM_VAL_HTTP_HOST + ":" + PARAM_VAL_HTTP_PORT + "/";
+				SAP_PO_HTTP_HOST_AND_PORT = buildHttpHostPort();
 				
 				// Process
 				extract();
@@ -118,7 +116,7 @@ public class Main {
 				readAndSetCredentials(PARAM_VAL_CREDENTIALS_FILE);
 				
 				// Post parameter handling: build complete PO host and port
-				SAP_PO_HTTP_HOST_AND_PORT = "http://" + PARAM_VAL_HTTP_HOST + ":" + PARAM_VAL_HTTP_PORT + "/";
+				SAP_PO_HTTP_HOST_AND_PORT = buildHttpHostPort();
 				
 				// Process
 				inject(); 
@@ -136,6 +134,11 @@ public class Main {
 			long endTime = Util.getTime();
 			logger.writeDebug(LOCATION, SIGNATURE, "Program execution took (seconds): " + Util.measureTimeTaken(startTime, endTime));
 		}
+	}
+
+
+	private static String buildHttpHostPort() {
+		return "http://" + PARAM_VAL_HTTP_HOST + ":" + PARAM_VAL_HTTP_PORT + "/";
 	}
 
 
@@ -300,7 +303,7 @@ public class Main {
 			CREDENTIAL_PASS = credentialLines.get(1);
 			
 		} catch (IOException e) {
-			String msg = "Error | Problem reading credential fil from :" + sourceDirectory + " " + e.getMessage();
+			String msg = "Error | Problem reading credentials file from :" + sourceDirectory + " " + e.getMessage();
 			throw new ValidationException(msg);
 		}
 	}
@@ -318,10 +321,10 @@ public class Main {
 		FileStructure.startCheck();
 		
 		// Start extracting
-		ArrayList<IntegratedConfiguration> icoList = com.invixo.extraction.Orchestrator.start();
+		ArrayList<com.invixo.extraction.IntegratedConfiguration> icoList = com.invixo.extraction.Orchestrator.start();
 		
 		// Write report
-		ReportWriter report = new ReportWriter(icoList);
+		com.invixo.extraction.reporting.ReportWriter report = new com.invixo.extraction.reporting.ReportWriter(icoList);
 		String reportName = report.create(icoList);
 		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
@@ -351,11 +354,9 @@ public class Main {
 	 * Start a file comparison
 	 */
 	public static void compare() {		
-		// Start comparing
 		Comparer.startCompare();
 	}
 	
-
 
 	public static boolean operationContains(String value) {
 	    for (Operation operation : Operation.values()) {

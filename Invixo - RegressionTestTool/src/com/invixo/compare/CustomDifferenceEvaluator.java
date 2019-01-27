@@ -9,9 +9,10 @@ import org.xmlunit.diff.DifferenceEvaluator;
 import com.invixo.common.util.Logger;
 
 public class CustomDifferenceEvaluator implements DifferenceEvaluator {
-private List<String> exceptionList;
-private static Logger logger			= Logger.getInstance();
-private static final String LOCATION 	= CustomDifferenceEvaluator.class.getName();
+	private static Logger logger = Logger.getInstance();
+	private static final String LOCATION = CustomDifferenceEvaluator.class.getName();
+	private List<String> exceptionList;	
+
 	
 	/**
 	 * Class constructor
@@ -24,15 +25,15 @@ private static final String LOCATION 	= CustomDifferenceEvaluator.class.getName(
 	
 	@Override
 	public ComparisonResult evaluate(Comparison comp, ComparisonResult compResult) {
-		String SIGNATURE = "evaluate";
+		String SIGNATURE = "evaluate(Comparison, ComparisonResult)";
 		
-		// React only on diffences found during evaluation
+		// React only to differences found during evaluation
 		if (compResult.name().equals("DIFFERENT")) {
 			
 			// Should the difference be ignored?
 			for (String exceptionXpathString : exceptionList) {
 				
-				/* Strip square bractes from comp.getControlDetails().getXPath() to create a generic xpath.
+				/* Strip square brackets from comp.getControlDetails().getXPath() to create a generic xpath.
 				 * /Astro_Envelope[1]/PurchaseOrderSync[1]/DataArea[1]/PurchaseOrderLine[1]/DeliveryDate[1]/text()[1]
 				 * /Astro_Envelope/PurchaseOrderSync/DataArea/PurchaseOrderLine/DeliveryDate/text()
 				 * This so we can ignore ALL occurrences in one exception entry

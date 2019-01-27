@@ -8,13 +8,12 @@ import com.invixo.consistency.FileStructure;
 import com.invixo.main.Main;
 
 public class Comparer {
+	private static Logger logger = Logger.getInstance();
+	private static final String LOCATION = Comparer.class.getName();
 
-	private static Logger logger 						= Logger.getInstance();
-	private static final String LOCATION 				= Comparer.class.getName();
-
+	
 	public static void startCompare() {
 		String SIGNATURE = "startCompare()";
-		
 		logger.writeDebug(LOCATION, SIGNATURE, "Start compare");
 		
 		// Get number of ICO's to handle
@@ -24,8 +23,6 @@ public class Comparer {
 		processCompareLibs(SIGNATURE, sourceIcoFiles);
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Compare completed," + " results can be found here: " + FileStructure.DIR_REPORTS);
-
-
 	}
 
 	
@@ -50,8 +47,6 @@ public class Comparer {
 		String comparePath;
 		comparePath = FileStructure.DIR_EXTRACT_OUTPUT_PRE + icoName + "\\" + environment + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 		return comparePath;
-		
 	}
-
 
 }
