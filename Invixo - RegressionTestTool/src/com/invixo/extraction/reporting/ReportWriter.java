@@ -78,28 +78,56 @@ public class ReportWriter {
 
 			if (key.getEx() == null) {
 				
-				// Check: No technical error, but either FIRST or LAST payload is missing
-				if (	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst()) 
-					|| 	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
-					this.countMsgKeyTechOkButNoPayload++;
-				} 
-
-				// Check: No technical error and FIRST or LAST payload was found
-				if (	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst()) 
-					&& 	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast())) {
-					this.countMsgKeyOk++;
+				// Check: only FIRST payloads is enabled
+				if (fetchPayloadFirst && !fetchPayloadLast) {
+					// Check: No technical error and FIRST payload was found
+					if (MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst())) {
+						this.countMsgKeyOk++;
+					}
+					
+					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
+					if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst())) {
+						this.countMsgVersionFirstNopayload++;
+					}
 				}
 				
-				// Check: No exception occurred, but FIRST XI message was not returned by Web Service
-				if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst())) {
-					this.countMsgVersionFirstNopayload++;	
-				} 
-
-				// Check: No exception occurred, but LAST XI message was not returned by Web Service
-				if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
-					this.countMsgVersionLastNopayload++;
+				// Check: only LAST payloads is enabled
+				if (!fetchPayloadFirst && fetchPayloadLast) {
+					// Check: No technical error and LAST payload was found
+					if (MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast())) {
+						this.countMsgKeyOk++;
+					}
+					
+					// Check: No exception occurred, but LAST XI message was not returned by Web Service
+					if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+						this.countMsgVersionLastNopayload++;
+					}
 				}
 				
+				// Check: FIRST and LAST paylods is enabled
+				if (fetchPayloadFirst && fetchPayloadLast) {
+					// Check: No technical error, but either FIRST or LAST payload is missing
+					if (	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst()) 
+						|| 	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+						this.countMsgKeyTechOkButNoPayload++;
+					} 
+
+					// Check: No technical error and FIRST or LAST payload was found
+					if (	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst()) 
+						&& 	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast())) {
+						this.countMsgKeyOk++;
+					}
+					
+					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
+					if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst())) {
+						this.countMsgVersionFirstNopayload++;	
+					} 
+
+					// Check: No exception occurred, but LAST XI message was not returned by Web Service
+					if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+						this.countMsgVersionLastNopayload++;
+					}
+				}
 			} else {
 				// Technical error
 				this.countMsgKeyTechErr++;
@@ -361,27 +389,67 @@ public class ReportWriter {
 			keysPayloadsCreated += key.getPayloadFilesCreated();
 			if (key.getEx() == null) {
 				
-				// Check: No technical error, but either FIRST or LAST payload is missing
-				if (	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst()) 
-					|| 	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
-					keysTechOk++;
-				} 
+				// Check: only FIRST payloads is enabled
+				if (fetchPayloadFirst && !fetchPayloadLast) {
+					// Check: No technical error, FIRST payload is missing
+					if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst())) {
+						keysTechOk++;
+					} 
 
-				// Check: No technical error and FIRST or LAST payload was found
-				if (	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst()) 
-					&& 	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast())) {
-					keysOk++;
+					// Check: No technical error and FIRST payload was found
+					if (MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst())) {
+						keysOk++;
+					}
+					
+					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
+					if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst())) {
+						keysNoFirstPayload++;
+					}
 				}
 				
-				// Check: No exception occurred, but FIRST XI message was not returned by Web Service
-				if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst())) {
-					keysNoFirstPayload++;	
-				} 
+				// Check: only LAST payloads is enabled
+				if (!fetchPayloadFirst && fetchPayloadLast) {
+					// Check: No technical error, LAST payload is missing
+					if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+						keysTechOk++;
+					} 
 
-				// Check: No exception occurred, but LAST XI message was not returned by Web Service
-				if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
-					keysNoLastPayload++;
+					// Check: No technical error and LAST payload was found
+					if (MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast())) {
+						keysOk++;
+					}
+					
+					// Check: No exception occurred, but LAST XI message was not returned by Web Service
+					if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+						keysNoLastPayload++;
+					}
 				}
+				
+				// Check: FIRST and LAST paylods is enabled
+				if (fetchPayloadFirst && fetchPayloadLast) {
+					// Check: No technical error, but either FIRST or LAST payload is missing
+					if (	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst()) 
+						|| 	MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+						keysTechOk++;
+					} 
+
+					// Check: No technical error and FIRST or LAST payload was found
+					if (	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst()) 
+						&& 	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast())) {
+						keysOk++;
+					}
+					
+					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
+					if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseFirst())) {
+						keysNoFirstPayload++;	
+					} 
+
+					// Check: No exception occurred, but LAST XI message was not returned by Web Service
+					if (MessageKey.PAYLOAD_NOT_FOUND.equals(key.getXiMessageInResponseLast())) {
+						keysNoLastPayload++;
+					}
+				}
+					
 			} else {
 				keysError++;
 			}
