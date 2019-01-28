@@ -362,7 +362,7 @@ public class Main {
 		// Write report
 		com.invixo.compare.reporting.ReportWriter report = new com.invixo.compare.reporting.ReportWriter(icoList);
 		report.create(icoList);
-		String reportName = "NotYetImplemented";
+		String reportName = report.create(icoList);
 		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
 	

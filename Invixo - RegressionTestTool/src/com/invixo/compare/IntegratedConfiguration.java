@@ -35,12 +35,14 @@ public class IntegratedConfiguration {
 	private List<Path> sourceFiles;
 	private List<Path> compareFiles;
 	private static Map<String, String> messageIdMap;
-	private	List<String> compareExceptions;
+	public	List<String> xpathExceptions;
 	private String sourceIcoName;
-	private int compareExceptionsUsed = 0;
-	private List<Path> sourceFilesNoMatchFound = new ArrayList<Path>();
-	private Map<Path, Path> compareFilesProcessed = new HashMap<Path, Path>();
-
+	public List<String> compareDiffsFound = new ArrayList<String>();
+	public Map<String, String> compareExceptionsIgnored = new HashMap<String, String>();
+	public int compareSuccessCounter = 0;
+	public int compareErrorsCounter = 0;
+	public Map<Path, Path> compareFilesProcessed = new HashMap<Path, Path>();
+	public List<CompareException> compareExeptionsThrown = new ArrayList<CompareException>();
 	
 	/**
 	 * Class constructor
@@ -64,7 +66,7 @@ public class IntegratedConfiguration {
 		messageIdMap = buildMessageIdMap(FileStructure.DIR_INJECT);
 		
 		// Build exception map to be used to exclude data elements in later compare
-		compareExceptions = buildCompareExceptionMap(FileStructure.DIR_CONFIG + "\\compareExceptions.xml");
+		xpathExceptions = buildCompareExceptionMap(FileStructure.DIR_CONFIG + "\\compareExceptions.xml");
 		
 	}
 
@@ -155,9 +157,10 @@ public class IntegratedConfiguration {
 	
 	public void start() throws CompareException {
 		String SIGNATURE = "start()";
-		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" expected compare count - source: " + this.sourceFiles.size() + " target: " + this.compareFiles.size());
+		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" expected compare count: " + this.sourceFiles.size());
 
 		if(this.sourceFiles.size() == this.compareFiles.size()) {
+			
 			// Start looping over source files
 			Path currentSourcePath;
 			for (int i = 0; i < sourceFiles.size(); i++) {
@@ -169,17 +172,20 @@ public class IntegratedConfiguration {
 				Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, IntegratedConfiguration.messageIdMap);
 
 				if (comparePathMatch == null) {
-					// Add path not found for later reporting
-					this.sourceFilesNoMatchFound.add(currentSourcePath);
-					logger.writeError(LOCATION, SIGNATURE, "Target file could not be found for source: " + currentSourcePath);
-				} else {
+					// Indicate there was a problem
+					this.compareErrorsCounter++;
 					
+					comparePathMatch = new File("Compare File Not found!").toPath();
+					logger.writeError(LOCATION, SIGNATURE, "Target file could not be found for source: " + currentSourcePath);
+					logger.writeError(LOCATION, SIGNATURE, "Compare skipped!");
+				} else {
+					// increment success counter.
+					this.compareSuccessCounter++;
 					logger.writeDebug(LOCATION, SIGNATURE, "[COMPARE " + (i+1) + "] Start comparring: " + currentSourcePath + " and " + comparePathMatch);
 					
 					// Compare
 					// TODO: how do we check the mime-type of the message, xml, text, etc - for now we assume payloads are always xml.
 					this.doXmlCompare(currentSourcePath, comparePathMatch);
-					
 					logger.writeDebug(LOCATION, SIGNATURE, "Compare done!");
 				}
 				
@@ -189,10 +195,12 @@ public class IntegratedConfiguration {
 			
 		} else {
 			String msg = "ICO compare skipped, source and compare files mismatch sources: " + this.sourceFiles.size() + " targets: " + this.compareFiles.size();
-			throw new CompareException(msg);
+			CompareException ce = new CompareException(msg);
+			compareExeptionsThrown.add(ce);
+			throw ce;
 		}
-		int fileCompareSuccess = this.sourceFiles.size() - this.sourceFilesNoMatchFound.size();
-		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" completed, files compared: " + fileCompareSuccess + " files skipped: " + this.sourceFilesNoMatchFound.size());
+		
+		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" completed, files compared: " + this.compareSuccessCounter + " files skipped: " + this.compareErrorsCounter);
 	}
 	
 	
@@ -246,7 +254,7 @@ public class IntegratedConfiguration {
 			Diff xmlDiff = DiffBuilder
 					.compare(sourceFileString)
 					.withTest(compareFileString)
-					.withDifferenceEvaluator(new CustomDifferenceEvaluator(this.compareExceptions))
+					.withDifferenceEvaluator(new CustomDifferenceEvaluator(this.xpathExceptions, this))
 					.ignoreWhitespace()
 					.normalizeWhitespace()
 					.build();
@@ -275,7 +283,7 @@ public class IntegratedConfiguration {
 		logger.writeDebug(LOCATION, SIGNATURE, "Differences found during compare: " + diffErrors);
 
 		// Write result to file system
-		writeCompareResultToFile(sourceFileName, compareFileName, result, diffErrors);
+		//writeCompareResultToFile(sourceFileName, compareFileName, result, diffErrors);
 	}
 
 
@@ -291,5 +299,9 @@ public class IntegratedConfiguration {
 		// Write to file system
 		Util.writeFileToFileSystem(resultFilePath , result.getBytes());
 	}
-
+	
+	
+	public String getSourceIcoName() {
+		return sourceIcoName;
+	}
 }

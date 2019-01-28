@@ -13,7 +13,7 @@ public class Orchestrator {
 	private static final String LOCATION = Orchestrator.class.getName();
 	private static ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
 	private static int icoProcessCount = 0;
-	private static int icoErrorCount = 0;
+	private static int icoProccesError = 0;
 	
 	public static ArrayList<IntegratedConfiguration> start() {
 		String SIGNATURE = "start()";
@@ -55,12 +55,11 @@ public class Orchestrator {
 				icoProcessCount++;
 			} catch (CompareException e) {
 				// Increment counter for compares in error
-				icoErrorCount++;
+				icoProccesError++;
 				logger.writeError(LOCATION, SIGNATURE, "Error during compare: " + e.getMessage());
 			}
 		}
-		
-		logger.writeDebug(LOCATION, SIGNATURE, "ICO processing done. Success: " + icoProcessCount + " Skipped: " + icoErrorCount);
+		logger.writeDebug(LOCATION, SIGNATURE, "ICO processing done. Success: " + icoProcessCount + " Skipped: " + icoProccesError);
 		return icoList;
 	}
 

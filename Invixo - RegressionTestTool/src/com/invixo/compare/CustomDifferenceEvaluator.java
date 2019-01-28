@@ -12,14 +12,16 @@ public class CustomDifferenceEvaluator implements DifferenceEvaluator {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = CustomDifferenceEvaluator.class.getName();
 	private List<String> exceptionList;	
+	private IntegratedConfiguration ico;
 
 	
 	/**
 	 * Class constructor
 	 * @param configuredExceptionList	List of Xpath strings used to ignore DIFFERENCES found in XML evaluation
 	 */
-	public CustomDifferenceEvaluator(List<String> configuredExceptionList) {
-		exceptionList = configuredExceptionList;
+	public CustomDifferenceEvaluator(List<String> configuredExceptionList, IntegratedConfiguration ico) {
+		this.exceptionList = configuredExceptionList;
+		this.ico = ico;
 	}
 	
 	
@@ -38,11 +40,13 @@ public class CustomDifferenceEvaluator implements DifferenceEvaluator {
 				 * /Astro_Envelope/PurchaseOrderSync/DataArea/PurchaseOrderLine/DeliveryDate/text()
 				 * This so we can ignore ALL occurrences in one exception entry
 				 */
-				String strippedXpath = comp.getControlDetails().getXPath().replaceAll("\\[(.+?)\\]", "");
+				String diffFound = comp.getControlDetails().getXPath();
+				String strippedXpath = diffFound.replaceAll("\\[(.+?)\\]", "");
+				ico.compareDiffsFound.add(diffFound);
 				
 				if (strippedXpath.equals(exceptionXpathString)) {
 					logger.writeDebug(LOCATION, SIGNATURE, "--> Diff found but is configured to be ignored using exception: " + exceptionXpathString);
-					
+					ico.compareExceptionsIgnored.put(diffFound, exceptionXpathString);
 					// Change result from DIFFERENT to EQUAL as it is found in our exception list
 					compResult = ComparisonResult.EQUAL;
 				}
