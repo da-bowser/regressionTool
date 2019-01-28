@@ -27,9 +27,9 @@ import com.invixo.main.GlobalParameters;
 import com.invixo.main.Main;
 
 
-public class CompareHandler {
+public class IntegratedConfiguration {
 	private static Logger logger = Logger.getInstance();
-	private static final String LOCATION = CompareHandler.class.getName();
+	private static final String LOCATION = IntegratedConfiguration.class.getName();
 	private List<Path> sourceFiles;
 	private List<Path> compareFiles;
 	private static Map<String, String> messageIdMap;
@@ -43,8 +43,8 @@ public class CompareHandler {
 	 * @param compareIcoPath
 	 * @param icoName
 	 */
-	public CompareHandler(String sourceIcoPath, String compareIcoPath, String icoName) {
-		String SIGNATURE = "CompareHandler - *Class Constructor*";
+	public IntegratedConfiguration(String sourceIcoPath, String compareIcoPath, String icoName) {
+		String SIGNATURE = "IntegratedConfiguration(String sourceIcoPath, String copmareIcoPath, String icoName";
 		logger.writeDebug(LOCATION, SIGNATURE, "Initialize compare data of ICO compare");
 		
 		// Set current ICO
@@ -172,7 +172,7 @@ public class CompareHandler {
 				currentSourcePath = sourceFiles.get(i); 
 
 				// Locate matching compare file based on source msgId
-				Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, CompareHandler.messageIdMap);
+				Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, IntegratedConfiguration.messageIdMap);
 
 				// Do compare
 				compareFiles(currentSourcePath, comparePathMatch);

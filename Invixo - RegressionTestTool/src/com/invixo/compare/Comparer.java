@@ -37,7 +37,7 @@ public class Comparer {
 			String targetIcoComparePath = buildEnvironmentComparePath(currentSourcePath, Main.PARAM_VAL_TARGET_ENV, icoName);
 
 			// Create instance of CompareHandler containing all relevant data for a given ICO compare
-			CompareHandler ch = new CompareHandler(sourceIcoComparePath, targetIcoComparePath, icoName);
+			IntegratedConfiguration ch = new IntegratedConfiguration(sourceIcoComparePath, targetIcoComparePath, icoName);
 			ch.start();
 		}
 	}
