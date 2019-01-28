@@ -2,8 +2,6 @@ package com.invixo.compare.reporting;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -149,12 +147,12 @@ public class ReportWriter {
 		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | Error
 		xmlWriter.writeEndElement();
 		
-		// Create element: CompareReport | IntegratedConfiguration | CompareOverview | CompareDetails | Compare | Exceptions
-		xmlWriter.writeStartElement(XML_PREFIX, "Exceptions", XML_NS);
+		// Create element: CompareReport | IntegratedConfiguration | CompareOverview | CompareDetails | Compare | ConfiguredExceptions
+		xmlWriter.writeStartElement(XML_PREFIX, "ConfiguredExceptions", XML_NS);
 		// Add exception data
 		addCompareExceptionInfo(xmlWriter, ico);
 		
-		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | CompareDetails | Compare | Exceptions
+		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | CompareDetails | Compare | ConfiguredExceptions
 		xmlWriter.writeEndElement();
 		
 		// Create element: CompareReport | IntegratedConfiguration | CompareOverview | CompareDetails

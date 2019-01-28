@@ -251,7 +251,7 @@ public class IntegratedConfiguration {
 			compareFileString = Util.inputstreamToString(new FileInputStream(comparePath.toFile()), GlobalParameters.ENCODING);
 
 			// Compare string representations of source and compare payloads
-			Diff xmlDiff = DiffBuilder
+			DiffBuilder
 					.compare(sourceFileString)
 					.withTest(compareFileString)
 					.withDifferenceEvaluator(new CustomDifferenceEvaluator(this.xpathExceptions, this))
@@ -259,45 +259,11 @@ public class IntegratedConfiguration {
 					.normalizeWhitespace()
 					.build();
 			
-			// Handle compare result
-			handleCompareResult(xmlDiff, sourcePath.getFileName().toString(), comparePath.getFileName().toString());
-
 		} catch (FileNotFoundException e) {
 			String msg = "Problem converting source and/or compare payloads to string\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new CompareException(msg);
 		}
-	}
-	
-	private void handleCompareResult(Diff xmlDiff, String sourceFileName, String compareFileName) {
-		String SIGNATURE = "handleCompareResult(Diff, String, String)";
-		String result =	"Result:\n--------------------------------------------------\n";
-		
-		Iterable<Difference> diffs = xmlDiff.getDifferences();
-		int diffErrors = 0;
-		for (Difference d : diffs) {
-			result += d.getComparison() + "\n";
-			diffErrors++;
-		}		
-		
-		logger.writeDebug(LOCATION, SIGNATURE, "Differences found during compare: " + diffErrors);
-
-		// Write result to file system
-		//writeCompareResultToFile(sourceFileName, compareFileName, result, diffErrors);
-	}
-
-
-	private void writeCompareResultToFile(String sourceFileName, String compareFileName, String result, int diffErrors) {
-		// Make sure we have a results+ICO directory to write results
-		String targetResultDir = FileStructure.DIR_REPORTS + this.sourceIcoName;
-		FileStructure.createDirIfNotExists(targetResultDir);
-
-		// Build final result path
-		String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss").format(new Date());
-		String resultFilePath = targetResultDir + "\\" + timeStamp + "_Errors_" + diffErrors + "_" + sourceFileName + " vs. " + compareFileName + ".txt";
-
-		// Write to file system
-		Util.writeFileToFileSystem(resultFilePath , result.getBytes());
 	}
 	
 	

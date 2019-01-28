@@ -193,7 +193,6 @@ public class FileStructure {
 
 				// integratedConfigurations | integratedConfguration | xpathExceptions | xpath
 				Element icoXPathElement = doc.createElement("xpath");
-				icoXPathElement.appendChild(doc.createTextNode("Insert XPath here..."));
 				icoXPathExceptionsElement.appendChild(icoXPathElement);
 
 			}
