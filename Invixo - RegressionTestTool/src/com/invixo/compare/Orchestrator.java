@@ -7,13 +7,13 @@ import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.main.Main;
 
-public class Comparer {
+public class Orchestrator {
 	private static Logger logger = Logger.getInstance();
-	private static final String LOCATION = Comparer.class.getName();
+	private static final String LOCATION = Orchestrator.class.getName();
 
 	
-	public static void startCompare() {
-		String SIGNATURE = "startCompare()";
+	public static void start() {
+		String SIGNATURE = "start()";
 		logger.writeDebug(LOCATION, SIGNATURE, "Start compare");
 		
 		// Get number of ICO's to handle

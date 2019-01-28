@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.compare.Comparer;
+import com.invixo.compare.Orchestrator;
 import com.invixo.consistency.FileStructure;
 
 public class Main {
@@ -353,8 +353,15 @@ public class Main {
 	/**
 	 * Start a file comparison
 	 */
-	public static void compare() {		
-		Comparer.startCompare();
+	public static void compare() {
+		final String SIGNATURE = "compare()";
+		
+		// Start comparing
+		com.invixo.compare.Orchestrator.start();
+		
+		// Write report
+		String reportName = "NotYetImplemented";
+		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
 	
 
