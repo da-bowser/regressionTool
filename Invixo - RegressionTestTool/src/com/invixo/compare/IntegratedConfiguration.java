@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -35,6 +37,11 @@ public class IntegratedConfiguration {
 	private static Map<String, String> messageIdMap;
 	private	List<String> compareExceptions;
 	private String sourceIcoName;
+	private int compareCount = 0;
+	private int compareExceptionsUsed = 0;
+	private int compareErrorsFound = 0;
+	private List<UUID> sourceMsgIdsProcessed = new ArrayList<UUID>();
+	private List<UUID> compareMsgIdsProcessed = new ArrayList<UUID>();
 
 	
 	/**
@@ -42,8 +49,9 @@ public class IntegratedConfiguration {
 	 * @param sourceIcoPath
 	 * @param compareIcoPath
 	 * @param icoName
+	 * @throws CompareException 
 	 */
-	public IntegratedConfiguration(String sourceIcoPath, String compareIcoPath, String icoName) {
+	public IntegratedConfiguration(String sourceIcoPath, String compareIcoPath, String icoName) throws CompareException {
 		String SIGNATURE = "IntegratedConfiguration(String sourceIcoPath, String copmareIcoPath, String icoName";
 		logger.writeDebug(LOCATION, SIGNATURE, "Initialize compare data of ICO compare");
 		
@@ -63,7 +71,7 @@ public class IntegratedConfiguration {
 	}
 
 	
-	private List<String> buildCompareExceptionMap(String icoExceptionFilePath) {
+	private List<String> buildCompareExceptionMap(String icoExceptionFilePath) throws CompareException {
 		String SIGNATURE = "buildCompareExceptionMap(String)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of exceptions using data from: " + icoExceptionFilePath);
 		
@@ -76,7 +84,7 @@ public class IntegratedConfiguration {
 	}
 
 	
-	private List<String> extractIcoCompareExceptionsFromFile(String icoExceptionFilePath) {
+	private List<String> extractIcoCompareExceptionsFromFile(String icoExceptionFilePath) throws CompareException {
 		final String SIGNATURE = "extractIcoCompareExceptionsFromFile(String)";
 		List<String> icoExceptions = new ArrayList<String>();
 		try {
@@ -114,7 +122,7 @@ public class IntegratedConfiguration {
 		} catch (Exception e) {
 			String msg = "Error extracting exception.\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
+			throw new CompareException(msg);
 		}
 		
 		// Return exceptions found
@@ -122,7 +130,7 @@ public class IntegratedConfiguration {
 	}
 
 
-	private static Map<String, String> buildMessageIdMap(String mappingDir) {
+	private static Map<String, String> buildMessageIdMap(String mappingDir) throws CompareException {
 		String SIGNATURE = "buildMessageIdMap(String)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + mappingDir);
@@ -142,62 +150,50 @@ public class IntegratedConfiguration {
 		} catch (IOException e) {
 			String msg = "ERROR | Can't read msgId map from: " + mappingDir + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
+			throw new CompareException(msg);
 		}
 	}
 
 	
-	public void start() {
+	public void start() throws CompareException {
 		String SIGNATURE = "start()";
 		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" start");
-		
-		// Prepare ICO compare files
-		this.prepareFilesAndCompare();
-		
-		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" completed!");
-	}
-
-	
-	private void prepareFilesAndCompare() {
-		String SIGNATURE = "prepareFilesAndCompare()";
-		logger.writeDebug(LOCATION, SIGNATURE, "Start prepare and compare. Source files: " + this.sourceFiles.size()  + " Target files: " + this.compareFiles.size());
 
 		if(this.sourceFiles.size() == this.compareFiles.size()) {
 			// Start looping over source files
-			int fileCompareCount = 0;
 			Path currentSourcePath;
 			for (int i = 0; i < sourceFiles.size(); i++) {
 
 				// Get matching compare file using message id map
 				currentSourcePath = sourceFiles.get(i); 
 
-				// Locate matching compare file based on source msgId
+				// Prepare: Locate matching compare file based on source msgId
 				Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, IntegratedConfiguration.messageIdMap);
 
-				// Do compare
+				// Compare
 				compareFiles(currentSourcePath, comparePathMatch);
 
 				// Increment compare count
-				fileCompareCount++;
+				this.compareCount++;
 			}
 			
-			logger.writeDebug(LOCATION, SIGNATURE, "Prepare and compare done. Files compared: " + fileCompareCount); 
 		} else {
 			String msg = "Compare error, source and compare files mismatch sources: " + this.sourceFiles.size() + " targets: " + this.compareFiles.size();
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
+			throw new CompareException(msg);
 		}
 		
+		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" completed!");
 	}
 	
 	
-	private static Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> map) {
+	private static Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> map) throws CompareException {
 		String SIGNATURE = "getMatchingCompareFile(Path, List<Path>, Map<String, String>)";
 		
 		// Extract message id from filename 
 		String sourceMsgId = Util.getFileName(sourceFilePath.getFileName().toString(), false);
 		
-		logger.writeDebug(LOCATION, SIGNATURE, "Getting matching compare file for sourceId: " + sourceMsgId);
+		logger.writeDebug(LOCATION, SIGNATURE, "Prepare: Getting matching compare file for sourceId: " + sourceMsgId);
 
 		// Get compare message id from map using source id
 		String compareMsgId = map.get(sourceMsgId);
@@ -225,26 +221,22 @@ public class IntegratedConfiguration {
 		} catch (NullPointerException e) {
 			String msg = "No matching message id found for: " + sourceMsgId + " " + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
+			throw new CompareException(msg);
 		}
 	}
 	
-	private void compareFiles(Path sourcePath, Path comparePath) {
+	private void compareFiles(Path sourcePath, Path comparePath) throws CompareException {
 		String SIGNATURE = "compareFiles(Path, Path)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Start comparring: " + sourcePath + " and " + comparePath);
 		
 		// TODO: how do we check the mime-type of the message, xml, text, etc - for now we assume payloads are always xml.
-		//if (sourcePath.getFileName().toString().contains(".xml")) {
 		this.doXmlCompare(sourcePath, comparePath);
-		//} else {
-			//this.doTextCompare(sourcePath, comparePath);
-		//}
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Compare done!");
 	}
 	
 	
-	private void doXmlCompare(Path sourcePath, Path comparePath) {
+	private void doXmlCompare(Path sourcePath, Path comparePath) throws CompareException {
 		String SIGNATURE = "doXmlCompare(Path, Path)";
 		String sourceFileString = null;
 		String compareFileString = null;
@@ -268,7 +260,7 @@ public class IntegratedConfiguration {
 		} catch (FileNotFoundException e) {
 			String msg = "Problem converting source and/or compare payloads to string\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
+			throw new CompareException(msg);
 		}
 	}
 	

@@ -357,9 +357,11 @@ public class Main {
 		final String SIGNATURE = "compare()";
 		
 		// Start comparing
-		com.invixo.compare.Orchestrator.start();
+		ArrayList<com.invixo.compare.IntegratedConfiguration> icoList = com.invixo.compare.Orchestrator.start();
 		
 		// Write report
+		com.invixo.compare.reporting.ReportWriter report = new com.invixo.compare.reporting.ReportWriter(icoList);
+		report.create(icoList);
 		String reportName = "NotYetImplemented";
 		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
