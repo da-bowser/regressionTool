@@ -9,9 +9,9 @@ import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -37,11 +37,9 @@ public class IntegratedConfiguration {
 	private static Map<String, String> messageIdMap;
 	private	List<String> compareExceptions;
 	private String sourceIcoName;
-	private int compareCount = 0;
 	private int compareExceptionsUsed = 0;
-	private int compareErrorsFound = 0;
-	private List<UUID> sourceMsgIdsProcessed = new ArrayList<UUID>();
-	private List<UUID> compareMsgIdsProcessed = new ArrayList<UUID>();
+	private List<Path> sourceFilesNoMatchFound = new ArrayList<Path>();
+	private Map<Path, Path> compareFilesProcessed = new HashMap<Path, Path>();
 
 	
 	/**
@@ -157,7 +155,7 @@ public class IntegratedConfiguration {
 	
 	public void start() throws CompareException {
 		String SIGNATURE = "start()";
-		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" start");
+		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" expected compare count - source: " + this.sourceFiles.size() + " target: " + this.compareFiles.size());
 
 		if(this.sourceFiles.size() == this.compareFiles.size()) {
 			// Start looping over source files
@@ -165,25 +163,36 @@ public class IntegratedConfiguration {
 			for (int i = 0; i < sourceFiles.size(); i++) {
 
 				// Get matching compare file using message id map
-				currentSourcePath = sourceFiles.get(i); 
+				currentSourcePath = sourceFiles.get(i);
 
 				// Prepare: Locate matching compare file based on source msgId
 				Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, IntegratedConfiguration.messageIdMap);
 
-				// Compare
-				compareFiles(currentSourcePath, comparePathMatch);
-
-				// Increment compare count
-				this.compareCount++;
+				if (comparePathMatch == null) {
+					// Add path not found for later reporting
+					this.sourceFilesNoMatchFound.add(currentSourcePath);
+					logger.writeError(LOCATION, SIGNATURE, "Target file could not be found for source: " + currentSourcePath);
+				} else {
+					
+					logger.writeDebug(LOCATION, SIGNATURE, "[COMPARE " + (i+1) + "] Start comparring: " + currentSourcePath + " and " + comparePathMatch);
+					
+					// Compare
+					// TODO: how do we check the mime-type of the message, xml, text, etc - for now we assume payloads are always xml.
+					this.doXmlCompare(currentSourcePath, comparePathMatch);
+					
+					logger.writeDebug(LOCATION, SIGNATURE, "Compare done!");
+				}
+				
+				// Add processed path for later reporting
+				this.compareFilesProcessed.put(currentSourcePath, comparePathMatch);
 			}
 			
 		} else {
-			String msg = "Compare error, source and compare files mismatch sources: " + this.sourceFiles.size() + " targets: " + this.compareFiles.size();
-			logger.writeError(LOCATION, SIGNATURE, msg);
+			String msg = "ICO compare skipped, source and compare files mismatch sources: " + this.sourceFiles.size() + " targets: " + this.compareFiles.size();
 			throw new CompareException(msg);
 		}
-		
-		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" completed!");
+		int fileCompareSuccess = this.sourceFiles.size() - this.sourceFilesNoMatchFound.size();
+		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" completed, files compared: " + fileCompareSuccess + " files skipped: " + this.sourceFilesNoMatchFound.size());
 	}
 	
 	
@@ -198,41 +207,29 @@ public class IntegratedConfiguration {
 		// Get compare message id from map using source id
 		String compareMsgId = map.get(sourceMsgId);
 		
-		logger.writeDebug(LOCATION, SIGNATURE, "Match found, compare file msgId: " + compareMsgId);
+		logger.writeDebug(LOCATION, SIGNATURE, "Prepare: match found, compare file msgId: " + compareMsgId);
 		
-		try {
 			// Search for compare id in compare file list
-			Path compareFileFound = sourceFilePath;
+			Path compareFileFound = null;
 			for (int i = 0; i < compareFiles.size(); i++) {
-				String currentFile = compareFiles.get(i).getFileName().toString();
-
-				if (currentFile.toString().contains(compareMsgId)) {
-					// Get current file if we have a match
-					compareFileFound = compareFiles.get(i);
-
-					// Stop searching
+				try {
+					String currentFile = compareFiles.get(i).getFileName().toString();
+	
+					if (currentFile.toString().contains(compareMsgId)) {
+						// Get current file if we have a match
+						compareFileFound = compareFiles.get(i);
+	
+						// Stop searching
+						break;
+					}
+				} catch (NullPointerException e) {
+					// No match found
 					break;
 				}
+			}
 
-			}		
 			// return compare file found
 			return compareFileFound;
-			
-		} catch (NullPointerException e) {
-			String msg = "No matching message id found for: " + sourceMsgId + " " + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new CompareException(msg);
-		}
-	}
-	
-	private void compareFiles(Path sourcePath, Path comparePath) throws CompareException {
-		String SIGNATURE = "compareFiles(Path, Path)";
-		logger.writeDebug(LOCATION, SIGNATURE, "Start comparring: " + sourcePath + " and " + comparePath);
-		
-		// TODO: how do we check the mime-type of the message, xml, text, etc - for now we assume payloads are always xml.
-		this.doXmlCompare(sourcePath, comparePath);
-		
-		logger.writeDebug(LOCATION, SIGNATURE, "Compare done!");
 	}
 	
 	

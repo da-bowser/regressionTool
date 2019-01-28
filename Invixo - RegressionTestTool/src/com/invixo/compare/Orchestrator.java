@@ -56,7 +56,7 @@ public class Orchestrator {
 			} catch (CompareException e) {
 				// Increment counter for compares in error
 				icoErrorCount++;
-				logger.writeDebug(LOCATION, SIGNATURE, "Error during compare: " + e.getMessage());
+				logger.writeError(LOCATION, SIGNATURE, "Error during compare: " + e.getMessage());
 			}
 		}
 		
