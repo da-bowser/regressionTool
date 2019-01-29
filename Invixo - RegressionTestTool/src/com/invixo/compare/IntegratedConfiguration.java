@@ -26,16 +26,18 @@ public class IntegratedConfiguration {
 	private List<Path> sourceFiles;
 	private List<Path> compareFiles;
 	private static Map<String, String> messageIdMap;
-	public ArrayList<String> xpathExceptions;
+	private ArrayList<String> xpathExceptions;
 	private String sourceIcoName;
-	public int totalCompareDiffsFound = 0;
-	public int totalCompareDiffsIgnored = 0;
-	public int totalUnhandledDiffs = 0;
-	public int totalCompareSkipped = 0;
-	public int totalCompareSuccess = 0;
-	public int totalCompareProcessed = 0;
-	public List<Comparer> compareProcessedList = new ArrayList<Comparer>();
-	public List<CompareException> compareExeptionsThrown = new ArrayList<CompareException>();
+	private int totalCompareDiffsFound = 0;
+	private int totalCompareDiffsIgnored = 0;
+	private int totalUnhandledDiffs = 0;
+	private int totalCompareSkipped = 0;
+	private int totalCompareSuccess = 0;
+	private int totalCompareProcessed = 0;
+	private List<Comparer> compareProcessedList = new ArrayList<Comparer>();
+	private List<CompareException> compareExeptionsThrown = new ArrayList<CompareException>();
+
+
 	/**
 	 * Class constructor
 	 * @param sourceIcoPath
@@ -218,7 +220,7 @@ public class IntegratedConfiguration {
 			}
 
 			if (compareFileFound == null) {
-				compareFileFound = new File("ERROR - No match could be found for source file...").toPath();
+				compareFileFound = new File("Compare file " + compareMsgId + ".payload could not be found").toPath();
 			}
 			
 			// return compare file found
@@ -228,5 +230,46 @@ public class IntegratedConfiguration {
 	
 	public String getSourceIcoName() {
 		return sourceIcoName;
+	}
+	
+	public ArrayList<String> getXpathExceptions() {
+		return xpathExceptions;
+	}
+	
+	public int getTotalCompareDiffsFound() {
+		return totalCompareDiffsFound;
+	}
+
+
+	public int getTotalCompareDiffsIgnored() {
+		return totalCompareDiffsIgnored;
+	}
+
+
+	public int getTotalUnhandledDiffs() {
+		return totalUnhandledDiffs;
+	}
+
+
+	public int getTotalCompareSkipped() {
+		return totalCompareSkipped;
+	}
+
+
+	public int getTotalCompareSuccess() {
+		return totalCompareSuccess;
+	}
+
+
+	public int getTotalCompareProcessed() {
+		return totalCompareProcessed;
+	}
+	
+	public List<Comparer> getCompareProcessedList() {
+		return compareProcessedList;
+	}
+	
+	public List<CompareException> getCompareExeptionsThrown() {
+		return compareExeptionsThrown;
 	}
 }

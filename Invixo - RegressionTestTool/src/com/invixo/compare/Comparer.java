@@ -1,7 +1,6 @@
 package com.invixo.compare;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +27,7 @@ public class Comparer {
 	private Map<String, String> diffsIgnoredByConfiguration = new HashMap<String, String>();
 	private ArrayList<Difference> compareDifferences = new ArrayList<Difference>();
 	private ArrayList<String> icoXPathExceptions = new ArrayList<String>();
+	private CompareException ce;
 	
 	public Comparer(Path sourceFile, Path compareFile, ArrayList<String> icoXPathExceptions) {
 		this.sourceFile = sourceFile;
@@ -35,6 +35,10 @@ public class Comparer {
 		this.icoXPathExceptions = icoXPathExceptions;
 	}
 
+	public CompareException getCompareException() {
+		return this.ce;
+	}
+	
 	public void addDiffComparison(Difference d) {
 		this.compareDifferences.add(d);
 	}
@@ -91,11 +95,13 @@ public class Comparer {
 			// Increment compare success for reporting purposes
 			this.compareSuccessCount++;
 			
-		} catch (FileNotFoundException fnfe) {
+		} catch (Exception e) {
 			// Increment compare skipped for reporting purposes
 			this.compareSkippedCount++;
-			String msg = "Problem converting source and/or compare payloads to string\n" + fnfe.getMessage();
+			String msg = "Problem during compare\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
+			
+			this.ce = new CompareException(msg);
 		}
 	}
 }

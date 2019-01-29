@@ -19,8 +19,7 @@ public class ReportWriter {
 	private static final String	XML_PREFIX = "inv";
 	private static final String	XML_NS = "urn:invixo.com.compare.report";
 
-//	private final String REPORT_FILE = FileStructure.DIR_REPORTS + "CompareReport_" + System.currentTimeMillis() + ".xml";
-	private final String REPORT_FILE = FileStructure.DIR_REPORTS + "CompareReport.xml";
+	private final String REPORT_FILE = FileStructure.DIR_REPORTS + "CompareReport_" + System.currentTimeMillis() + ".xml";
 	private ArrayList<IntegratedConfiguration>	icoList;
 
 	// ICO general
@@ -42,7 +41,7 @@ public class ReportWriter {
 		
 		// Determine number of successfully and erroneous ICOs
 		for (IntegratedConfiguration ico : icoList) {
-			if (ico.compareExeptionsThrown.size() > 0) {
+			if (ico.getCompareExeptionsThrown().size() > 0) {
 				this.countIcoNotCompared++;
 			} else {
 				this.countIcoCompared++;
@@ -106,8 +105,8 @@ public class ReportWriter {
 			// Create element: CompareReport | IntegratedConfiguration | Error
 			xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
 			
-			if (ico.compareExeptionsThrown.size() > 0) {
-				xmlWriter.writeCharacters(ico.compareExeptionsThrown.get(0).getMessage());
+			if (ico.getCompareExeptionsThrown().size() > 0) {
+				xmlWriter.writeCharacters(ico.getCompareExeptionsThrown().get(0).getMessage());
 			}
 			
 			// Close element: CompareReport | IntegratedConfiguration | Error
@@ -118,17 +117,17 @@ public class ReportWriter {
 
 			// Create element: CompareReport | IntegratedConfiguration | CompareOverview | Success
 			xmlWriter.writeStartElement(XML_PREFIX, "Success", XML_NS);
-			xmlWriter.writeCharacters("" + ico.totalCompareSuccess);
+			xmlWriter.writeCharacters("" + ico.getTotalCompareSuccess());
 			xmlWriter.writeEndElement();
 
 			// Create element: CompareReport | IntegratedConfiguration | CompareOverview | Skipped
 			xmlWriter.writeStartElement(XML_PREFIX, "Skipped", XML_NS);
-			xmlWriter.writeCharacters("" + ico.totalCompareSkipped);
+			xmlWriter.writeCharacters("" + ico.getTotalCompareSkipped());
 			xmlWriter.writeEndElement();
 
 			// Create element: CompareReport | IcoOverview | Total
 			xmlWriter.writeStartElement(XML_PREFIX, "Total", XML_NS);
-			xmlWriter.writeCharacters("" + ico.totalCompareProcessed);
+			xmlWriter.writeCharacters("" + ico.getTotalCompareProcessed());
 			xmlWriter.writeEndElement();
 			
 			// Add compare header data
@@ -155,19 +154,19 @@ public class ReportWriter {
 		
 		// Create element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Found
 		xmlWriter.writeStartElement(XML_PREFIX, "Found", XML_NS);
-		xmlWriter.writeCharacters("" + ico.totalCompareDiffsFound);
+		xmlWriter.writeCharacters("" + ico.getTotalCompareDiffsFound());
 		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Found
 		xmlWriter.writeEndElement();
 		
 		// Create element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Ignored
 		xmlWriter.writeStartElement(XML_PREFIX, "Ignored", XML_NS);
-		xmlWriter.writeCharacters("" + ico.totalCompareDiffsIgnored);
+		xmlWriter.writeCharacters("" + ico.getTotalCompareDiffsIgnored());
 		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Ignored
 		xmlWriter.writeEndElement();
 		
 		// Create element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Unhandled
 		xmlWriter.writeStartElement(XML_PREFIX, "Unhandled", XML_NS);
-		xmlWriter.writeCharacters("" + ico.totalUnhandledDiffs);
+		xmlWriter.writeCharacters("" + ico.getTotalUnhandledDiffs());
 		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Unhandled
 		xmlWriter.writeEndElement();
 		
@@ -185,7 +184,7 @@ public class ReportWriter {
 	
 	private void addCompareDetails(XMLStreamWriter xmlWriter, IntegratedConfiguration ico) throws XMLStreamException {
 		
-		for (Comparer comp : ico.compareProcessedList) {
+		for (Comparer comp : ico.getCompareProcessedList()) {
 			// Create element: | CompareDetails | Compare | 
 			xmlWriter.writeStartElement(XML_PREFIX, "Compare", XML_NS);
 			
@@ -226,6 +225,12 @@ public class ReportWriter {
 		// Close element: | Found
 		xmlWriter.writeEndElement();
 		
+		// Create element: | Error
+		xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+		xmlWriter.writeCharacters(comp.getCompareException() == null ? "" : comp.getCompareException().getMessage());
+		// Close element: | Found
+		xmlWriter.writeEndElement();
+				
 		// Create element: | Found
 		xmlWriter.writeStartElement(XML_PREFIX, "Found", XML_NS);
 		xmlWriter.writeCharacters("" + comp.getCompareDifferences().size());
@@ -303,7 +308,7 @@ public class ReportWriter {
 	private void addCompareExceptionInfo(XMLStreamWriter xmlWriter, IntegratedConfiguration ico) throws XMLStreamException {
 		
 		// Add custom exceptions to report for each ICO
-		List<String> xpathExceptions = ico.xpathExceptions;
+		List<String> xpathExceptions = ico.getXpathExceptions();
 		for (String xPath : xpathExceptions) {
 			// Create element: | Exceptions | Configured | XPath
 			xmlWriter.writeStartElement(XML_PREFIX, "XPath", XML_NS);
