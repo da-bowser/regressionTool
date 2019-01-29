@@ -26,16 +26,16 @@ public class IntegratedConfiguration {
 	private List<Path> sourceFiles;
 	private List<Path> compareFiles;
 	private static Map<String, String> messageIdMap;
-	private ArrayList<String> xpathExceptions;
-	private String sourceIcoName;
+	private ArrayList<String> xpathExceptions = new ArrayList<String>();
+	private String name;
 	private int totalCompareDiffsFound = 0;
 	private int totalCompareDiffsIgnored = 0;
-	private int totalUnhandledDiffs = 0;
+	private int totalCompareDiffsUnhandled = 0;
 	private int totalCompareSkipped = 0;
 	private int totalCompareSuccess = 0;
 	private int totalCompareProcessed = 0;
 	private List<Comparer> compareProcessedList = new ArrayList<Comparer>();
-	private List<CompareException> compareExeptionsThrown = new ArrayList<CompareException>();
+	private CompareException ce;
 
 
 	/**
@@ -45,23 +45,27 @@ public class IntegratedConfiguration {
 	 * @param icoName
 	 * @throws CompareException 
 	 */
-	public IntegratedConfiguration(String sourceIcoPath, String compareIcoPath, String icoName) throws CompareException {
+	public IntegratedConfiguration(String sourceIcoPath, String compareIcoPath, String icoName) {
 		String SIGNATURE = "IntegratedConfiguration(String sourceIcoPath, String copmareIcoPath, String icoName";
 		logger.writeDebug(LOCATION, SIGNATURE, "Initialize compare data of ICO compare");
-		
-		// Set current ICO
-		this.sourceIcoName = icoName;
-		
-		// Get files from source and compare directories
-		sourceFiles = Util.generateListOfPaths(sourceIcoPath.toString(), "FILE");
-		compareFiles = Util.generateListOfPaths(compareIcoPath.toString(), "FILE");
-		
-		// Build message id map to match "Prod"(source) and "Test"(compare) messages
-		messageIdMap = buildMessageIdMap(FileStructure.DIR_INJECT);
-		
-		// Build exception map to be used to exclude data elements in later compare
-		xpathExceptions = buildCompareExceptionMap(FileStructure.DIR_CONFIG + "\\compareExceptions.xml");
-		
+
+		try {
+			// Set current ICO
+			this.name = icoName;
+			
+			// Get files from source and compare directories
+			sourceFiles = Util.generateListOfPaths(sourceIcoPath.toString(), "FILE");
+			compareFiles = Util.generateListOfPaths(compareIcoPath.toString() , "FILE");
+			
+			// Build message id map to match "Prod"(source) and "Test"(compare) messages
+			messageIdMap = buildMessageIdMap(FileStructure.DIR_INJECT);
+			
+			// Build exception map to be used to exclude data elements in later compare
+			xpathExceptions = buildCompareExceptionMap(FileStructure.DIR_CONFIG + "\\compareExceptions.xml");
+			
+		} catch (Exception e) {
+			this.ce = new CompareException(e.getMessage());
+		}
 	}
 
 	
@@ -81,6 +85,7 @@ public class IntegratedConfiguration {
 	private ArrayList<String> extractIcoCompareExceptionsFromFile(String icoExceptionFilePath) throws CompareException {
 		final String SIGNATURE = "extractIcoCompareExceptionsFromFile(String)";
 		ArrayList<String> icoExceptions = new ArrayList<String>();
+		
 		try {
 			InputStream fileStream = new FileInputStream(icoExceptionFilePath);		
 			XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -93,7 +98,7 @@ public class IntegratedConfiguration {
 			    case XMLStreamConstants.START_ELEMENT:
 			    	String currentStartElementName = event.asStartElement().getName().getLocalPart();
 			    	if ("name".equals(currentStartElementName)) {
-						if (this.sourceIcoName.equals(eventReader.peek().asCharacters().getData())) {
+						if (this.name.equals(eventReader.peek().asCharacters().getData())) {
 							
 							// We are at the correct ICO element
 							correctIcoFound = true;
@@ -118,19 +123,21 @@ public class IntegratedConfiguration {
 			    	break;
 			    }
 			}
+			
+			// Return exceptions found
+			return icoExceptions; 
+			
 		} catch (Exception e) {
-			String msg = "Error extracting exception.\n" + e.getMessage();
+			String msg = "Error extracting exceptions.\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new CompareException(msg);
 		}
-		
-		// Return exceptions found
-		return icoExceptions; 
 	}
 
 
 	private static Map<String, String> buildMessageIdMap(String mappingDir) throws CompareException {
 		String SIGNATURE = "buildMessageIdMap(String)";
+		
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + mappingDir);
 			
@@ -147,16 +154,16 @@ public class IntegratedConfiguration {
 	        return mapFromFile;
 	        
 		} catch (IOException e) {
-			String msg = "ERROR | Can't read msgId map from: " + mappingDir + "\n" + e.getMessage();
+			String msg = "Error reading msgId map from: " + mappingDir + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new CompareException(msg);
 		}
 	}
 
 	
-	public void start() throws CompareException {
+	public void start() {
 		String SIGNATURE = "start()";
-		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" expected compare count: " + this.sourceFiles.size());
+		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.name + "\"\nExpected compare count: " + this.sourceFiles.size());
 		
 		// Start looping over source files
 		Path currentSourcePath;
@@ -175,19 +182,19 @@ public class IntegratedConfiguration {
 			
 			this.totalCompareDiffsFound += comp.getCompareDifferences().size();
 			this.totalCompareDiffsIgnored += comp.getDiffsIgnoredByConfiguration().size();
-			this.totalUnhandledDiffs = this.totalCompareDiffsFound - this.totalCompareDiffsIgnored;
+			this.totalCompareDiffsUnhandled = this.totalCompareDiffsFound - this.totalCompareDiffsIgnored;
 			
 			this.totalCompareSkipped += comp.getCompareSkipped();
 			this.totalCompareSuccess += comp.getCompareSuccess();
 			this.totalCompareProcessed = this.totalCompareSkipped + this.totalCompareSuccess;
 		}
 		
-		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" completed");
+		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.name + "\" completed.\nActual: Success: " + this.totalCompareSuccess + " Skipped: " + this.totalCompareSkipped);
 		
 	}
 	
 	
-	private static Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> map) throws CompareException {
+	private static Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> map) {
 		String SIGNATURE = "getMatchingCompareFile(Path, List<Path>, Map<String, String>)";
 		
 		// Extract message id from filename 
@@ -203,22 +210,18 @@ public class IntegratedConfiguration {
 			// Search for compare id in compare file list
 			Path compareFileFound = null;
 			for (int i = 0; i < compareFiles.size(); i++) {
-				try {
-					String currentFile = compareFiles.get(i).getFileName().toString();
-	
-					if (currentFile.toString().contains(compareMsgId)) {
-						// Get current file if we have a match
-						compareFileFound = compareFiles.get(i);
-	
-						// Stop searching
-						break;
-					}
-				} catch (NullPointerException e) {
-					// No match found
+				String currentFile = compareFiles.get(i).getFileName().toString();
+
+				if (currentFile.toString().contains(compareMsgId)) {
+					// Get current file if we have a match
+					compareFileFound = compareFiles.get(i);
+
+					// Stop searching
 					break;
 				}
 			}
 
+			// Handle situation where compare file is not found using mapping file
 			if (compareFileFound == null) {
 				compareFileFound = new File("Compare file " + compareMsgId + ".payload could not be found").toPath();
 			}
@@ -228,8 +231,8 @@ public class IntegratedConfiguration {
 	}
 	
 	
-	public String getSourceIcoName() {
-		return sourceIcoName;
+	public String getName() {
+		return name;
 	}
 	
 	public ArrayList<String> getXpathExceptions() {
@@ -246,8 +249,8 @@ public class IntegratedConfiguration {
 	}
 
 
-	public int getTotalUnhandledDiffs() {
-		return totalUnhandledDiffs;
+	public int getTotalCompareDiffsUnhandled() {
+		return totalCompareDiffsUnhandled;
 	}
 
 
@@ -269,7 +272,11 @@ public class IntegratedConfiguration {
 		return compareProcessedList;
 	}
 	
-	public List<CompareException> getCompareExeptionsThrown() {
-		return compareExeptionsThrown;
+	public CompareException getCompareException() {
+		return ce;
+	}
+	
+	public void setCompareException(CompareException ce) {
+		this.ce = ce;
 	}
 }

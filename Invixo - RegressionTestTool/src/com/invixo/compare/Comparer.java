@@ -70,7 +70,7 @@ public class Comparer {
 		return this.compareFile;
 	}
 	
-	void start() throws CompareException {
+	void start() {
 		String SIGNATURE = "start(Path, Path)";
 		
 		try {

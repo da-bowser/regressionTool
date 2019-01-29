@@ -14,6 +14,7 @@ import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
 import com.invixo.compare.Comparer;
 import com.invixo.compare.IntegratedConfiguration;
+import com.invixo.compare.Orchestrator;
 
 public class ReportWriter {
 	private static final String	XML_PREFIX = "inv";
@@ -40,13 +41,9 @@ public class ReportWriter {
 		this.countIcoTotal = icoList.size();
 		
 		// Determine number of successfully and erroneous ICOs
-		for (IntegratedConfiguration ico : icoList) {
-			if (ico.getCompareExeptionsThrown().size() > 0) {
-				this.countIcoNotCompared++;
-			} else {
-				this.countIcoCompared++;
-			}
-		}
+		this.countIcoCompared = Orchestrator.getIcoProcessSuccess();
+		this.countIcoNotCompared = Orchestrator.getIcoProccesError();
+		this.countIcoTotal = this.countIcoCompared + this.countIcoNotCompared;
 	}
 	
 	public String create(ArrayList<IntegratedConfiguration> icoList) {
@@ -98,17 +95,13 @@ public class ReportWriter {
 
 			// Create element: CompareReport | IntegratedConfiguration | Name
 			xmlWriter.writeStartElement(XML_PREFIX, "Name", XML_NS);
-			xmlWriter.writeCharacters(ico.getSourceIcoName());
+			xmlWriter.writeCharacters(ico.getName());
 			// Close element: CompareReport | IntegratedConfiguration | Name
 			xmlWriter.writeEndElement();
 
 			// Create element: CompareReport | IntegratedConfiguration | Error
 			xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
-			
-			if (ico.getCompareExeptionsThrown().size() > 0) {
-				xmlWriter.writeCharacters(ico.getCompareExeptionsThrown().get(0).getMessage());
-			}
-			
+			xmlWriter.writeCharacters(ico.getCompareException() == null ? "" : ico.getCompareException().getMessage());
 			// Close element: CompareReport | IntegratedConfiguration | Error
 			xmlWriter.writeEndElement();
 			
@@ -116,7 +109,7 @@ public class ReportWriter {
 			xmlWriter.writeStartElement(XML_PREFIX, "CompareOverview", XML_NS);
 
 			// Create element: CompareReport | IntegratedConfiguration | CompareOverview | Success
-			xmlWriter.writeStartElement(XML_PREFIX, "Success", XML_NS);
+			xmlWriter.writeStartElement(XML_PREFIX, "Compared", XML_NS);
 			xmlWriter.writeCharacters("" + ico.getTotalCompareSuccess());
 			xmlWriter.writeEndElement();
 
@@ -158,15 +151,15 @@ public class ReportWriter {
 		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Found
 		xmlWriter.writeEndElement();
 		
-		// Create element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Ignored
-		xmlWriter.writeStartElement(XML_PREFIX, "Ignored", XML_NS);
+		// Create element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Handled
+		xmlWriter.writeStartElement(XML_PREFIX, "Handled", XML_NS);
 		xmlWriter.writeCharacters("" + ico.getTotalCompareDiffsIgnored());
-		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Ignored
+		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Handled
 		xmlWriter.writeEndElement();
 		
 		// Create element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Unhandled
 		xmlWriter.writeStartElement(XML_PREFIX, "Unhandled", XML_NS);
-		xmlWriter.writeCharacters("" + ico.getTotalUnhandledDiffs());
+		xmlWriter.writeCharacters("" + ico.getTotalCompareDiffsUnhandled());
 		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Unhandled
 		xmlWriter.writeEndElement();
 		
@@ -237,10 +230,10 @@ public class ReportWriter {
 		// Close element: | Found
 		xmlWriter.writeEndElement();
 		
-		// Create element: | Ignored
-		xmlWriter.writeStartElement(XML_PREFIX, "Ignored", XML_NS);
+		// Create element: | Handled
+		xmlWriter.writeStartElement(XML_PREFIX, "Handled", XML_NS);
 		xmlWriter.writeCharacters("" + comp.getDiffsIgnoredByConfiguration().size());
-		// Close element: | Ignored
+		// Close element: | Handled
 		xmlWriter.writeEndElement();	
 		
 		// Create element: | Unhandled

@@ -178,7 +178,7 @@ public class Util {
 			}
 
 		} catch (IOException e) {
-			String msg = "ERROR | Error reading " + readMode + " data from: " + directory + e.getMessage();
+			String msg = "Error reading " + readMode + " data from: " + directory + e.getMessage();
 			throw new RuntimeException(msg);
 		}
 		
