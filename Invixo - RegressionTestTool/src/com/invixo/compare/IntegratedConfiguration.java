@@ -2,14 +2,10 @@ package com.invixo.compare;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,14 +14,9 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.events.XMLEvent;
 
-import org.xmlunit.builder.DiffBuilder;
-import org.xmlunit.diff.Diff;
-import org.xmlunit.diff.Difference;
-
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
-import com.invixo.main.GlobalParameters;
 import com.invixo.main.Main;
 
 
@@ -35,15 +26,16 @@ public class IntegratedConfiguration {
 	private List<Path> sourceFiles;
 	private List<Path> compareFiles;
 	private static Map<String, String> messageIdMap;
-	public	List<String> xpathExceptions;
+	public ArrayList<String> xpathExceptions;
 	private String sourceIcoName;
-	public List<String> compareDiffsFound = new ArrayList<String>();
-	public Map<String, String> compareExceptionsIgnored = new HashMap<String, String>();
-	public int compareSuccessCounter = 0;
-	public int compareErrorsCounter = 0;
-	public Map<Path, Path> compareFilesProcessed = new HashMap<Path, Path>();
+	public int totalCompareDiffsFound = 0;
+	public int totalCompareDiffsIgnored = 0;
+	public int totalUnhandledDiffs = 0;
+	public int totalCompareSkipped = 0;
+	public int totalCompareSuccess = 0;
+	public int totalCompareProcessed = 0;
+	public List<Comparer> compareProcessedList = new ArrayList<Comparer>();
 	public List<CompareException> compareExeptionsThrown = new ArrayList<CompareException>();
-	
 	/**
 	 * Class constructor
 	 * @param sourceIcoPath
@@ -71,12 +63,12 @@ public class IntegratedConfiguration {
 	}
 
 	
-	private List<String> buildCompareExceptionMap(String icoExceptionFilePath) throws CompareException {
+	private ArrayList<String> buildCompareExceptionMap(String icoExceptionFilePath) throws CompareException {
 		String SIGNATURE = "buildCompareExceptionMap(String)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of exceptions using data from: " + icoExceptionFilePath);
 		
 		// Get all exceptions listed in files found 
-		List<String> compareExceptions = extractIcoCompareExceptionsFromFile(icoExceptionFilePath);
+		ArrayList<String> compareExceptions = extractIcoCompareExceptionsFromFile(icoExceptionFilePath);
 		
 		
 		// Return exception map
@@ -84,9 +76,9 @@ public class IntegratedConfiguration {
 	}
 
 	
-	private List<String> extractIcoCompareExceptionsFromFile(String icoExceptionFilePath) throws CompareException {
+	private ArrayList<String> extractIcoCompareExceptionsFromFile(String icoExceptionFilePath) throws CompareException {
 		final String SIGNATURE = "extractIcoCompareExceptionsFromFile(String)";
-		List<String> icoExceptions = new ArrayList<String>();
+		ArrayList<String> icoExceptions = new ArrayList<String>();
 		try {
 			InputStream fileStream = new FileInputStream(icoExceptionFilePath);		
 			XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -105,9 +97,14 @@ public class IntegratedConfiguration {
 							correctIcoFound = true;
 						}
 					}
-			    	if ("xpath".equals(currentStartElementName) && correctIcoFound) {
-			    		// Add exeption data if we are at the right ICO and correct element
-			    		icoExceptions.add(eventReader.peek().asCharacters().getData());
+			    	if ("xpath".equals(currentStartElementName) && correctIcoFound && eventReader.peek().isCharacters()) {
+			    		String configuredExceptionXPath = eventReader.peek().asCharacters().getData();
+			    		
+			    		if (configuredExceptionXPath.length() > 0) {
+				    		// Add exception data if we are at the right ICO and correct element
+				    		icoExceptions.add(configuredExceptionXPath);
+						}
+
 			    	}
 			    	break;
 			    case XMLStreamConstants.END_ELEMENT:
@@ -158,49 +155,33 @@ public class IntegratedConfiguration {
 	public void start() throws CompareException {
 		String SIGNATURE = "start()";
 		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" expected compare count: " + this.sourceFiles.size());
+		
+		// Start looping over source files
+		Path currentSourcePath;
+		for (int i = 0; i < sourceFiles.size(); i++) {
 
-		if(this.sourceFiles.size() == this.compareFiles.size()) {
+			// Get matching compare file using message id map
+			currentSourcePath = sourceFiles.get(i);
+
+			// Prepare: Locate matching compare file based on source msgId
+			Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, IntegratedConfiguration.messageIdMap);
+
+			Comparer comp = new Comparer(currentSourcePath, comparePathMatch, this.xpathExceptions);
+			this.compareProcessedList.add(comp);
 			
-			// Start looping over source files
-			Path currentSourcePath;
-			for (int i = 0; i < sourceFiles.size(); i++) {
-
-				// Get matching compare file using message id map
-				currentSourcePath = sourceFiles.get(i);
-
-				// Prepare: Locate matching compare file based on source msgId
-				Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, IntegratedConfiguration.messageIdMap);
-
-				if (comparePathMatch == null) {
-					// Indicate there was a problem
-					this.compareErrorsCounter++;
-					
-					comparePathMatch = new File("Compare File Not found!").toPath();
-					logger.writeError(LOCATION, SIGNATURE, "Target file could not be found for source: " + currentSourcePath);
-					logger.writeError(LOCATION, SIGNATURE, "Compare skipped!");
-				} else {
-					// increment success counter.
-					this.compareSuccessCounter++;
-					logger.writeDebug(LOCATION, SIGNATURE, "[COMPARE " + (i+1) + "] Start comparring: " + currentSourcePath + " and " + comparePathMatch);
-					
-					// Compare
-					// TODO: how do we check the mime-type of the message, xml, text, etc - for now we assume payloads are always xml.
-					this.doXmlCompare(currentSourcePath, comparePathMatch);
-					logger.writeDebug(LOCATION, SIGNATURE, "Compare done!");
-				}
-				
-				// Add processed path for later reporting
-				this.compareFilesProcessed.put(currentSourcePath, comparePathMatch);
-			}
+			comp.start();
 			
-		} else {
-			String msg = "ICO compare skipped, source and compare files mismatch sources: " + this.sourceFiles.size() + " targets: " + this.compareFiles.size();
-			CompareException ce = new CompareException(msg);
-			compareExeptionsThrown.add(ce);
-			throw ce;
+			this.totalCompareDiffsFound += comp.getCompareDifferences().size();
+			this.totalCompareDiffsIgnored += comp.getDiffsIgnoredByConfiguration().size();
+			this.totalUnhandledDiffs = this.totalCompareDiffsFound - this.totalCompareDiffsIgnored;
+			
+			this.totalCompareSkipped += comp.getCompareSkipped();
+			this.totalCompareSuccess += comp.getCompareSuccess();
+			this.totalCompareProcessed = this.totalCompareSkipped + this.totalCompareSuccess;
 		}
 		
-		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" completed, files compared: " + this.compareSuccessCounter + " files skipped: " + this.compareErrorsCounter);
+		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.sourceIcoName + "\" completed");
+		
 	}
 	
 	
@@ -236,34 +217,12 @@ public class IntegratedConfiguration {
 				}
 			}
 
+			if (compareFileFound == null) {
+				compareFileFound = new File("ERROR - No match could be found for source file...").toPath();
+			}
+			
 			// return compare file found
 			return compareFileFound;
-	}
-	
-	
-	private void doXmlCompare(Path sourcePath, Path comparePath) throws CompareException {
-		String SIGNATURE = "doXmlCompare(Path, Path)";
-		String sourceFileString = null;
-		String compareFileString = null;
-		try {
-			// Prepare files for compare
-			sourceFileString = Util.inputstreamToString(new FileInputStream(sourcePath.toFile()), GlobalParameters.ENCODING);
-			compareFileString = Util.inputstreamToString(new FileInputStream(comparePath.toFile()), GlobalParameters.ENCODING);
-
-			// Compare string representations of source and compare payloads
-			DiffBuilder
-					.compare(sourceFileString)
-					.withTest(compareFileString)
-					.withDifferenceEvaluator(new CustomDifferenceEvaluator(this.xpathExceptions, this))
-					.ignoreWhitespace()
-					.normalizeWhitespace()
-					.build();
-			
-		} catch (FileNotFoundException e) {
-			String msg = "Problem converting source and/or compare payloads to string\n" + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new CompareException(msg);
-		}
 	}
 	
 	

@@ -12,16 +12,16 @@ public class CustomDifferenceEvaluator implements DifferenceEvaluator {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = CustomDifferenceEvaluator.class.getName();
 	private List<String> exceptionList;	
-	private IntegratedConfiguration ico;
+	private Comparer comp;
 
 	
 	/**
 	 * Class constructor
 	 * @param configuredExceptionList	List of Xpath strings used to ignore DIFFERENCES found in XML evaluation
 	 */
-	public CustomDifferenceEvaluator(List<String> configuredExceptionList, IntegratedConfiguration ico) {
+	public CustomDifferenceEvaluator(List<String> configuredExceptionList, Comparer comparer) {
 		this.exceptionList = configuredExceptionList;
-		this.ico = ico;
+		this.comp = comparer;
 	}
 	
 	
@@ -32,6 +32,9 @@ public class CustomDifferenceEvaluator implements DifferenceEvaluator {
 		// React only to differences found during evaluation
 		if (compResult.name().equals("DIFFERENT")) {
 			
+			String diffFound = comp.getControlDetails().getXPath();
+			logger.writeDebug(LOCATION, SIGNATURE, "--> Diff found!");
+			
 			// Should the difference be ignored?
 			for (String exceptionXpathString : exceptionList) {
 				
@@ -40,15 +43,14 @@ public class CustomDifferenceEvaluator implements DifferenceEvaluator {
 				 * /Astro_Envelope/PurchaseOrderSync/DataArea/PurchaseOrderLine/DeliveryDate/text()
 				 * This so we can ignore ALL occurrences in one exception entry
 				 */
-				String diffFound = comp.getControlDetails().getXPath();
 				String strippedXpath = diffFound.replaceAll("\\[(.+?)\\]", "");
-				ico.compareDiffsFound.add(diffFound);
 				
 				if (strippedXpath.equals(exceptionXpathString)) {
-					logger.writeDebug(LOCATION, SIGNATURE, "--> Diff found but is configured to be ignored using exception: " + exceptionXpathString);
-					ico.compareExceptionsIgnored.put(diffFound, exceptionXpathString);
-					// Change result from DIFFERENT to EQUAL as it is found in our exception list
-					compResult = ComparisonResult.EQUAL;
+					logger.writeDebug(LOCATION, SIGNATURE, "--> Diff is ignored using exception: " + exceptionXpathString);
+					this.comp.addDiffIgnored(diffFound, exceptionXpathString);
+					
+					// Change result from DIFFERENT to SIMILAR as it is found in our exception list
+					compResult = ComparisonResult.SIMILAR;
 				}
 			}			
 		}

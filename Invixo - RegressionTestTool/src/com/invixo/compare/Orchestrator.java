@@ -6,6 +6,7 @@ import java.util.List;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
+import com.invixo.compare.IntegratedConfiguration;
 import com.invixo.main.Main;
 
 public class Orchestrator {
@@ -25,7 +26,7 @@ public class Orchestrator {
 		// Start processing files for compare
 		icoList = processCompareLibs(SIGNATURE, sourceIcoFiles);
 		
-		logger.writeDebug(LOCATION, SIGNATURE, "Compare completed," + " results can be found here: " + FileStructure.DIR_REPORTS);
+		logger.writeDebug(LOCATION, SIGNATURE, "Compare completed");
 		
 		return icoList;
 	}
