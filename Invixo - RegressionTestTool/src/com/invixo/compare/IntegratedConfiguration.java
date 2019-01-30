@@ -235,7 +235,7 @@ public class IntegratedConfiguration {
 
 			// Handle situation where compare file is not found using mapping file
 			if (compareFileFound == null) {
-				compareFileFound = new File("File not found").toPath();
+				compareFileFound = new File("File not found for msgId - " + compareMsgId).toPath();
 			}
 			
 			// return compare file found

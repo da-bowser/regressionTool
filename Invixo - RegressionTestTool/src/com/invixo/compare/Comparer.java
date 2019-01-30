@@ -21,8 +21,8 @@ public class Comparer {
 	private Path sourceFile;
 	private Path compareFile;
 	
-	private int compareSuccessCount = 0;
-	private int compareSkippedCount = 0;
+	private int compareSuccessCount = 0; // Max 1, but it is easier to summarize in IntegratedConfiguration afterwards 
+	private int compareSkippedCount = 0; // Max 1, but it is easier to summarize in IntegratedConfiguration afterwards
 	
 	private Map<String, String> diffsIgnoredByConfiguration = new HashMap<String, String>();
 	private ArrayList<Difference> compareDifferences = new ArrayList<Difference>();
@@ -35,13 +35,53 @@ public class Comparer {
 		this.icoXPathExceptions = icoXPathExceptions;
 	}
 
+	
+	/**
+	 * Start Compare
+	 */
+	void start() {
+		String SIGNATURE = "start()";
+		
+		try {
+			// Prepare files for compare
+			String sourceFileString = Util.inputstreamToString(new FileInputStream(this.sourceFile.toFile()), GlobalParameters.ENCODING);
+			String compareFileString = Util.inputstreamToString(new FileInputStream(this.compareFile.toFile()), GlobalParameters.ENCODING);
+			
+			// Compare string representations of source and compare payloads
+			Diff diff = DiffBuilder
+					.compare(sourceFileString)
+					.withTest(compareFileString)
+					.withDifferenceEvaluator(new CustomDifferenceEvaluator(this.icoXPathExceptions, this))
+					.ignoreWhitespace()
+					.normalizeWhitespace()
+					.build();
+			
+			// Add differences found for later reporting
+			for (Difference d : diff.getDifferences()) {
+				this.compareDifferences.add(d);
+			}
+			
+			// Increment compare success for reporting purposes
+			this.compareSuccessCount++;
+			
+		} catch (Exception e) {
+			// Increment compare skipped for reporting purposes
+			this.compareSkippedCount++;
+			String msg = "Problem during compare\n" + e.getMessage();
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			
+			this.ce = new CompareException(msg);
+		}
+	}
+	
+	
+	/*====================================================================================
+	 *------------- Getters and Setters
+	 *====================================================================================*/
 	public CompareException getCompareException() {
 		return this.ce;
 	}
 	
-	public void addDiffComparison(Difference d) {
-		this.compareDifferences.add(d);
-	}
 	public ArrayList<Difference> getCompareDifferences() {
 		return this.compareDifferences;
 	}
@@ -68,40 +108,5 @@ public class Comparer {
 	
 	public Path getCompareFile() {
 		return this.compareFile;
-	}
-	
-	void start() {
-		String SIGNATURE = "start(Path, Path)";
-		
-		try {
-			// Prepare files for compare
-			String sourceFileString = Util.inputstreamToString(new FileInputStream(this.sourceFile.toFile()), GlobalParameters.ENCODING);
-			String compareFileString = Util.inputstreamToString(new FileInputStream(this.compareFile.toFile()), GlobalParameters.ENCODING);
-			
-			// Compare string representations of source and compare payloads
-			Diff diff = DiffBuilder
-					.compare(sourceFileString)
-					.withTest(compareFileString)
-					.withDifferenceEvaluator(new CustomDifferenceEvaluator(this.icoXPathExceptions, this))
-					.ignoreWhitespace()
-					.normalizeWhitespace()
-					.build();
-			
-			// Calculate result
-			for (Difference d : diff.getDifferences()) {
-				this.addDiffComparison(d);
-			}
-			
-			// Increment compare success for reporting purposes
-			this.compareSuccessCount++;
-			
-		} catch (Exception e) {
-			// Increment compare skipped for reporting purposes
-			this.compareSkippedCount++;
-			String msg = "Problem during compare\n" + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			
-			this.ce = new CompareException(msg);
-		}
 	}
 }
