@@ -61,33 +61,29 @@ public class IntegratedConfiguration {
 			messageIdMap = buildMessageIdMap(FileStructure.DIR_INJECT);
 			
 			// Build exception map to be used to exclude data elements in later compare
-			xpathExceptions = buildCompareExceptionMap(FileStructure.DIR_CONFIG + "\\compareExceptions.xml");
+			xpathExceptions = extractIcoCompareExceptionsFromFile(FileStructure.DIR_CONFIG + "\\compareExceptions.xml", this.name);
 			
 		} catch (Exception e) {
 			this.ce = new CompareException(e.getMessage());
 		}
 	}
-
 	
-	private ArrayList<String> buildCompareExceptionMap(String icoExceptionFilePath) throws CompareException {
-		String SIGNATURE = "buildCompareExceptionMap(String)";
-		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of exceptions using data from: " + icoExceptionFilePath);
-		
-		// Get all exceptions listed in files found 
-		ArrayList<String> compareExceptions = extractIcoCompareExceptionsFromFile(icoExceptionFilePath);
-		
-		
-		// Return exception map
-		return compareExceptions;
-	}
-
 	
-	private ArrayList<String> extractIcoCompareExceptionsFromFile(String icoExceptionFilePath) throws CompareException {
+	/**
+	 * Extract configured XPath compare exceptions (SIMILAR) from file matching ICO.
+	 * @param exceptionXPathConfigFilePath		Location of configuration file
+	 * @param icoName							Name of relevant ICO
+	 * @return									List of matching compare exceptions
+	 * @throws CompareException
+	 */
+	private ArrayList<String> extractIcoCompareExceptionsFromFile(String exceptionXPathConfigFilePath, String icoName) throws CompareException {
 		final String SIGNATURE = "extractIcoCompareExceptionsFromFile(String)";
+		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of exceptions using data from: " + exceptionXPathConfigFilePath);
+		
 		ArrayList<String> icoExceptions = new ArrayList<String>();
 		
 		try {
-			InputStream fileStream = new FileInputStream(icoExceptionFilePath);		
+			InputStream fileStream = new FileInputStream(exceptionXPathConfigFilePath);		
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(fileStream);
 			boolean correctIcoFound = false;
@@ -99,11 +95,11 @@ public class IntegratedConfiguration {
 			    	String currentStartElementName = event.asStartElement().getName().getLocalPart();
 			    	if ("name".equals(currentStartElementName)) {
 						if (this.name.equals(eventReader.peek().asCharacters().getData())) {
-							
 							// We are at the correct ICO element
 							correctIcoFound = true;
 						}
 					}
+			    	
 			    	if ("xpath".equals(currentStartElementName) && correctIcoFound && eventReader.peek().isCharacters()) {
 			    		String configuredExceptionXPath = eventReader.peek().asCharacters().getData();
 			    		
@@ -111,9 +107,9 @@ public class IntegratedConfiguration {
 				    		// Add exception data if we are at the right ICO and correct element
 				    		icoExceptions.add(configuredExceptionXPath);
 						}
-
 			    	}
 			    	break;
+			    	
 			    case XMLStreamConstants.END_ELEMENT:
 			    	String currentEndElementName = event.asEndElement().getName().getLocalPart();
 			    	if ("integratedConfiguration".equals(currentEndElementName)) {
@@ -134,7 +130,13 @@ public class IntegratedConfiguration {
 		}
 	}
 
-
+	
+	/**
+	 * Build list of matching source and target message id's created during "Inject".
+	 * @param mappingDir			Location of mapping file
+	 * @return						List of source and target message id's used when matching "LAST" files for compare
+	 * @throws CompareException
+	 */
 	private static Map<String, String> buildMessageIdMap(String mappingDir) throws CompareException {
 		String SIGNATURE = "buildMessageIdMap(String)";
 		
@@ -161,6 +163,9 @@ public class IntegratedConfiguration {
 	}
 
 	
+	/**
+	 * Start processing ICO.
+	 */
 	public void start() {
 		String SIGNATURE = "start()";
 		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.name + "\"\nExpected compare count: " + this.sourceFiles.size());
@@ -194,7 +199,14 @@ public class IntegratedConfiguration {
 	}
 	
 	
-	private static Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> map) {
+	/**
+	 * Match source message id to get a target message id - used to locate compare "LAST" file in target environment.
+	 * @param sourceFilePath		Location of source file
+	 * @param compareFiles			List of compare files
+	 * @param messageIdMap			Source <--> Target message id's	
+	 * @return
+	 */
+	private static Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> messageIdMap) {
 		String SIGNATURE = "getMatchingCompareFile(Path, List<Path>, Map<String, String>)";
 		
 		// Extract message id from filename 
@@ -203,7 +215,7 @@ public class IntegratedConfiguration {
 		logger.writeDebug(LOCATION, SIGNATURE, "Prepare: Getting matching compare file for sourceId: " + sourceMsgId);
 
 		// Get compare message id from map using source id
-		String compareMsgId = map.get(sourceMsgId);
+		String compareMsgId = messageIdMap.get(sourceMsgId);
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Prepare: match found, compare file msgId: " + compareMsgId);
 		
@@ -223,7 +235,7 @@ public class IntegratedConfiguration {
 
 			// Handle situation where compare file is not found using mapping file
 			if (compareFileFound == null) {
-				compareFileFound = new File("Compare file " + compareMsgId + ".payload could not be found").toPath();
+				compareFileFound = new File("File not found").toPath();
 			}
 			
 			// return compare file found
@@ -231,6 +243,9 @@ public class IntegratedConfiguration {
 	}
 	
 	
+	/*====================================================================================
+	 *------------- Getters and Setters
+	 *====================================================================================*/
 	public String getName() {
 		return name;
 	}
