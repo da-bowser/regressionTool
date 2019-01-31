@@ -1,6 +1,8 @@
 package com.invixo.consistency;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.FileSystems;
@@ -8,12 +10,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -26,6 +32,8 @@ import org.w3c.dom.Element;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
+import com.invixo.extraction.IntegratedConfiguration;
+import com.invixo.main.GlobalParameters;
 import com.invixo.main.Main;
 
 
@@ -61,7 +69,7 @@ public class FileStructure {
 	
 	// Critical config files
 	private static final String FILE_CONFIG_SYSTEM_MAPPING			= DIR_CONFIG + "systemMapping.txt";
-	private static final String FILE_CONFIG_COPMARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
+	public static final String FILE_CONFIG_COPMARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
 	
 	
 	/**
@@ -155,11 +163,70 @@ public class FileStructure {
 		// Always create the ICO exception file with current ICO request files when a new run i started / overwrite if exists
 		if (Main.PARAM_VAL_OPERATION.equals("extract")) {
 			logger.writeDebug(LOCATION, SIGNATURE, Main.PARAM_VAL_OPERATION + " scenario found, create a new " + FILE_CONFIG_SYSTEM_MAPPING + " to make sure all ICO's are represented for later compare run");
-			String initialIcoExceptionContent = generateInitialIcoExeptionContent();
-			Util.writeFileToFileSystem(FILE_CONFIG_COPMARE_EXEPTIONS, initialIcoExceptionContent.getBytes());
+			generateInitialIcoExeptionContent2();
+//			String initialIcoExceptionContent = generateInitialIcoExeptionContent();
+//			Util.writeFileToFileSystem(FILE_CONFIG_COPMARE_EXEPTIONS, initialIcoExceptionContent.getBytes());
 		}
 	}
 
+	private static void generateInitialIcoExeptionContent2() {
+		final String	XML_PREFIX = "inv";
+		final String	XML_NS = "urn:invixo.com.consistency";
+		
+		List<Path> icoFiles = Util.generateListOfPaths(DIR_EXTRACT_INPUT, "FILE");
+
+		try {
+			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
+			XMLStreamWriter xmlWriter = xMLOutputFactory.createXMLStreamWriter(new FileOutputStream(FILE_CONFIG_COPMARE_EXEPTIONS), GlobalParameters.ENCODING);
+
+			// Add xml version and encoding to output
+			xmlWriter.writeStartDocument(GlobalParameters.ENCODING, "1.0");
+
+			// Create element: Configuration
+			xmlWriter.writeStartElement(XML_PREFIX, "Configuration", XML_NS);
+			xmlWriter.writeNamespace(XML_PREFIX, XML_NS);
+			
+			// Loop ICO's found
+			for (Path path : icoFiles) {
+				// Get name of current ICO
+				String icoName = Util.getFileName(path.toAbsolutePath().toString(), false);
+				
+				// Create element: Configuration | IntegratedConfiguration
+				xmlWriter.writeStartElement(XML_PREFIX, "IntegratedConfiguration", XML_NS);
+				
+				// Create element: Configuration | IntegratedConfiguration | Name
+				xmlWriter.writeStartElement(XML_PREFIX, "Name", XML_NS);
+				xmlWriter.writeCharacters(icoName);
+				// Close element: Configuration | IntegratedConfiguration | Name
+				xmlWriter.writeEndElement();
+				
+				// Create element: Configuration | IntegratedConfiguration | Exceptions
+				xmlWriter.writeStartElement(XML_PREFIX, "Exceptions", XML_NS);
+				
+				// Create element: Configuration | IntegratedConfiguration | Exceptions | XPath
+				xmlWriter.writeStartElement(XML_PREFIX, "XPath", XML_NS);
+				// Close element: Configuration | IntegratedConfiguration | Exceptions | XPath
+				xmlWriter.writeEndElement();
+				
+				// Close element: Configuration | IntegratedConfiguration | Exceptions
+				xmlWriter.writeEndElement();
+				// Close element: Configuration | IntegratedConfiguration
+				xmlWriter.writeEndElement();
+				
+			}
+			
+			// Close element: IntegratedConfigurations
+			xmlWriter.writeEndElement();
+			
+
+			// Finalize writing
+			xmlWriter.flush();
+			xmlWriter.close();
+
+		} catch (XMLStreamException | FileNotFoundException e) {
+			throw new RuntimeException("Error generating compareExceptions.xml file! " + e);
+		}
+	}
 	
 	private static String generateInitialIcoExeptionContent() {
 		// Get ICO request files

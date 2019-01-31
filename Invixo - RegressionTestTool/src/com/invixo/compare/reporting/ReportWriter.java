@@ -258,12 +258,6 @@ public class ReportWriter {
 			// Create element: Difference
 			xmlWriter.writeStartElement(XML_PREFIX, "Difference", XML_NS);
 
-			// Create element: | DifferenceList | Difference | XPath
-			xmlWriter.writeStartElement(XML_PREFIX, "XPath", XML_NS);
-			xmlWriter.writeCharacters(d.getComparison().getTestDetails().getXPath());
-			// Close element: | Difference | XPath
-			xmlWriter.writeEndElement();
-
 			// Create element: | DifferenceList | Difference | Type
 			xmlWriter.writeStartElement(XML_PREFIX, "Type", XML_NS);
 			xmlWriter.writeCharacters(d.getResult().name());			
@@ -281,7 +275,13 @@ public class ReportWriter {
 			xmlWriter.writeCharacters(d.getComparison().getTestDetails().getValue().toString());			
 			// Close element: | DifferenceList | Difference | IgnoredByConfiguration
 			xmlWriter.writeEndElement();
-
+			
+			// Create element: | DifferenceList | Difference | XPath
+			xmlWriter.writeStartElement(XML_PREFIX, "XPath", XML_NS);
+			xmlWriter.writeCharacters(d.getComparison().getTestDetails().getXPath());
+			// Close element: | Difference | XPath
+			xmlWriter.writeEndElement();
+			
 			String ignoredXpath = comp.getDiffsIgnoredByConfiguration().get(d.getComparison().getControlDetails().getXPath().toString());
 			if (ignoredXpath != null) {
 				// Create element: | DifferenceList | Difference | IgnoreMatchFound

@@ -61,7 +61,7 @@ public class IntegratedConfiguration {
 			messageIdMap = buildMessageIdMap(FileStructure.DIR_INJECT);
 			
 			// Build exception map to be used to exclude data elements in later compare
-			xpathExceptions = extractIcoCompareExceptionsFromFile(FileStructure.DIR_CONFIG + "\\compareExceptions.xml", this.name);
+			xpathExceptions = extractIcoCompareExceptionsFromFile(FileStructure.FILE_CONFIG_COPMARE_EXEPTIONS, this.name);
 			
 		} catch (Exception e) {
 			this.ce = new CompareException(e.getMessage());
@@ -93,14 +93,14 @@ public class IntegratedConfiguration {
 			    switch(event.getEventType()) {
 			    case XMLStreamConstants.START_ELEMENT:
 			    	String currentStartElementName = event.asStartElement().getName().getLocalPart();
-			    	if ("name".equals(currentStartElementName)) {
-						if (this.name.equals(eventReader.peek().asCharacters().getData())) {
+			    	if ("Name".equals(currentStartElementName)) {
+						if (icoName.equals(eventReader.peek().asCharacters().getData())) {
 							// We are at the correct ICO element
 							correctIcoFound = true;
 						}
 					}
 			    	
-			    	if ("xpath".equals(currentStartElementName) && correctIcoFound && eventReader.peek().isCharacters()) {
+			    	if ("XPath".equals(currentStartElementName) && correctIcoFound && eventReader.peek().isCharacters()) {
 			    		String configuredExceptionXPath = eventReader.peek().asCharacters().getData();
 			    		
 			    		if (configuredExceptionXPath.length() > 0) {
@@ -112,7 +112,7 @@ public class IntegratedConfiguration {
 			    	
 			    case XMLStreamConstants.END_ELEMENT:
 			    	String currentEndElementName = event.asEndElement().getName().getLocalPart();
-			    	if ("integratedConfiguration".equals(currentEndElementName)) {
+			    	if ("IntegratedConfiguration".equals(currentEndElementName)) {
 			    		// We don't want to read any more ICO data
 			    		correctIcoFound = false;
 					}
