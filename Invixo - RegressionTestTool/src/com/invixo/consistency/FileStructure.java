@@ -4,35 +4,19 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.extraction.IntegratedConfiguration;
 import com.invixo.main.GlobalParameters;
 import com.invixo.main.Main;
 
@@ -163,13 +147,11 @@ public class FileStructure {
 		// Always create the ICO exception file with current ICO request files when a new run i started / overwrite if exists
 		if (Main.PARAM_VAL_OPERATION.equals("extract")) {
 			logger.writeDebug(LOCATION, SIGNATURE, Main.PARAM_VAL_OPERATION + " scenario found, create a new " + FILE_CONFIG_SYSTEM_MAPPING + " to make sure all ICO's are represented for later compare run");
-			generateInitialIcoExeptionContent2();
-//			String initialIcoExceptionContent = generateInitialIcoExeptionContent();
-//			Util.writeFileToFileSystem(FILE_CONFIG_COPMARE_EXEPTIONS, initialIcoExceptionContent.getBytes());
+			generateInitialIcoExeptionContent();
 		}
 	}
 
-	private static void generateInitialIcoExeptionContent2() {
+	private static void generateInitialIcoExeptionContent() {
 		final String	XML_PREFIX = "inv";
 		final String	XML_NS = "urn:invixo.com.consistency";
 		
@@ -228,61 +210,6 @@ public class FileStructure {
 		}
 	}
 	
-	private static String generateInitialIcoExeptionContent() {
-		// Get ICO request files
-		List<Path> icoFiles = Util.generateListOfPaths(DIR_EXTRACT_INPUT, "FILE");
-		StringWriter writer = new StringWriter();
-		try {
-			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-
-			// Root elements
-			Document doc = docBuilder.newDocument();
-			Element rootElement = doc.createElement("integratedConfigurations");
-			doc.appendChild(rootElement);
-
-			// Create an Integrated Configuration for each input file found
-			for (Path path : icoFiles) {
-				String icoName = Util.getFileName(path.toAbsolutePath().toString(), false);
-
-				// integratedConfigurations | integratedConfguration
-				Element icoElement = doc.createElement("integratedConfiguration");
-				rootElement.appendChild(icoElement);
-				
-				// integratedConfigurations | integratedConfguration | name
-				Element icoNameElement = doc.createElement("name");
-				icoNameElement.appendChild(doc.createTextNode(icoName));
-				icoElement.appendChild(icoNameElement);
-
-				// integratedConfigurations | integratedConfguration | xpathExceptions
-				Element icoXPathExceptionsElement = doc.createElement("xpathExceptions");
-				icoElement.appendChild(icoXPathExceptionsElement);
-
-				// integratedConfigurations | integratedConfguration | xpathExceptions | xpath
-				Element icoXPathElement = doc.createElement("xpath");
-				icoXPathExceptionsElement.appendChild(icoXPathElement);
-
-			}
-
-			// Transform content into xml
-			TransformerFactory transformerFactory = TransformerFactory.newInstance();
-			Transformer transformer = transformerFactory.newTransformer();
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			DOMSource source = new DOMSource(doc);
-			
-			writer = new StringWriter();
-			StreamResult result = new StreamResult(writer);
-			transformer.transform(source, result);
-		} catch (ParserConfigurationException pce) {
-			throw new RuntimeException("*generateInitialIcoExeptionContent* DocumentBuilder parse error. " + pce);
-		} catch (TransformerException tfe) {
-			throw new RuntimeException("*generateInitialIcoExeptionContent* TransformerFactory error." + tfe);
-		}
-
-		// Return writer result
-		return writer.toString();
-	}
-
 
 	public static void deletePayloadFiles(String rootDirectory, String environment) {
 		// Create pathMatcher which will match all files and directories (in the world of this tool, only files) that
