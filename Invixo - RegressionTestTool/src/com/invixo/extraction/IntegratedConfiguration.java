@@ -1,9 +1,8 @@
 package com.invixo.extraction;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -172,12 +171,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		final String SIGNATURE = "updateMessageIdMappingFile(HashMap<String, String>)";
 		String messageId;
 		String parentId;
+		File file = new File(MAP_FILE_MESSAGE_IDS);
 		
 		// Update Message Mapping file
-		if (updatedMessageIds.size() > 0) {
-			Path path = Paths.get(MAP_FILE_MESSAGE_IDS);
-
-			String content = new String(Util.readFile(path.toString()));
+		if (updatedMessageIds.size() > 0 && file.exists()) {
+			String content = new String(Util.readFile(MAP_FILE_MESSAGE_IDS));
 			for (HashMap.Entry<String, String> entry : updatedMessageIds.entrySet()) {
 				parentId = entry.getKey();
 				messageId = entry.getValue();
@@ -186,8 +184,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				content = content.replace(entry.getKey(), entry.getValue());
 			}
 
-			logger.writeDebug(LOCATION, SIGNATURE, "Changed file will be written to: " + path.toString());
-			Util.writeFileToFileSystem(path.toString(), content.getBytes());
+			logger.writeDebug(LOCATION, SIGNATURE, "Changed file will be written to: " + MAP_FILE_MESSAGE_IDS);
+			Util.writeFileToFileSystem(MAP_FILE_MESSAGE_IDS, content.getBytes());
 		}
 	}
 
