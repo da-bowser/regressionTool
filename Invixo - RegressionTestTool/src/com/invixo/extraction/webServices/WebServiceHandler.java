@@ -28,7 +28,7 @@ public abstract class WebServiceHandler {
 	private static final int TIMEOUT = Integer.parseInt(PropertyAccessor.getProperty("TIMEOUT"));
 
 	
-	public static InputStream callWebService(byte[] requestBytes) throws ExtractorException {
+	public static ByteArrayInputStream callWebService(byte[] requestBytes) throws ExtractorException {
 		String SIGNATURE = "callWebService(byte[])";
 		HttpURLConnection conn = null;
 		InputStream response = null;
