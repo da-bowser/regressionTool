@@ -156,7 +156,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 */
 	private void correctMessageMappingFile(InputStream responseBytes) throws ExtractorException {
     	// Check: skip processing as message split is not relevant
-        if (!qualityOfService.equals("BE")) {
+        if (qualityOfService.equals("BE")) {
         	return;
         }
         
