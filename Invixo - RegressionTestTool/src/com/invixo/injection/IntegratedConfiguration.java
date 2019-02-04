@@ -30,7 +30,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	private static final String LOCATION 				= IntegratedConfiguration.class.getName();	
 	private static final boolean LOG_MULTIPART_MSG 		= Boolean.parseBoolean(PropertyAccessor.getProperty("LOG_MULTIPART_MSG"));
 	private static final String LOG_MULTIPART_MSG_PATH 	= PropertyAccessor.getProperty("LOG_MULTIPART_MSG_PATH");
-	private static final String MAP_FILE				= FileStructure.DIR_INJECT + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV +"_msgId_map" + ".txt";
 	public static BufferedWriter mapWriter				= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID	
 	
 	
@@ -127,11 +126,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String SIGNATURE = "initMappingTableWriter()";
 		try {
 			if (mapWriter == null) {
-				mapWriter = Files.newBufferedWriter(Paths.get(MAP_FILE), Charset.forName(GlobalParameters.ENCODING));
-				logger.writeDebug(LOCATION, SIGNATURE, "SAP message Id mapping file initialized: " + MAP_FILE);
+				mapWriter = Files.newBufferedWriter(Paths.get(MAP_FILE_MESSAGE_IDS), Charset.forName(GlobalParameters.ENCODING));
+				logger.writeDebug(LOCATION, SIGNATURE, "SAP message Id mapping file initialized: " + MAP_FILE_MESSAGE_IDS);
 			}
 		} catch (IOException e) {
-			String msg = "Error initializing SAP MessageId mapping file "+ MAP_FILE + ".\n" + e.getMessage();
+			String msg = "Error initializing SAP MessageId mapping file "+ MAP_FILE_MESSAGE_IDS + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new InjectionException(msg);
 		}
