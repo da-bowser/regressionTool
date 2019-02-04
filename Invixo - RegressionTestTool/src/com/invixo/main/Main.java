@@ -120,9 +120,6 @@ public class Main {
 				// Process
 				inject(); 
 			} else {
-				// Validate operation specific parameters
-				validateCompareParameters();
-				
 				// Process				
 				compare();
 			}
@@ -143,6 +140,12 @@ public class Main {
 
 	private static void validateGeneralParameters() throws ValidationException {
 		StringWriter sw = new StringWriter();
+		
+		if (PARAM_VAL_SOURCE_ENV == null) {
+			sw.write("Obligatory program parameter " + PARAM_KEY_SOURCE_ENV + " not set.\n");
+		} else if (!environmentContains(PARAM_VAL_SOURCE_ENV)) {
+			sw.write("Program parameter " + PARAM_KEY_SOURCE_ENV + " contains unsupported value. Value provided is: '" + PARAM_VAL_SOURCE_ENV + "'");			
+		}	
 		
 		if (PARAM_VAL_ICO_REQUEST_FILES_ENV == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_ICO_REQUEST_FILES_ENV + " not set.\n");
@@ -216,12 +219,6 @@ public class Main {
 			sw.write("Program parameter " + PARAM_KEY_TARGET_ENV + " points to PRD. This is not supported\n");
 		}	
 		
-		if (PARAM_VAL_SOURCE_ENV == null) {
-			sw.write("Obligatory program parameter " + PARAM_KEY_SOURCE_ENV + " not set.\n");
-		} else if (!environmentContains(PARAM_VAL_SOURCE_ENV)) {
-			sw.write("Program parameter " + PARAM_KEY_SOURCE_ENV + " contains unsupported value. Value provided is: '" + PARAM_VAL_SOURCE_ENV + "'");			
-		}		
-		
 		if (PARAM_VAL_XI_SENDER_ADAPTER == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_XI_SENDER_ADAPTER + " not set.\n");
 		} 
@@ -229,21 +226,6 @@ public class Main {
 		if (PARAM_VAL_SENDER_COMPONENT == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_SENDER_COMPONENT + " not set.\n");
 		} 
-		
-		if (!sw.toString().equals("")) {
-			throw new ValidationException(sw.toString());
-		}
-	}
-
-
-	private static void validateCompareParameters() throws ValidationException  {
-		StringWriter sw = new StringWriter();
-		
-		if (PARAM_VAL_SOURCE_ENV == null) {
-			sw.write("Obligatory program parameter " + PARAM_KEY_SOURCE_ENV + " not set.\n");
-		} else if (!environmentContains(PARAM_VAL_SOURCE_ENV)) {
-			sw.write("Program parameter " + PARAM_KEY_SOURCE_ENV + " contains unsupported value. Value provided is: '" + PARAM_VAL_SOURCE_ENV + "'");			
-		}	
 		
 		if (!sw.toString().equals("")) {
 			throw new ValidationException(sw.toString());
