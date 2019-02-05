@@ -173,7 +173,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			WebServiceHandler.callWebService(webServiceRequest);
 			
 			// Write entry to mapping file
-			addMappingEntryToFile(Util.getFileName(payloadFile, false), ir.getMessageId());
+			addMappingEntryToFile(Util.getFileName(payloadFile, false), ir.getMessageId(), this.getName());
 		} catch (IOException e) {
 			String msg = "Error injecting new request to SAP PO for ICO file " + super.fileName + " and payload file " + payloadFile + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -185,17 +185,18 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	
 	
 	/**
-	 * Write new SAP Message ID (source --> target) mapping to mapping file 
+	 * Write new SAP Message ID (source --> target -->) mapping to mapping file 
 	 * @param sourceMsgId
 	 * @param targetMsgId
+	 * @param icoName
 	 * @throws IOException
 	 */
-	private void addMappingEntryToFile(String sourceMsgId, String targetMsgId) throws IOException {
-		final String SIGNATURE = "addMappingEntryToFile(String, String)";
+	private void addMappingEntryToFile(String sourceMsgId, String targetMsgId, String icoName) throws IOException {
+		final String SIGNATURE = "addMappingEntryToFile(String, String, String)";
 		final String separator = "|";
 		
 		// Create mapping line
-		String mapEntry = sourceMsgId + separator + targetMsgId + "\n";
+		String mapEntry = sourceMsgId + separator + targetMsgId + separator + icoName + "\n";
 		
 		// Write line to map
 		mapWriter.write(mapEntry);
