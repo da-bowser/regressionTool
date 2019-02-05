@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -225,6 +226,38 @@ public class Util {
 																		v -> v.toString().split(fileDelimiter)[valueIndex]));
 		
 		return mapFromFile;
+	}
+	
+	
+	/**
+	 * This is a working edition of createMapFromPath!
+	 * @param path
+	 * @param fileDelimiter
+	 * @param filterString
+	 * @param keyIndex
+	 * @param valueIndex
+	 * @return
+	 * @throws IOException
+	 */
+	public static Map<String, String> getRelevantMessageIds(String path, String fileDelimiter, String filterString, int keyIndex, int valueIndex) throws IOException {
+		Map<String, String> map = new HashMap<String, String>();
+		
+		// Read file
+		Path mapFilePath = new File(path).toPath();
+		List<String> lines = Files.readAllLines(mapFilePath);
+		
+		// Filter/remove all lines not containing string
+		lines.removeIf(line -> !line.contains(filterString));
+		
+		// Create map
+		for (String line : lines) {
+			String key 		= line.split(fileDelimiter)[keyIndex];
+			String value 	= line.split(fileDelimiter)[valueIndex];
+			map.put(key, value);
+		}
+		
+		// Return map
+		return map;
 	}
 
 }
