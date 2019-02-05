@@ -102,7 +102,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Check: execution can take place in 2 modes: 
 			// 1) init (first time extracting data from PROD)
 			// 2) non-init (reference time for extracting data - not from PROD)
-			if (Main.PARAM_VAL_EXTRACT_MODE_INIT) {
+			if (Boolean.parseBoolean(Main.PARAM_VAL_EXTRACT_MODE_INIT)) {
 				extractModeInit();
 			} else {
 				extractModeNonInit();
@@ -313,7 +313,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			this.messageKeys.add(msgKey);
 			
 			// Fetch payload: FIRST
-			if (Main.PARAM_VAL_EXTRACT_MODE_INIT && EXTRACT_FIRST_PAYLOAD) {
+			if (Boolean.parseBoolean(Main.PARAM_VAL_EXTRACT_MODE_INIT) && EXTRACT_FIRST_PAYLOAD) {
 				msgKey.processMessageKey(key, true);
 			}
 			
@@ -541,7 +541,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "messageIds", XML_NS_URN_NS);
 
 			// Add message id's to XML
-	        Map<String, String> mapFromFile = Util.createMapFromPath(IntegratedConfigurationMain.MAP_FILE_MESSAGE_IDS, "\\|", 0, 1);
+	        Map<String, String> mapFromFile = Util.createMapFromPath(IntegratedConfigurationMain.MAP_FILE_MESSAGE_IDS, "\\|", 1, 2);
 	        for (Map.Entry<String, String> entry : mapFromFile.entrySet()) {
 				String injectMessageId = entry.getValue();
 				

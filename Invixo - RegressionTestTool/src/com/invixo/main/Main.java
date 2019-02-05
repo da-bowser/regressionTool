@@ -82,7 +82,7 @@ public class Main {
 	
 	// Parameter: Extract mode (init or non-init)
 	private static final String PARAM_KEY_EXTRACT_MODE_INIT		= "extractModeInit";
-	public static boolean PARAM_VAL_EXTRACT_MODE_INIT 			= false;
+	public static String PARAM_VAL_EXTRACT_MODE_INIT 			= null;
 	
 	
 	public static void main(String[] args) {
@@ -181,6 +181,26 @@ public class Main {
 
 	private static void validateExtractParameters() throws ValidationException {
 		StringWriter sw = new StringWriter();
+
+		// Extract and inject shares some common parameters
+		try {
+			validateCommonExtractAndInjectParameters();
+		} catch (ValidationException e) {
+			sw.write(e.getMessage());
+		}
+		
+		if (PARAM_VAL_EXTRACT_MODE_INIT == null) {
+			sw.write("Obligatory program parameter " + PARAM_KEY_EXTRACT_MODE_INIT + " not set.\n");
+		} 
+		
+		if (!sw.toString().equals("")) {
+			throw new ValidationException(sw.toString());
+		}
+	}
+
+	
+	private static void validateCommonExtractAndInjectParameters() throws ValidationException {
+		StringWriter sw = new StringWriter();
 		
 		if (PARAM_VAL_ICO_REQUEST_FILES_ENV == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_ICO_REQUEST_FILES_ENV + " not set.\n");
@@ -202,22 +222,18 @@ public class Main {
 			sw.write("Obligatory program parameter " + PARAM_KEY_HTTP_PORT + " not set.\n");
 		} 
 		
-		if (PARAM_KEY_EXTRACT_MODE_INIT == null) {
-			sw.write("Obligatory program parameter " + PARAM_KEY_EXTRACT_MODE_INIT + " not set.\n");
-		} 
-		
 		if (!sw.toString().equals("")) {
 			throw new ValidationException(sw.toString());
 		}
 	}
-
+	
 
 	private static void validateInjectParameters() throws ValidationException  {
 		StringWriter sw = new StringWriter();
 		
-		// Inject uses the same parameters as Extract + some additions
+		// Extract and inject shares some common parameters
 		try {
-			validateExtractParameters();
+			validateCommonExtractAndInjectParameters();
 		} catch (ValidationException e) {
 			sw.write(e.getMessage());
 		}
@@ -273,7 +289,7 @@ public class Main {
 			} else if(param.contains(PARAM_KEY_TO_TIME)) {
 				PARAM_VAL_TO_TIME = param.replace(PARAM_KEY_TO_TIME + "=", "");
 			} else if(param.contains(PARAM_KEY_EXTRACT_MODE_INIT)) {
-				PARAM_VAL_EXTRACT_MODE_INIT = Boolean.parseBoolean(param.replace(PARAM_KEY_EXTRACT_MODE_INIT + "=", ""));
+				PARAM_VAL_EXTRACT_MODE_INIT = param.replace(PARAM_KEY_EXTRACT_MODE_INIT + "=", "");
 			}
 		}
 	}

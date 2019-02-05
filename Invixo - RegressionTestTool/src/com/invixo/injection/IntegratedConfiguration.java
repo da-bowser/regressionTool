@@ -14,7 +14,6 @@ import org.apache.http.client.methods.HttpPost;
 import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.injection.webServices.WebServiceHandler;
@@ -28,8 +27,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 *====================================================================================*/
 	private static Logger logger 						= Logger.getInstance();
 	private static final String LOCATION 				= IntegratedConfiguration.class.getName();	
-	private static final boolean LOG_MULTIPART_MSG 		= Boolean.parseBoolean(PropertyAccessor.getProperty("LOG_MULTIPART_MSG"));
-	private static final String LOG_MULTIPART_MSG_PATH 	= PropertyAccessor.getProperty("LOG_MULTIPART_MSG_PATH");
 	public static BufferedWriter mapWriter				= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID	
 	
 	
@@ -162,9 +159,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			HttpPost webServiceRequest = WebServiceHandler.buildHttpPostRequest(soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
 			
 			// Store request on file system (only relevant for debugging purposes)
-			if (LOG_MULTIPART_MSG) {
-				FileStructure.createDirIfNotExists(LOG_MULTIPART_MSG_PATH);
-				ir.setInjectionRequestFile(getTargetFileName(LOG_MULTIPART_MSG_PATH, this.getName(), ir.getMessageId()));
+			if (GlobalParameters.DEBUG) {
+				ir.setInjectionRequestFile(getTargetFileName(FileStructure.DIR_DEBUG, this.getName(), ir.getMessageId()));
 				webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
 				logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
 			}
@@ -196,7 +192,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String separator = "|";
 		
 		// Create mapping line
-		String mapEntry = sourceMsgId + separator + targetMsgId + separator + icoName + "\n";
+		String mapEntry = System.nanoTime() + separator + sourceMsgId + separator + targetMsgId + separator + icoName + "\n";
 		
 		// Write line to map
 		mapWriter.write(mapEntry);
@@ -206,7 +202,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	
 	
 	private static String getTargetFileName(String path, String icoName, String messageId) {
-		String targetFile = path + icoName + " -- " +  messageId + ".xiMultiPartReqMsg";
+		String targetFile = path + "xiMultiPartReqMsg_" + icoName + " -- " +  messageId + ".txt";
 		return targetFile;
 	}
 	
