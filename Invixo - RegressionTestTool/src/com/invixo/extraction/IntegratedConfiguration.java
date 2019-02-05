@@ -534,8 +534,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "messageIds", XML_NS_URN_NS);
 
 			// Add message id's to XML
-	        Map<String, String> mapFromFile = Util.createMapFromPath(IntegratedConfigurationMain.MAP_FILE_MESSAGE_IDS, GlobalParameters.FILE_DELIMITER, 1, 2);
-	        for (Map.Entry<String, String> entry : mapFromFile.entrySet()) {
+	        Map<String, String> messageIdMap = Util.createMapFromPath(IntegratedConfigurationMain.MAP_FILE_MESSAGE_IDS, GlobalParameters.FILE_DELIMITER, ico.getName(), 1, 2);
+	        logger.writeDebug(LOCATION, SIGNATURE, "Number of entries matching ICO fetched from Message Id Mapping file: " + messageIdMap.size());
+	        for (Map.Entry<String, String> entry : messageIdMap.entrySet()) {
 				String injectMessageId = entry.getValue();
 				
 				// Create element: Envelope | Body | getMessagesWithSuccessors | messageIds | String

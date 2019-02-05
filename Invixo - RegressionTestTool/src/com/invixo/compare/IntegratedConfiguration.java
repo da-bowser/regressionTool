@@ -147,8 +147,8 @@ public class IntegratedConfiguration {
 			// Build path to mapping file generated during inject
 			String mappingFilePath = mappingDir + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
 			
-			// Create map splitting on delimiter | from map file
-	        Map<String, String> mapFromFile = Util.createMapFromPath("", mappingFilePath, GlobalParameters.FILE_DELIMITER, 1, 2);
+			// Create map splitting on delimiter from map file
+	        Map<String, String> mapFromFile = Util.createMapFromPath(mappingFilePath, GlobalParameters.FILE_DELIMITER, 1, 2);
 			
 	        // Return map
 	        return mapFromFile;
