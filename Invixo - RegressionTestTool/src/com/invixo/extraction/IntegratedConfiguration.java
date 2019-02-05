@@ -534,7 +534,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "messageIds", XML_NS_URN_NS);
 
 			// Add message id's to XML
-	        Map<String, String> mapFromFile = Util.createMapFromPath(IntegratedConfigurationMain.MAP_FILE_MESSAGE_IDS, "\\|", 1, 2);
+	        Map<String, String> mapFromFile = Util.createMapFromPath(IntegratedConfigurationMain.MAP_FILE_MESSAGE_IDS, GlobalParameters.FILE_DELIMITER, 1, 2);
 	        for (Map.Entry<String, String> entry : mapFromFile.entrySet()) {
 				String injectMessageId = entry.getValue();
 				
@@ -544,12 +544,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		        xmlWriter.writeEndElement();
 	        }			
 	        
-	        xmlWriter.writeEndElement(); // Envelope | Body | getMessagesWithSuccessors | messageIds
+	        // Close element: Envelope | Body | getMessagesWithSuccessors | messageIds
+	        xmlWriter.writeEndElement();
 	        
 			// Create element: Envelope | Body | getMessagesWithSuccessors | archive
 			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "archive", XML_NS_URN_NS);
 			xmlWriter.writeCharacters("false");
-			xmlWriter.writeEndElement(); // Envelope | Body | getMessagesWithSuccessors | archive
+			xmlWriter.writeEndElement();
 			
 			// Close tags
 	        xmlWriter.writeEndElement(); // Envelope | Body | getMessagesWithSuccessors

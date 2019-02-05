@@ -153,10 +153,10 @@ public class FileStructure {
 		}
 	}
 
+	
 	private static void generateInitialIcoExeptionContent() {
 		final String	XML_PREFIX = "inv";
 		final String	XML_NS = "urn:invixo.com.consistency";
-		
 		List<Path> icoFiles = Util.generateListOfPaths(DIR_EXTRACT_INPUT, "FILE");
 
 		try {
@@ -194,6 +194,7 @@ public class FileStructure {
 				
 				// Close element: Configuration | IntegratedConfiguration | Exceptions
 				xmlWriter.writeEndElement();
+				
 				// Close element: Configuration | IntegratedConfiguration
 				xmlWriter.writeEndElement();
 				
@@ -202,7 +203,6 @@ public class FileStructure {
 			// Close element: IntegratedConfigurations
 			xmlWriter.writeEndElement();
 			
-
 			// Finalize writing
 			xmlWriter.flush();
 			xmlWriter.close();

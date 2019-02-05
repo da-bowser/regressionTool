@@ -144,7 +144,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 * @throws InjectionPayloadException
 	 */
 	private void injectMessage(String payloadFile, InjectionRequest ir) throws InjectionPayloadException {
-		final String SIGNATURE = "injectMessage(String)";
+		final String SIGNATURE = "injectMessage(String, InjectionRequest)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "---- Payload processing BEGIN: " + payloadFile);
 			ir.setSourcePayloadFile(payloadFile);
@@ -189,7 +189,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 */
 	private void addMappingEntryToFile(String sourceMsgId, String targetMsgId, String icoName) throws IOException {
 		final String SIGNATURE = "addMappingEntryToFile(String, String, String)";
-		final String separator = "|";
+		final String separator = GlobalParameters.FILE_DELIMITER;
 		
 		// Create mapping line
 		String mapEntry = System.nanoTime() + separator + sourceMsgId + separator + targetMsgId + separator + icoName + "\n";

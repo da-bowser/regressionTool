@@ -17,6 +17,7 @@ import javax.xml.stream.events.XMLEvent;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
+import com.invixo.main.GlobalParameters;
 import com.invixo.main.Main;
 
 
@@ -147,7 +148,7 @@ public class IntegratedConfiguration {
 			String mappingFilePath = mappingDir + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
 			
 			// Create map splitting on delimiter | from map file
-	        Map<String, String> mapFromFile = Util.createMapFromPath(mappingFilePath, "\\|", 1, 2);
+	        Map<String, String> mapFromFile = Util.createMapFromPath("", mappingFilePath, GlobalParameters.FILE_DELIMITER, 1, 2);
 			
 	        // Return map
 	        return mapFromFile;
