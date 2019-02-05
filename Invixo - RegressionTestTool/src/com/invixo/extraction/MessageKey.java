@@ -63,6 +63,19 @@ public class MessageKey {
 	private Exception ex = null;					// Error details
 	
 	
+	/*====================================================================================
+	 *------------- Constructors
+	 *====================================================================================*/
+	public MessageKey(IntegratedConfiguration ico, String messageKey) {
+		this.ico 				= ico;
+		this.sapMessageKey 		= messageKey;
+		this.sapMessageId 		= extractMessageIdFromKey(messageKey);
+		this.targetPathFirst 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+		this.targetPathLast 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+		this.fileName 			= this.sapMessageId + ".payload";
+	}
+	
+	
 	
 	/*====================================================================================
 	 *------------- Class methods
@@ -87,20 +100,6 @@ public class MessageKey {
 		} catch (Exception e) {
 			System.err.println(e);
 		}
-	}
-	
-	
-	
-	/*====================================================================================
-	 *------------- Constructors
-	 *====================================================================================*/
-	public MessageKey(IntegratedConfiguration ico, String messageKey) {
-		this.ico 				= ico;
-		this.sapMessageKey 		= messageKey;
-		this.sapMessageId 		= extractMessageIdFromKey(messageKey);
-		this.targetPathFirst 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
-		this.targetPathLast 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
-		this.fileName 			= this.sapMessageId + ".payload";
 	}
 	
 	
@@ -430,5 +429,3 @@ public class MessageKey {
 	}
 
 }
-
-

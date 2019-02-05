@@ -36,11 +36,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = IntegratedConfiguration.class.getName();	
 
-	// Indicators: should payloads (FIRST and/or LAST) be extracted or not
-	public static final boolean EXTRACT_FIRST_PAYLOAD = Boolean.parseBoolean(PropertyAccessor.getProperty("EXTRACT_FIRST_PAYLOAD"));
-	public static final boolean EXTRACT_LAST_PAYLOAD = Boolean.parseBoolean(PropertyAccessor.getProperty("EXTRACT_LAST_PAYLOAD"));
 
-	
 	
 	/*====================================================================================
 	 *------------- Instance variables
@@ -313,14 +309,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			this.messageKeys.add(msgKey);
 			
 			// Fetch payload: FIRST
-			if (Boolean.parseBoolean(Main.PARAM_VAL_EXTRACT_MODE_INIT) && EXTRACT_FIRST_PAYLOAD) {
+			if (Boolean.parseBoolean(Main.PARAM_VAL_EXTRACT_MODE_INIT)) {
 				msgKey.processMessageKey(key, true);
 			}
 			
 			// Fetch payload: LAST
-			if (EXTRACT_LAST_PAYLOAD) {
-				msgKey.processMessageKey(key, false);
-			}			
+			msgKey.processMessageKey(key, false);			
 		} catch (ExtractorException e) {
 			if (msgKey != null) {
 				msgKey.setEx(e);
