@@ -50,6 +50,7 @@ public class FileStructure {
 	public static final String DIR_LOGS								= FILE_BASE_LOCATION + "\\Logs\\";
 	public static final String DIR_REPORTS							= FILE_BASE_LOCATION + "\\Reports\\";
 	public static final String DIR_CONFIG							= FILE_BASE_LOCATION + "\\Config\\";
+	public static final String DIR_DEBUG							= FILE_BASE_LOCATION + "\\Debug\\";
 	
 	// Critical config files
 	private static final String FILE_CONFIG_SYSTEM_MAPPING			= DIR_CONFIG + "systemMapping.txt";
@@ -109,6 +110,7 @@ public class FileStructure {
 		createDirIfNotExists(DIR_LOGS);
 		createDirIfNotExists(DIR_REPORTS);
 		createDirIfNotExists(DIR_CONFIG);
+		createDirIfNotExists(DIR_DEBUG);
 		
 		// Generate dynamic output folders based on ICO request files
 		List<Path> icoFiles = Util.generateListOfPaths(DIR_EXTRACT_INPUT, "FILE");

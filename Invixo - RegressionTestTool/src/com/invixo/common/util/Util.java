@@ -196,9 +196,13 @@ public class Util {
 	 * @return					Map<String, String>
 	 * @throws IOException
 	 */
-	public static Map<String, String> createMapFromPath(Path filePath, String fileDelimiter, int keyIndex, int valueIndex) throws IOException {
+	public static Map<String, String> createMapFromPath(String path, String fileDelimiter, int keyIndex, int valueIndex) throws IOException {
+		// Read file to Path
+		Path mapFilePath = new File(path).toPath();
+				
+		// Collect lines into map	
 		Map<String, String> mapFromFile = 	Files
-											.lines(filePath)
+											.lines(mapFilePath)
 											.collect(Collectors.toMap(k -> k.split(fileDelimiter)[keyIndex], v -> v.split(fileDelimiter)[valueIndex]));
 		
 		return mapFromFile;

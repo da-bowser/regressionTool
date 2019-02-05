@@ -146,17 +146,14 @@ public class IntegratedConfiguration {
 			// Build path to mapping file generated during inject
 			String mappingFilePath = mappingDir + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
 			
-			// Read file to Path
-			Path mapFilePath = new File(mappingFilePath).toPath();	
-			
 			// Create map splitting on delimiter | from map file
-	        Map<String, String> mapFromFile = Util.createMapFromPath(mapFilePath, "\\|", 0, 1);
+	        Map<String, String> mapFromFile = Util.createMapFromPath(mappingFilePath, "\\|", 0, 1);
 			
 	        // Return map
 	        return mapFromFile;
 	        
 		} catch (IOException e) {
-			String msg = "Error reading msgId map from: " + mappingDir + "\n" + e.getMessage();
+			String msg = "Error creating msgId map from file: " + mappingDir + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new CompareException(msg);
 		}

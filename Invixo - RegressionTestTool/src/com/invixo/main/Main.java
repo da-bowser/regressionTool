@@ -80,6 +80,10 @@ public class Main {
 	private static final String PARAM_KEY_TO_TIME				= "toTime";
 	public static String PARAM_VAL_TO_TIME 						= null;
 	
+	// Parameter: Extract mode (init or non-init)
+	private static final String PARAM_KEY_EXTRACT_MODE_INIT		= "extractModeInit";
+	public static boolean PARAM_VAL_EXTRACT_MODE_INIT 			= false;
+	
 	
 	public static void main(String[] args) {
 		final String SIGNATURE = "main(String[])";
@@ -198,6 +202,10 @@ public class Main {
 			sw.write("Obligatory program parameter " + PARAM_KEY_HTTP_PORT + " not set.\n");
 		} 
 		
+		if (PARAM_KEY_EXTRACT_MODE_INIT == null) {
+			sw.write("Obligatory program parameter " + PARAM_KEY_EXTRACT_MODE_INIT + " not set.\n");
+		} 
+		
 		if (!sw.toString().equals("")) {
 			throw new ValidationException(sw.toString());
 		}
@@ -264,7 +272,9 @@ public class Main {
 				PARAM_VAL_FROM_TIME = param.replace(PARAM_KEY_FROM_TIME + "=", "");
 			} else if(param.contains(PARAM_KEY_TO_TIME)) {
 				PARAM_VAL_TO_TIME = param.replace(PARAM_KEY_TO_TIME + "=", "");
-			}	
+			} else if(param.contains(PARAM_KEY_EXTRACT_MODE_INIT)) {
+				PARAM_VAL_EXTRACT_MODE_INIT = Boolean.parseBoolean(param.replace(PARAM_KEY_EXTRACT_MODE_INIT + "=", ""));
+			}
 		}
 	}
 

@@ -7,6 +7,7 @@ import com.invixo.common.GeneralException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
+import com.invixo.main.Main;
 
 /**
  * This program uses SAP PO Message API.
@@ -36,6 +37,7 @@ public class Orchestrator {
 		// Get list of all request files to be processed
 		File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_EXTRACT_INPUT);
 		logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files to be processed: " + files.length);
+		logger.writeDebug(LOCATION, SIGNATURE, "Extract Mode Initial: " + Main.PARAM_VAL_EXTRACT_MODE_INIT);
 			
 		// Process each ICO request file
 		for (File file : files) {
