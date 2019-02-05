@@ -21,7 +21,6 @@ import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
@@ -38,11 +37,7 @@ public class MessageKey {
 	public static final String PAYLOAD_FOUND = "Found";
 	public static final String PAYLOAD_NOT_FOUND = "Not found";
 	
-	// Debugging
-	private static final boolean LOG_GETMSG_BYTES_RESP = Boolean.parseBoolean(PropertyAccessor.getProperty("LOG_GETMSG_BYTES_RESP"));
-	private static final String LOG_GETMSG_BYTES_RESP_PATH = PropertyAccessor.getProperty("LOG_GETMSG_BYTES_RESP_PATH");
-	
-	
+
 	
 	/*====================================================================================
 	 *------------- Instance variables
@@ -214,9 +209,8 @@ public class MessageKey {
 		final String SIGNATURE = "storePayload(byte[], Boolean, String)";
 		try {
 			// Write GetMessageBytesJavaLangStringIntBoolean response to file system if debug for this is enabled (property)
-			if (LOG_GETMSG_BYTES_RESP) {
-				FileStructure.createDirIfNotExists(LOG_GETMSG_BYTES_RESP_PATH);
-				String file = LOG_GETMSG_BYTES_RESP_PATH + "MsgBytesResp_" + this.sapMessageId + "_" + System.currentTimeMillis() + ".xml";
+			if (GlobalParameters.DEBUG) {
+				String file = FileStructure.DIR_DEBUG + "GetMessageBytesJavaLangStringIntBooleanResp_" + this.sapMessageId + "_" + System.currentTimeMillis() + ".xml";
 				Util.writeFileToFileSystem(file, content);
 				logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessageBytesJavaLangStringIntBoolean response message is stored here: " + file);
 			}
