@@ -13,6 +13,7 @@ import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.IntegratedConfiguration;
 import com.invixo.extraction.MessageKey;
 import com.invixo.main.GlobalParameters;
+import com.invixo.main.Main;
 
 public class ReportWriter {
 	private static final String	XML_PREFIX = "inv";
@@ -25,8 +26,8 @@ public class ReportWriter {
 	private int	countIcoTotal = 0;					// Total number of ICOs processed
 	private int	countIcoErr = 0;					// Total number of ICOs processed with error
 	private int	countIcoOk = 0;						// Total number of ICOs processed successfully
-	private boolean	fetchPayloadFirst = false;
-	private boolean	fetchPayloadLast = false;
+	private boolean	fetchPayloadFirst = Boolean.parseBoolean(Main.PARAM_VAL_EXTRACT_MODE_INIT);
+	private boolean	fetchPayloadLast = true;
 
 	// MessageKey general
 	private int	countMsgKeyTotal				= 0;	// Total message keys processed
@@ -50,10 +51,6 @@ public class ReportWriter {
 		// Set total number of ICO's processed
 		this.countIcoTotal = icoList.size();
 
-		// Determine if FIRST / LAST payload where to be extracted
-		this.fetchPayloadFirst = IntegratedConfiguration.EXTRACT_FIRST_PAYLOAD;
-		this.fetchPayloadLast = IntegratedConfiguration.EXTRACT_LAST_PAYLOAD;
-		
 		// Determine number of successfully and erroneous ICOs
 		for (IntegratedConfiguration ico : icoList) {
 			if (ico.getEx() == null) {

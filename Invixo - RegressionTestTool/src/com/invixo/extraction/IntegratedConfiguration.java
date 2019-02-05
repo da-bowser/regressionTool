@@ -20,7 +20,6 @@ import javax.xml.stream.events.XMLEvent;
 import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
