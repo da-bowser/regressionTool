@@ -542,10 +542,16 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				xmlWriter.writeStartElement(XML_NS_LANG_PREFIX, "String", XML_NS_LANG_NS);				
 				xmlWriter.writeCharacters(injectMessageId);
 		        xmlWriter.writeEndElement();
-	        }
-
-			// Close tags
+	        }			
+	        
 	        xmlWriter.writeEndElement(); // Envelope | Body | getMessagesWithSuccessors | messageIds
+	        
+			// Create element: Envelope | Body | getMessagesWithSuccessors | archive
+			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "archive", XML_NS_URN_NS);
+			xmlWriter.writeCharacters("false");
+			xmlWriter.writeEndElement(); // Envelope | Body | getMessagesWithSuccessors | archive
+			
+			// Close tags
 	        xmlWriter.writeEndElement(); // Envelope | Body | getMessagesWithSuccessors
 			xmlWriter.writeEndElement(); // Envelope | Body
 			xmlWriter.writeEndElement(); // Envelope
