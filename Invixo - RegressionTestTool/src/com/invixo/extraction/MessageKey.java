@@ -210,7 +210,7 @@ public class MessageKey {
 		try {
 			// Write GetMessageBytesJavaLangStringIntBoolean response to file system if debug for this is enabled (property)
 			if (GlobalParameters.DEBUG) {
-				String file = FileStructure.getDebugFileName("GetMessageBytesJavaLangStringIntBoolean", true, this.sapMessageId, "xml");
+				String file = FileStructure.getDebugFileName("GetMessageBytesJavaLangStringIntBoolean", false, this.sapMessageId, "xml");
 				Util.writeFileToFileSystem(file, content);
 				logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessageBytesJavaLangStringIntBoolean response message is stored here: " + file);
 			}
