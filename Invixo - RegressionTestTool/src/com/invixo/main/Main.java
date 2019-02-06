@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
+import com.invixo.directory.api.Orchestrator;
 
 public class Main {
 	
@@ -19,7 +20,7 @@ public class Main {
 	private static final String LOCATION	= Main.class.getName();
 	
 	public enum Environment { DEV, TST, PRD };
-	public enum Operation { extract, inject, compare };
+	public enum Operation { extract, inject, compare , createIcoOverview};
 	
 	// Parameter: dictates which environment *all* ICO request files are based on. (used for translation/mapping of sender system)
 	private static final String PARAM_KEY_ICO_REQUEST_FILES_ENV = "icoRequestFilesEnv";
@@ -126,9 +127,18 @@ public class Main {
 				
 				// Process
 				inject(); 
-			} else {
+			} else if (Operation.compare.toString().equals(PARAM_VAL_OPERATION)) {
 				// Process				
 				compare();
+			} else {
+				// Post parameter handling: get user/pass from credential file
+				readAndSetCredentials(PARAM_VAL_CREDENTIALS_FILE);
+				
+				// Post parameter handling: build complete PO host and port
+				SAP_PO_HTTP_HOST_AND_PORT = buildHttpHostPort();
+				
+				// Process
+				createIcoOverview();
 			}
 		} catch (ValidationException e) {
 			// TODO: Not valid input, inform end user in the nicest way possible
@@ -376,6 +386,12 @@ public class Main {
 		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
 	
+	public static void createIcoOverview() {
+		final String SIGNATURE = "createIcoOverview";
+		
+		String fileName = Orchestrator.start();
+		logger.writeDebug(LOCATION, SIGNATURE, "Ico overview generated: " + fileName);
+	}
 
 	public static boolean operationContains(String value) {
 	    for (Operation operation : Operation.values()) {
