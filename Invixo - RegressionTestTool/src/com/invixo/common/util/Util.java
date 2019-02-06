@@ -189,47 +189,6 @@ public class Util {
 	
 	
 	/**
-	 * Create MAP from an input file using a delimiter
-	 * @param filePath			Source file
-	 * @param fileDelimiter		Delimiter used to separate values in file
-	 * @param keyIndex			Column in file to get key data from
-	 * @param valueIndex		Column in file to get value data from
-	 * @return					Map<String, String>
-	 * @throws IOException
-	 */
-	public static Map<String, String> createMapFromPath(String path, String fileDelimiter, int keyIndex, int valueIndex) throws IOException {
-		Map<String, String> mapFromFile = createMapFromPath(path, fileDelimiter, "", keyIndex, valueIndex);
-		return mapFromFile;
-	}
-	
-	
-	/**
-	 * Create MAP from an input file using a delimiter
-	 * This is an overloaded version which also filters lines based on if they contain the string contained in @param filterString.
-	 * @param filePath			Source file
-	 * @param fileDelimiter		Delimiter used to separate values in file
-	 * @param filterString		Specified what any given line must contain in order to be output
-	 * @param keyIndex			Column in file to get key data from
-	 * @param valueIndex		Column in file to get value data from
-	 * @return					Map<String, String>
-	 * @throws IOException
-	 */
-	public static Map<String, String> createMapFromPath(String path, String fileDelimiter, String filterString, int keyIndex, int valueIndex) throws IOException {
-		// Read file to Path
-		Path mapFilePath = new File(path).toPath();
-				
-		// Collect lines into map	
-		Map<String, String> mapFromFile = 	Files
-											.lines(mapFilePath)
-											.filter(line -> line.contains(filterString))
-											.collect(Collectors.toMap(	k -> k.toString().split(fileDelimiter)[keyIndex], 
-																		v -> v.toString().split(fileDelimiter)[valueIndex]));
-		
-		return mapFromFile;
-	}
-	
-	
-	/**
 	 * This is a working edition of createMapFromPath!
 	 * @param path
 	 * @param fileDelimiter
