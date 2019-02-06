@@ -57,6 +57,11 @@ public class FileStructure {
 	public static final String FILE_CONFIG_COMPARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
 	public static final String FILE_MSG_ID_MAPPING					= DIR_INJECT + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
 	
+	static {
+		final String SIGNATURE = "static";
+		logger.writeDebug(LOCATION, SIGNATURE, "File containing Message ID Mapping initialized to: " + FILE_MSG_ID_MAPPING);
+	}
+	
 	
 	/**
 	 * Start File Structure check.
@@ -148,7 +153,7 @@ public class FileStructure {
 		}
 		
 		// Always create the ICO exception file with current ICO request files when a new run i started / overwrite if exists
-		if (Main.PARAM_VAL_OPERATION.equals("extract")) {
+		if (Main.PARAM_VAL_OPERATION.equals(Main.Operation.extract.toString())) {
 			logger.writeDebug(LOCATION, SIGNATURE, Main.PARAM_VAL_OPERATION + " scenario found, create a new " + FILE_CONFIG_SYSTEM_MAPPING + " to make sure all ICO's are represented for later compare run");
 			generateInitialIcoExeptionContent();
 		}
