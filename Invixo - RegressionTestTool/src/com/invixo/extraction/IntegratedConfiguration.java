@@ -142,7 +142,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessagesWithSuccessors) called");
 
 			// Extract message info from Web Service response
-			MessageInfo msgInfo = extractMessageInfo(responseBytes);
+			MessageInfo msgInfo = extractMessageInfo(responseBytes, this.getReceiverInterfaceName());
 			
 			// Correct Message Mapping Id's in file. This is a special situation. 
 			// EXPLANATION: If an extract is made (after an injection) for an ICO performing message split, then 
@@ -193,7 +193,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessageList) called");
 			
 		// Extract MessageKeys from web Service response
-		MessageInfo msgInfo = extractMessageInfo(responseBytes);
+		MessageInfo msgInfo = extractMessageInfo(responseBytes, this.getReceiverInterfaceName());
 		
 		// Set MessageKeys from web Service response
 		this.responseMessageKeys = msgInfo.getObjectKeys();
@@ -268,14 +268,16 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @return
 	 * @throws ExtractorException
 	 */
-	private MessageInfo extractMessageInfo(InputStream responseBytes) throws ExtractorException {
+	private MessageInfo extractMessageInfo(InputStream responseBytes, String receiverInterfaceName) throws ExtractorException {
 		final String SIGNATURE = "extractMessageInfo(InputStream)";
 		try {
 	        MessageInfo msgInfo = new MessageInfo();
 
 	        String messageId = null;
 	        String parentId = null;
-			
+	        boolean receiverInterfaceElementFound = false;
+	        boolean matchingReceiverInterfaceNameFound = false;
+	        
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(responseBytes);
 
@@ -292,18 +294,39 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 						messageId = eventReader.peek().asCharacters().getData();
 					} else if ("messageKey".equals(currentElementName)) {
 						msgInfo.getObjectKeys().add(eventReader.peek().asCharacters().getData());
+			    	} else if ("receiverInterface".equals(currentElementName)) {
+			    		// We found the correct element
+			    		receiverInterfaceElementFound = true;
+			    	} else if("name".equals(currentElementName) && eventReader.peek().isCharacters() && receiverInterfaceElementFound) {
+			    		String name = eventReader.peek().asCharacters().getData();
+
+			    		// REASON: In case of messageSplit we get all interfaces in the response payload
+			    		// we only want the ones matching the receiverInterfaceName of the current ICO being processed
+			    		if (name.equals(receiverInterfaceName) && receiverInterfaceElementFound) {
+			    			// We found a match we want to add to our "splitMessageIds" map
+			    			matchingReceiverInterfaceNameFound = true;
+			    			
+			    			// We are no longer interested in more data before next iteration
+							receiverInterfaceElementFound = false;
+							
+							logger.writeDebug(LOCATION, SIGNATURE, "Interface being processed: " + receiverInterfaceName);
+			    			logger.writeDebug(LOCATION, SIGNATURE, "Found in response payload: " + matchingReceiverInterfaceNameFound);
+						}
 			    	}
 					break;
 					
 				case XMLStreamConstants.END_ELEMENT:
 					String currentEndElementName = event.asEndElement().getName().getLocalPart();
 					
-					if ("parentID".equals(currentEndElementName)) {
+					if ("parentID".equals(currentEndElementName) && matchingReceiverInterfaceNameFound) {
 						msgInfo.getSplitMessageIds().put(parentId, messageId);
+						
+						matchingReceiverInterfaceNameFound = false;
 					}
 					break;
 				}
 			}
+			
 			return msgInfo;
 		} catch (XMLStreamException e) {
 			String msg = "Error extracting message info from Web Service response.\n" + e.getMessage();
