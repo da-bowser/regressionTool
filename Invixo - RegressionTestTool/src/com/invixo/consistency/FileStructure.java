@@ -252,4 +252,17 @@ public class FileStructure {
 			throw new RuntimeException("*createDirIfNotExists* Error creating directories for path: " + directorypath);
 		}
 	}
+	
+	
+	/**
+	 * Generate file name for a file only used at debugging time (this is web service requests and responses).
+	 * @param webServiceName
+	 * @param isRequest
+	 * @param identifier
+	 * @return
+	 */
+	public static String getDebugFileName(String webServiceName, boolean isRequest, String identifier, String extension) {
+		String fileName = FileStructure.DIR_DEBUG + webServiceName + "_" +  (isRequest?"req":"resp") + "_" + identifier + "_" + System.currentTimeMillis() + "." + extension;
+		return fileName;
+	}
 }

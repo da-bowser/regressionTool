@@ -62,7 +62,6 @@ public class IntegratedConfiguration {
 			
 			// Build exception map to be used to exclude data elements in later compare
 			xpathExceptions = extractIcoCompareExceptionsFromFile(FileStructure.FILE_CONFIG_COMPARE_EXEPTIONS, this.name);
-			
 		} catch (Exception e) {
 			this.ce = new CompareException(e.getMessage());
 		}

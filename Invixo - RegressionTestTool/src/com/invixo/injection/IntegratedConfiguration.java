@@ -160,7 +160,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			
 			// Store request on file system (only relevant for debugging purposes)
 			if (GlobalParameters.DEBUG) {
-				ir.setInjectionRequestFile(getTargetFileName(FileStructure.DIR_DEBUG, this.getName(), ir.getMessageId()));
+				ir.setInjectionRequestFile(FileStructure.getDebugFileName("InjectionMultipart", true, this.getName() + "_" + ir.getMessageId(), "txt"));
 				webServiceRequest.getEntity().writeTo(new FileOutputStream(new File(ir.getInjectionRequestFile())));
 				logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> Request message to be sent to SAP PO is stored here: " + ir.getInjectionRequestFile());
 			}
@@ -199,13 +199,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Map file update with new entry: " + mapEntry);
 	}
-	
-	
-	private static String getTargetFileName(String path, String icoName, String messageId) {
-		String targetFile = path + "xiMultiPartReqMsg_" + icoName + " -- " +  messageId + ".txt";
-		return targetFile;
-	}
-	
+		
 	
 	/**
 	 * Implementation specific object initialization

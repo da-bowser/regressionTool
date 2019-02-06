@@ -132,7 +132,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			
 			// Write request to file system if debug for this is enabled (property)
 			if (GlobalParameters.DEBUG) {
-				String file = FileStructure.DIR_DEBUG + "getMessagesWithSuccessorsReq_" + this.getName() + "_" + System.currentTimeMillis() + ".xml";
+				String file = FileStructure.getDebugFileName("GetMessagesWithSuccessors", true, this.getName(), "xml");
 				Util.writeFileToFileSystem(file, requestBytes);
 				logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> getMessagesWithSuccessors request message to be sent to SAP PO is stored here: " + file);
 			}
@@ -183,7 +183,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		
 		// Write request to file system if debug for this is enabled (property)
 		if (GlobalParameters.DEBUG) {
-			String file = FileStructure.DIR_DEBUG + "GetMessageListReq_" + this.getName() + "_" + System.currentTimeMillis() + ".xml";
+			String file = FileStructure.getDebugFileName("GetMessageList", true, this.getName(), "xml");
 			Util.writeFileToFileSystem(file, requestBytes);
 			logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessageList request message to be sent to SAP PO is stored here: " + file);
 		}
