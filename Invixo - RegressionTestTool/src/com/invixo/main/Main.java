@@ -15,7 +15,7 @@ import com.invixo.consistency.FileStructure;
 
 public class Main {
 	
-	private static Logger logger 			= Logger.getInstance();
+	private static Logger logger = null;
 	private static final String LOCATION	= Main.class.getName();
 	
 	public enum Environment { DEV, TST, PRD };
@@ -94,9 +94,12 @@ public class Main {
 			
 			// Set internal parameters based on program input arguments		
 			setInternalParameters(args);
-			
+					
 			// Validation of common parameters (relevant for all types of operations)
 			validateGeneralParameters();
+			
+			// Init logger (done at this location since it requires both base location and operation when used in FILE mode)
+			logger = Logger.getInstance();
 			
 			// Execute
 			if (Operation.extract.toString().equals(PARAM_VAL_OPERATION)) {

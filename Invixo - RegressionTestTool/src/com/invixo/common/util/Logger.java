@@ -3,7 +3,7 @@ package com.invixo.common.util;
 import java.io.FileWriter;
 import java.io.StringWriter;
 
-import com.invixo.consistency.FileStructure;
+import com.invixo.main.Main;
 
 
 public class Logger {
@@ -13,7 +13,7 @@ public class Logger {
 	private static final String LOG_TYPE_ERROR_TXT = "[ERROR]";
     private static final String LOG_TYPE_DEBUG_TXT = "[DEBUG]";
 	
-	private final String logFileName = "RunLog_" + System.currentTimeMillis() + ".txt";
+	private final String logFileName = "RunLog_" + System.currentTimeMillis() + "_" + Main.PARAM_VAL_OPERATION + ".txt";
 	private FileWriter fileWriter = null;
     private static Logger instance;
     private enum LoggingTypes {CONSOLE, FILE};
@@ -26,13 +26,15 @@ public class Logger {
     public static synchronized Logger getInstance() {
     	final String SIGNATURE = "getInstance()";
     	try {
-        	if(instance == null){
+        	if (instance == null) {
         		// Initialize new logger instance
                 instance = new Logger();
 
                 // Initialize log file
                 if (LoggingTypes.FILE.toString().equals(LOGGING_TYPE)) {
-        			instance.fileWriter = new FileWriter(FileStructure.DIR_LOGS + instance.logFileName, true);            	
+                	// TODO FileStructure is not initialized at this point and thus cannot be used... This should be fixed at some point...
+                	String logFile = Main.PARAM_VAL_BASE_DIR + "\\Logs\\" + instance.logFileName;
+        			instance.fileWriter = new FileWriter(logFile, true);            	
                 }
         	}
         	return instance;
