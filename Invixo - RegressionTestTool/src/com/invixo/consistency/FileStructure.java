@@ -259,10 +259,20 @@ public class FileStructure {
 	 * @param webServiceName
 	 * @param isRequest
 	 * @param identifier
+	 * @param extension
 	 * @return
 	 */
 	public static String getDebugFileName(String webServiceName, boolean isRequest, String identifier, String extension) {
-		String fileName = FileStructure.DIR_DEBUG + webServiceName + "_" +  (isRequest?"req":"resp") + "_" + identifier + "_" + System.currentTimeMillis() + "." + extension;
+		String fileName = FileStructure.DIR_DEBUG 
+						+ webServiceName 
+						+ "_" 
+						+ (isRequest?"req":"resp") 
+						+ "_" 
+						+ identifier 
+						+ "_" 
+						+ System.currentTimeMillis() 
+						+ "." 
+						+ extension;
 		return fileName;
 	}
 }
