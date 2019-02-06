@@ -52,9 +52,10 @@ public class FileStructure {
 	public static final String DIR_CONFIG							= FILE_BASE_LOCATION + "\\Config\\";
 	public static final String DIR_DEBUG							= FILE_BASE_LOCATION + "\\Debug\\";
 	
-	// Critical config files
-	private static final String FILE_CONFIG_SYSTEM_MAPPING			= DIR_CONFIG + "systemMapping.txt";
-	public static final String FILE_CONFIG_COPMARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
+	// Files
+	public static final String FILE_CONFIG_SYSTEM_MAPPING			= DIR_CONFIG + "systemMapping.txt";
+	public static final String FILE_CONFIG_COMPARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
+	public static final String FILE_MSG_ID_MAPPING					= DIR_INJECT + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
 	
 	
 	/**
@@ -140,9 +141,9 @@ public class FileStructure {
 		
 		// Make sure system mapping file exists
 		if (systemMappingFile.exists()) {
-			logger.writeDebug(LOCATION, SIGNATURE, FILE_CONFIG_COPMARE_EXEPTIONS + " exists!");
+			logger.writeDebug(LOCATION, SIGNATURE, FILE_CONFIG_COMPARE_EXEPTIONS + " exists!");
 		} else {
-			logger.writeDebug(LOCATION, SIGNATURE, "System critical file: " + FILE_CONFIG_COPMARE_EXEPTIONS + " is missing and will be created!");
+			logger.writeDebug(LOCATION, SIGNATURE, "System critical file: " + FILE_CONFIG_COMPARE_EXEPTIONS + " is missing and will be created!");
 			Util.writeFileToFileSystem(FILE_CONFIG_SYSTEM_MAPPING, "".getBytes());
 		}
 		
@@ -161,7 +162,7 @@ public class FileStructure {
 
 		try {
 			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
-			XMLStreamWriter xmlWriter = xMLOutputFactory.createXMLStreamWriter(new FileOutputStream(FILE_CONFIG_COPMARE_EXEPTIONS), GlobalParameters.ENCODING);
+			XMLStreamWriter xmlWriter = xMLOutputFactory.createXMLStreamWriter(new FileOutputStream(FILE_CONFIG_COMPARE_EXEPTIONS), GlobalParameters.ENCODING);
 
 			// Add xml version and encoding to output
 			xmlWriter.writeStartDocument(GlobalParameters.ENCODING, "1.0");

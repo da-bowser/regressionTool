@@ -50,8 +50,6 @@ public class IntegratedConfigurationMain {
 	private static final boolean OVERRULE_MSG_SIZE 		= Boolean.parseBoolean(PropertyAccessor.getProperty("OVERRULE_MSG_SIZE"));
 	private static final int MAX_MSG_SIZE_OVERRULED 	= Integer.parseInt(PropertyAccessor.getProperty("MESSAGE_SIZE_OVERRULED"));
 	
-	private static final String MAP_FILE_SYSTEMS		= FileStructure.DIR_CONFIG + "systemMapping.txt";
-	protected static final String MAP_FILE_MESSAGE_IDS	= FileStructure.DIR_INJECT + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV +"_msgId_map" + ".txt";
 	private static final String SOURCE_ENV_ICO_REQUESTS	= Main.PARAM_VAL_ICO_REQUEST_FILES_ENV;
 	private static final String TARGET_ENV 				= Main.PARAM_VAL_TARGET_ENV;
 	private static HashMap<String, String> SYSTEM_MAP	= null;
@@ -100,7 +98,7 @@ public class IntegratedConfigurationMain {
 	 *------------- Constructors
 	 *====================================================================================*/
 	public IntegratedConfigurationMain(String icoFileName) throws GeneralException {
-		this(icoFileName, MAP_FILE_SYSTEMS, SOURCE_ENV_ICO_REQUESTS, TARGET_ENV);
+		this(icoFileName, FileStructure.FILE_CONFIG_SYSTEM_MAPPING, SOURCE_ENV_ICO_REQUESTS, TARGET_ENV);
 	}
 	
 

@@ -123,7 +123,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		try {
 			// Get list of Message IDs to be extracted.
 			// NB: these Message IDs are taken from the Message ID Mapping file (this was created during injection)
-	        Map<String, String> messageIdMap = Util.getRelevantMessageIds(IntegratedConfigurationMain.MAP_FILE_MESSAGE_IDS, GlobalParameters.FILE_DELIMITER, this.getName(), 1, 2);
+	        Map<String, String> messageIdMap = Util.getMessageIdsFromFile(FileStructure.FILE_MSG_ID_MAPPING, GlobalParameters.FILE_DELIMITER, this.getName(), 1, 2);
 	        logger.writeDebug(LOCATION, SIGNATURE, "Number of entries (matching ICO) fetched from Message Id Mapping file: " + messageIdMap.size());
 			
 			// Create request for GetMessagesWithSuccessors
@@ -161,7 +161,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Process extracted message keys
 			processMessageKeysMultiple(this.responseMessageKeys, this.internalObjectId);		
 		} catch (IllegalStateException|IOException e) {
-				String msg = "Error reading Message Id Map file: " + IntegratedConfigurationMain.MAP_FILE_MESSAGE_IDS + "\n" + e;
+				String msg = "Error reading Message Id Map file: " + FileStructure.FILE_MSG_ID_MAPPING + "\n" + e;
 				logger.writeError(LOCATION, SIGNATURE, msg);
 				throw new ExtractorException(msg);			
 		}
@@ -243,11 +243,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		final String SIGNATURE = "updateMessageIdMappingFile(HashMap<String, String>)";
 		String messageId;
 		String parentId;
-		File file = new File(MAP_FILE_MESSAGE_IDS);
+		File file = new File(FileStructure.FILE_MSG_ID_MAPPING);
 		
 		// Update Message Mapping file
 		if (updatedMessageIds.size() > 0 && file.exists()) {
-			String content = new String(Util.readFile(MAP_FILE_MESSAGE_IDS));
+			String content = new String(Util.readFile(FileStructure.FILE_MSG_ID_MAPPING));
 			for (HashMap.Entry<String, String> entry : updatedMessageIds.entrySet()) {
 				parentId = entry.getKey();
 				messageId = entry.getValue();
@@ -256,8 +256,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				content = content.replace(entry.getKey(), entry.getValue());
 			}
 
-			logger.writeDebug(LOCATION, SIGNATURE, "Changed file will be written to: " + MAP_FILE_MESSAGE_IDS);
-			Util.writeFileToFileSystem(MAP_FILE_MESSAGE_IDS, content.getBytes());
+			logger.writeDebug(LOCATION, SIGNATURE, "Changed file will be written to: " + FileStructure.FILE_MSG_ID_MAPPING);
+			Util.writeFileToFileSystem(FileStructure.FILE_MSG_ID_MAPPING, content.getBytes());
 		}
 	}
 

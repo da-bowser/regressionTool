@@ -18,7 +18,6 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
-import com.invixo.main.Main;
 
 
 public class IntegratedConfiguration {
@@ -47,7 +46,7 @@ public class IntegratedConfiguration {
 	 * @throws CompareException 
 	 */
 	public IntegratedConfiguration(String sourceIcoPath, String compareIcoPath, String icoName) {
-		String SIGNATURE = "IntegratedConfiguration(String sourceIcoPath, String copmareIcoPath, String icoName";
+		String SIGNATURE = "IntegratedConfiguration(String, String, String";
 		logger.writeDebug(LOCATION, SIGNATURE, "Initialize compare data of ICO compare");
 
 		try {
@@ -59,10 +58,10 @@ public class IntegratedConfiguration {
 			compareFiles = Util.generateListOfPaths(compareIcoPath.toString() , "FILE");
 			
 			// Build message id map to match "Prod"(source) and "Test"(compare) messages
-			messageIdMap = buildMessageIdMap(FileStructure.DIR_INJECT);
+			messageIdMap = buildMessageIdMap();
 			
 			// Build exception map to be used to exclude data elements in later compare
-			xpathExceptions = extractIcoCompareExceptionsFromFile(FileStructure.FILE_CONFIG_COPMARE_EXEPTIONS, this.name);
+			xpathExceptions = extractIcoCompareExceptionsFromFile(FileStructure.FILE_CONFIG_COMPARE_EXEPTIONS, this.name);
 			
 		} catch (Exception e) {
 			this.ce = new CompareException(e.getMessage());
@@ -78,7 +77,7 @@ public class IntegratedConfiguration {
 	 * @throws CompareException
 	 */
 	private ArrayList<String> extractIcoCompareExceptionsFromFile(String exceptionXPathConfigFilePath, String icoName) throws CompareException {
-		final String SIGNATURE = "extractIcoCompareExceptionsFromFile(String)";
+		final String SIGNATURE = "extractIcoCompareExceptionsFromFile(String, String)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of exceptions using data from: " + exceptionXPathConfigFilePath);
 		
 		ArrayList<String> icoExceptions = new ArrayList<String>();
@@ -134,27 +133,26 @@ public class IntegratedConfiguration {
 	
 	/**
 	 * Build list of matching source and target message id's created during "Inject".
-	 * @param mappingDir			Location of mapping file
 	 * @return						List of source and target message id's used when matching "LAST" files for compare
 	 * @throws CompareException
 	 */
-	private static Map<String, String> buildMessageIdMap(String mappingDir) throws CompareException {
+	private static Map<String, String> buildMessageIdMap() throws CompareException {
 		String SIGNATURE = "buildMessageIdMap(String)";
 		
 		try {
-			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + mappingDir);
+			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + FileStructure.FILE_MSG_ID_MAPPING);
 			
 			// Build path to mapping file generated during inject
-			String mappingFilePath = mappingDir + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
+			String mappingFilePath = FileStructure.FILE_MSG_ID_MAPPING;
 			
 			// Create map splitting on delimiter from map file
-	        Map<String, String> mapFromFile = Util.getRelevantMessageIds(mappingFilePath, GlobalParameters.FILE_DELIMITER, "", 1, 2);
+	        Map<String, String> mapFromFile = Util.getMessageIdsFromFile(mappingFilePath, GlobalParameters.FILE_DELIMITER, null, 1, 2);
 			
 	        // Return map
 	        return mapFromFile;
 	        
 		} catch (IOException e) {
-			String msg = "Error creating msgId map from file: " + mappingDir + "\n" + e.getMessage();
+			String msg = "Error creating msgId map from file: " + FileStructure.FILE_MSG_ID_MAPPING + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new CompareException(msg);
 		}

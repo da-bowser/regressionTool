@@ -13,10 +13,31 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.invixo.main.GlobalParameters;
+
 public class Util {
+	
+	public static void main(String[] args) throws Exception {
+		// Test: getRelevantMessageIds (empty filter)
+		System.out.println("------ Test 1 -------");
+		String sourceFilePath = "c:\\Users\\dhek\\Desktop\\TEST\\MapFile.txt";
+		Map<String, String> map1 = getMessageIdsFromFile(sourceFilePath, GlobalParameters.FILE_DELIMITER, "", 1, 2);
+		for (Entry<String, String> entry : map1.entrySet()) {
+			System.out.println(entry.getKey() + " / " + entry.getValue());
+		}
+		
+		// Test: getRelevantMessageIds (non-empty filter)
+		System.out.println("\n------ Test 2 -------");
+		Map<String, String> map2 = getMessageIdsFromFile(sourceFilePath, GlobalParameters.FILE_DELIMITER, "navn 2", 1, 2);
+		for (Entry<String, String> entry : map2.entrySet()) {
+			System.out.println(entry.getKey() + " / " + entry.getValue());
+		}
+	}
+	
 
 	public static long getTime() {
 		return System.nanoTime();
@@ -189,7 +210,7 @@ public class Util {
 	
 	
 	/**
-	 * This is a working edition of createMapFromPath!
+	 * Create MAP from a delimiter separated input file. index parameters determines witch properties to extract into map.
 	 * @param path
 	 * @param fileDelimiter
 	 * @param filterString
@@ -198,7 +219,7 @@ public class Util {
 	 * @return
 	 * @throws IOException
 	 */
-	public static Map<String, String> getRelevantMessageIds(String path, String fileDelimiter, String filterString, int keyIndex, int valueIndex) throws IOException {
+	public static Map<String, String> getMessageIdsFromFile(String path, String fileDelimiter, String filterString, int keyIndex, int valueIndex) throws IOException {
 		Map<String, String> map = new HashMap<String, String>();
 		
 		// Read file
@@ -206,7 +227,9 @@ public class Util {
 		List<String> lines = Files.readAllLines(mapFilePath);
 		
 		// Filter/remove all lines not containing string
-		lines.removeIf(line -> !line.contains(filterString));
+		if (filterString != null) {
+			lines.removeIf(line -> !line.contains(filterString));			
+		}
 		
 		// Create map
 		for (String line : lines) {

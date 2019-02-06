@@ -123,11 +123,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String SIGNATURE = "initMappingTableWriter()";
 		try {
 			if (mapWriter == null) {
-				mapWriter = Files.newBufferedWriter(Paths.get(MAP_FILE_MESSAGE_IDS), Charset.forName(GlobalParameters.ENCODING));
-				logger.writeDebug(LOCATION, SIGNATURE, "SAP message Id mapping file initialized: " + MAP_FILE_MESSAGE_IDS);
+				mapWriter = Files.newBufferedWriter(Paths.get(FileStructure.FILE_MSG_ID_MAPPING), Charset.forName(GlobalParameters.ENCODING));
+				logger.writeDebug(LOCATION, SIGNATURE, "SAP message Id mapping file initialized: " + FileStructure.FILE_MSG_ID_MAPPING);
 			}
 		} catch (IOException e) {
-			String msg = "Error initializing SAP MessageId mapping file "+ MAP_FILE_MESSAGE_IDS + ".\n" + e.getMessage();
+			String msg = "Error initializing SAP MessageId mapping file "+ FileStructure.FILE_MSG_ID_MAPPING + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new InjectionException(msg);
 		}
