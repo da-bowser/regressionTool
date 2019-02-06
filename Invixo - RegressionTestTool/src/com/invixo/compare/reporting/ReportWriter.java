@@ -258,31 +258,38 @@ public class ReportWriter {
 			// Create element: Difference
 			xmlWriter.writeStartElement(XML_PREFIX, "Difference", XML_NS);
 
+			// Create element: | DifferenceList | Difference | Status
+			xmlWriter.writeStartElement(XML_PREFIX, "Status", XML_NS);
+			xmlWriter.writeCharacters(d.getResult().name());			
+			// Close element: | DifferenceList | Difference | Status
+			xmlWriter.writeEndElement();
+			
 			// Create element: | DifferenceList | Difference | Type
 			xmlWriter.writeStartElement(XML_PREFIX, "Type", XML_NS);
-			xmlWriter.writeCharacters(d.getResult().name());			
-			// Close element: | DifferenceList | Difference | IgnoredByConfiguration
+			xmlWriter.writeCharacters(d.getComparison().getType().toString());			
+			// Close element: | DifferenceList | Difference | Type
 			xmlWriter.writeEndElement();
 			
-			// Create element: | DifferenceList | Difference | ValueExpected
-			xmlWriter.writeStartElement(XML_PREFIX, "ValueExpected", XML_NS);
-			xmlWriter.writeCharacters(d.getComparison().getControlDetails().getValue().toString());			
-			// Close element: | DifferenceList | Difference | IgnoredByConfiguration
+			// Create element: | DifferenceList | Difference | Control
+			xmlWriter.writeStartElement(XML_PREFIX, "Control", XML_NS);
+			
+			// Add Control value and xpath to Control element
+			addValueAndXPath(xmlWriter, d, "control");
+						
+			// Close element | DifferenceList | Difference | Control
 			xmlWriter.writeEndElement();
 			
-			// Create element: | DifferenceList | Difference | ValueFound
-			xmlWriter.writeStartElement(XML_PREFIX, "ValueFound", XML_NS);
-			xmlWriter.writeCharacters(d.getComparison().getTestDetails().getValue().toString());			
-			// Close element: | DifferenceList | Difference | IgnoredByConfiguration
+			
+			// Create element: | DifferenceList | Difference | Test
+			xmlWriter.writeStartElement(XML_PREFIX, "Test", XML_NS);
+			
+			// Add Test value and xpath to Test element
+			addValueAndXPath(xmlWriter, d, "test");
+			
+			// Close element | DifferenceList | Difference | Test
 			xmlWriter.writeEndElement();
 			
-			// Create element: | DifferenceList | Difference | XPath
-			xmlWriter.writeStartElement(XML_PREFIX, "XPath", XML_NS);
-			xmlWriter.writeCharacters(d.getComparison().getTestDetails().getXPath());
-			// Close element: | Difference | XPath
-			xmlWriter.writeEndElement();
-			
-			String ignoredXpath = comp.getDiffsIgnoredByConfiguration().get(d.getComparison().getControlDetails().getXPath().toString());
+			String ignoredXpath = comp.getDiffsIgnoredByConfiguration().get(extractXpathFromDifference(d, "control"));
 			if (ignoredXpath != null) {
 				// Create element: | DifferenceList | Difference | IgnoreMatchFound
 				xmlWriter.writeStartElement(XML_PREFIX, "IgnoreMatchFound", XML_NS);
@@ -295,6 +302,22 @@ public class ReportWriter {
 			xmlWriter.writeEndElement();
 		}
 
+	}
+
+
+	private void addValueAndXPath(XMLStreamWriter xmlWriter, Difference d, String type) throws XMLStreamException {
+		// Create element: | DifferenceList | Difference | Value
+		xmlWriter.writeStartElement(XML_PREFIX, "Value", XML_NS);
+		xmlWriter.writeCharacters(extractValueFromDifference(d, type));			
+		// Close element: | DifferenceList | Difference | IgnoredByConfiguration
+		xmlWriter.writeEndElement();
+					
+		// Create element: | DifferenceList | Difference | XPath
+		xmlWriter.writeStartElement(XML_PREFIX, "XPath", XML_NS);
+		xmlWriter.writeCharacters(extractXpathFromDifference(d, type));
+		// Close element: | DifferenceList | Difference | ControlXPath
+		xmlWriter.writeEndElement();
+		
 	}
 
 
@@ -333,5 +356,41 @@ public class ReportWriter {
 
 		// Close element: CompareReport | IcoOverview
 		xmlWriter.writeEndElement();
+	}
+	
+	
+	private String extractXpathFromDifference(Difference d, String type) {
+		String xPath = "";
+		
+		try {
+			if (type.equals("control")) {
+				xPath = d.getComparison().getControlDetails().getXPath().toString();
+			} else {
+				xPath = d.getComparison().getTestDetails().getXPath().toString();
+			}
+			
+		} catch (NullPointerException e) {
+			xPath = "";
+		}
+		
+		return xPath;
+	}
+	
+	
+	private String extractValueFromDifference(Difference d, String type) {
+		String value = "";
+		
+		try {
+			if (type.equals("control")) {
+				value = d.getComparison().getControlDetails().getValue().toString();
+			} else {
+				value = d.getComparison().getTestDetails().getValue().toString();
+			}
+			
+		} catch (NullPointerException e) {
+			value = "";
+		}
+		
+		return value;
 	}
 }
