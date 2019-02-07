@@ -15,6 +15,7 @@ public class Orchestrator {
 	private static ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
 	private static int icoProcessSuccess = 0;
 	private static int icoProccesError = 0;	
+	private static double totalExecutionTime = 0;
 	
 	public static ArrayList<IntegratedConfiguration> start() {
 		String SIGNATURE = "start()";
@@ -52,8 +53,12 @@ public class Orchestrator {
 			if (ico.getCompareException() == null) {
 				// Start processing ico
 				ico.start();
+				
 				// Increment ico compare count
-				Orchestrator.icoProcessSuccess++;	
+				Orchestrator.icoProcessSuccess++;
+				
+				// Calculate total execution time
+				Orchestrator.totalExecutionTime += ico.getTotalCompareExecutionTime();
 			} else {
 				// Increment counter for compares in error
 				Orchestrator.icoProccesError++;
@@ -64,18 +69,26 @@ public class Orchestrator {
 		return icoList;
 	}
 
-
+	
 	private static String buildEnvironmentComparePath(Path currentSourcePath, String environment, String icoName) {
 		String comparePath;
 		comparePath = FileStructure.DIR_EXTRACT_OUTPUT_PRE + icoName + "\\" + environment + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 		return comparePath;
 	}
 	
+	
 	public static int getIcoProcessSuccess() {
 		return icoProcessSuccess;
 	}
 
+
 	public static int getIcoProccesError() {
 		return icoProccesError;
 	}
+	
+
+	public static double getTotalExecutionTime() {
+		return totalExecutionTime;
+	}
+
 }

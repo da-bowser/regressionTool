@@ -16,6 +16,7 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 
 import com.invixo.common.util.Logger;
+import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
 import com.invixo.directory.api.webServices.WebServiceHandler;
@@ -29,6 +30,7 @@ public class Orchestrator {
 	private static final String XML_NS 		= "urn:invixo.com.directory.api";
 	private static final String ICO_OVERVIEW_FILE = FileStructure.DIR_CONFIG + "IntegratedConfigurationsOverview.xml";
 	private static ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
+	private static ArrayList<IntegratedConfigurationReadRequest> icoReadRequestList = new ArrayList<IntegratedConfigurationReadRequest>();
 	
 	
 	public static String start() {
@@ -43,10 +45,19 @@ public class Orchestrator {
 			ByteArrayInputStream responseIcoQueryBytes = WebServiceHandler.callWebService(requestIcoQueryBytes);
 		
 			// Extract all ICOs in response
-			Orchestrator.icoList = extractAllIcoSenderInfo(responseIcoQueryBytes);
+			Orchestrator.icoReadRequestList = extractIcoDataFromResponse(responseIcoQueryBytes);
 			
-			// Process ico list
-			extractIcoReceiverInfoMultiple(Orchestrator.icoList);
+			// Create read request to get additional information about ICO (Receiver, QoS, etc)
+			byte[] requestIcoReadBytes = createIntegratedConfigurationReadRequest(icoReadRequestList);
+			
+			//TODO: Debug
+			//Util.writeFileToFileSystem(FileStructure.DIR_DEBUG + "\\resonseIcoRead", requestIcoReadBytes);
+			
+			// Call web service
+			ByteArrayInputStream responseIcoReadBytes = WebServiceHandler.callWebService(requestIcoReadBytes);
+			
+			// POJO: IntegratedConfigurationResponse
+			extractIcoInformationFromReadResponse(responseIcoReadBytes);
 			
 			// Create complete ICO overview file
 			createCompleteIcoOverviewFile(Orchestrator.icoList);
@@ -64,7 +75,7 @@ public class Orchestrator {
 		
 		return ICO_OVERVIEW_FILE;
 	}
-	
+
 
 	private static void createCompleteIcoOverviewFile(ArrayList<IntegratedConfiguration> icoList) throws FileNotFoundException, XMLStreamException {
 		XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
@@ -142,30 +153,15 @@ public class Orchestrator {
 		xmlWriter.close();
 	}
 
-	private static void extractIcoReceiverInfoMultiple(ArrayList<IntegratedConfiguration> icoList) throws DirectoryApiException {
-		
-		for (IntegratedConfiguration ico : icoList) {
-			extractIcoReceiverInfoSingle(ico);
-		}
-		
-	}
 
-	private static void extractIcoReceiverInfoSingle(IntegratedConfiguration ico) throws DirectoryApiException {
-		// Create read request to get additional information about ICO (Receiver, QoS, etc)
-		byte[] responseIcoReadBytes = createIntegratedConfigurationReadRequest(ico);
-		
-		// Call web service
-		ByteArrayInputStream responseIcoQueryBytes = WebServiceHandler.callWebService(responseIcoReadBytes);
-		extractIcoReceiverInfo(responseIcoQueryBytes, ico);
-	}
-
-	private static void extractIcoReceiverInfo(ByteArrayInputStream responseBytes, IntegratedConfiguration ico) throws DirectoryApiException {
+	private static ArrayList<IntegratedConfiguration> extractIcoInformationFromReadResponse(ByteArrayInputStream responseBytes) throws DirectoryApiException {
 		final String SIGNATURE = "extractIcoReceiverInfo(InputStream, IntegratedConfiguration)";
 		try {
 	        
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(responseBytes);
-			boolean receiverInterfaceElementFound = false;
+			ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
+			IntegratedConfiguration ico = null;
 			
 			while (eventReader.hasNext()) {
 				XMLEvent event = eventReader.nextEvent();
@@ -174,33 +170,18 @@ public class Orchestrator {
 				case XMLStreamConstants.START_ELEMENT:
 					String currentElementName = event.asStartElement().getName().getLocalPart();
 
-					if ("ReceiverInterfaces".equals(currentElementName)){
-						receiverInterfaceElementFound = true;
-					}  else if ("PartyID".equals(currentElementName) && eventReader.peek().isCharacters() && receiverInterfaceElementFound) {
-						ico.setReceiverPartyId(eventReader.peek().asCharacters().getData());
-					}  else if ("ComponentID".equals(currentElementName) && receiverInterfaceElementFound) {
-						ico.setReceiverComponentId(eventReader.peek().asCharacters().getData());
-					} else if ("Operation".equals(currentElementName) && receiverInterfaceElementFound) {
-						ico.setOperation(eventReader.peek().asCharacters().getData());
-					} else if ("Name".equals(currentElementName) && receiverInterfaceElementFound) {
-						ico.setReceiverInterfaceName(eventReader.peek().asCharacters().getData());
-					} else if ("Namespace".equals(currentElementName) && receiverInterfaceElementFound) {
-						ico.setReceiverInterfaceNamespace(eventReader.peek().asCharacters().getData());
-					} else if ("QualityOfService".equals(currentElementName) && receiverInterfaceElementFound) {
-						ico.setQualityOfService(eventReader.peek().asCharacters().getData());	
-					}
+					
 					break;
 				
 				case XMLStreamConstants.END_ELEMENT:
 					String currentEndElementName = event.asEndElement().getName().getLocalPart();
 					
-					if ("ReceiverInterfaces".equals(currentEndElementName)) {
-						receiverInterfaceElementFound = false;
-					}
+					
 					break;
 				}
 			}
 			
+			return icoList;
 		} catch (XMLStreamException e) {
 			String msg = "Error extracting message info from Web Service response.\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -209,7 +190,7 @@ public class Orchestrator {
 		
 	}
 
-	private static byte[] createIntegratedConfigurationReadRequest(IntegratedConfiguration ico) {
+	private static byte[] createIntegratedConfigurationReadRequest(ArrayList<IntegratedConfigurationReadRequest> icoRequestList) {
 		final String SIGNATURE = "createIntegratedConfigurationReadRequest(IntegratedConfiguration)";
 		try {
 			final String XML_NS_BAS_PREFIX	= "bas";
@@ -234,36 +215,40 @@ public class Orchestrator {
 			// Create element: Envelope | Body | IntegratedConfigurationReadRequest
 			xmlWriter.writeStartElement(XML_NS_BAS_PREFIX, "IntegratedConfigurationReadRequest", XML_NS_BAS_NS);
 
-			// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID
-			xmlWriter.writeStartElement("IntegratedConfigurationID");
+			for (IntegratedConfigurationReadRequest icoRequest : icoRequestList) {
+				// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID
+				xmlWriter.writeStartElement("IntegratedConfigurationID");
+				
+				// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | SenderPartyID
+				xmlWriter.writeStartElement("SenderPartyID");
+				xmlWriter.writeCharacters(icoRequest.getSenderPartyId());
+				// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | SenderPartyID
+				xmlWriter.writeEndElement();
+				
+				// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | SenderComponentID
+				xmlWriter.writeStartElement("SenderComponentID");
+				xmlWriter.writeCharacters(icoRequest.getSenderComponentId());
+				// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | SenderComponentID
+				xmlWriter.writeEndElement();
+				
+				// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | InterfaceName
+				xmlWriter.writeStartElement("InterfaceName");
+				xmlWriter.writeCharacters(icoRequest.getSenderInterfaceName());
+				// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | InterfaceName
+				xmlWriter.writeEndElement();
+				
+				// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | InterfaceNamespace
+				xmlWriter.writeStartElement("InterfaceNamespace");
+				xmlWriter.writeCharacters(icoRequest.getSenderInterfaceNamespace());
+				// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | InterfaceNamespace
+				xmlWriter.writeEndElement();
+				
+				
+				// Close tags
+				xmlWriter.writeEndElement(); // Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID
 			
-			// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | SenderPartyID
-			xmlWriter.writeStartElement("SenderPartyID");
-			xmlWriter.writeCharacters(ico.getSenderPartyId());
-			// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | SenderPartyID
-			xmlWriter.writeEndElement();
+			}
 			
-			// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | SenderComponentID
-			xmlWriter.writeStartElement("SenderComponentID");
-			xmlWriter.writeCharacters(ico.getSenderComponentId());
-			// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | SenderComponentID
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | InterfaceName
-			xmlWriter.writeStartElement("InterfaceName");
-			xmlWriter.writeCharacters(ico.getSenderInterfaceName());
-			// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | InterfaceName
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | InterfaceNamespace
-			xmlWriter.writeStartElement("InterfaceNamespace");
-			xmlWriter.writeCharacters(ico.getSenderInterfaceNamespace());
-			// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | InterfaceNamespace
-			xmlWriter.writeEndElement();
-			
-			
-			// Close tags
-			xmlWriter.writeEndElement(); // Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID
 			xmlWriter.writeEndElement(); // Envelope | Body | IntegratedConfigurationReadRequest
 			xmlWriter.writeEndElement(); // Envelope | Body
 			xmlWriter.writeEndElement(); // Envelope
@@ -274,6 +259,7 @@ public class Orchestrator {
 			stringWriter.flush();
 			
 			return stringWriter.toString().getBytes();
+			
 		} catch (XMLStreamException e) {
 			String msg = "Error creating SOAP request for GetMessagesWithSuccessors. " + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -282,13 +268,15 @@ public class Orchestrator {
 	}
 
 	
-	private static ArrayList<IntegratedConfiguration> extractAllIcoSenderInfo(InputStream responseBytes) throws DirectoryApiException {
+	private static ArrayList<IntegratedConfigurationReadRequest> extractIcoDataFromResponse(InputStream responseBytes) throws DirectoryApiException {
 		final String SIGNATURE = "extractMessageInfo(InputStream)";
 		try {
 
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(responseBytes);
-			IntegratedConfiguration ico = null;
+			ArrayList<IntegratedConfigurationReadRequest> icoRequestList = new ArrayList<IntegratedConfigurationReadRequest>();
+			
+			IntegratedConfigurationReadRequest icoRequest = null;
 			
 			while (eventReader.hasNext()) {
 				XMLEvent event = eventReader.nextEvent();
@@ -298,15 +286,15 @@ public class Orchestrator {
 					String currentElementName = event.asStartElement().getName().getLocalPart();
 
 					if ("IntegratedConfigurationID".equals(currentElementName)){
-						ico = new IntegratedConfiguration();
+						icoRequest = new IntegratedConfigurationReadRequest();
 					} else if ("SenderPartyID".equals(currentElementName) && eventReader.peek().isCharacters()) {
-						ico.setSenderPartyId(eventReader.peek().asCharacters().getData());
+						icoRequest.setSenderPartyId(eventReader.peek().asCharacters().getData());
 					} else if ("SenderComponentID".equals(currentElementName)) {
-						ico.setSenderComponentId(eventReader.peek().asCharacters().getData());
+						icoRequest.setSenderComponentId(eventReader.peek().asCharacters().getData());
 					} else if ("InterfaceName".equals(currentElementName)) {
-						ico.setSenderInterfaceName(eventReader.peek().asCharacters().getData());
+						icoRequest.setSenderInterfaceName(eventReader.peek().asCharacters().getData());
 					} else if ("InterfaceNamespace".equals(currentElementName)) {
-						ico.setSenderInterfaceNamespace(eventReader.peek().asCharacters().getData());
+						icoRequest.setSenderInterfaceNamespace(eventReader.peek().asCharacters().getData());
 					}
 					break;
 					
@@ -314,13 +302,14 @@ public class Orchestrator {
 					String currentEndElementName = event.asEndElement().getName().getLocalPart();
 					
 					if ("IntegratedConfigurationID".equals(currentEndElementName)) {
-						Orchestrator.icoList.add(ico);
+						icoRequestList.add(icoRequest);
 					}
 					break;
 				}
 			}
 			
-			return icoList;
+			return icoRequestList;
+			
 		} catch (XMLStreamException e) {
 			String msg = "Error extracting message info from Web Service response.\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);

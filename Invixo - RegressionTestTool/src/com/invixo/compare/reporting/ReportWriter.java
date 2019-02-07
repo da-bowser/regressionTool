@@ -2,6 +2,7 @@ package com.invixo.compare.reporting;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.stream.XMLOutputFactory;
@@ -27,6 +28,7 @@ public class ReportWriter {
 	private int	countIcoTotal = 0;						// Total number of ICOs processed
 	private int	countIcoCompared = 0;					// Total number of ICOs compared
 	private int	countIcoNotCompared = 0;				// Total number of ICOs not compared
+	private double totalExecutionTime = 0;				// Total compare time across all ICOs
 	
 	public ReportWriter(ArrayList<IntegratedConfiguration> icoList) {
 		this.icoList = icoList;
@@ -44,6 +46,7 @@ public class ReportWriter {
 		this.countIcoCompared = Orchestrator.getIcoProcessSuccess();
 		this.countIcoNotCompared = Orchestrator.getIcoProccesError();
 		this.countIcoTotal = this.countIcoCompared + this.countIcoNotCompared;
+		this.totalExecutionTime = Orchestrator.getTotalExecutionTime();
 	}
 	
 	public String create(ArrayList<IntegratedConfiguration> icoList) {
@@ -123,6 +126,12 @@ public class ReportWriter {
 			xmlWriter.writeCharacters("" + ico.getTotalCompareProcessed());
 			xmlWriter.writeEndElement();
 			
+			// Create element: CompareReport | IcoOverview | ExecutionTimeSeconds
+			xmlWriter.writeStartElement(XML_PREFIX, "ExecutionTime", XML_NS);
+			xmlWriter.writeAttribute("unit", "seconds");
+			xmlWriter.writeCharacters("" + ico.getTotalCompareExecutionTime());
+			xmlWriter.writeEndElement();
+			
 			// Add compare header data
 			addCompareOverview(xmlWriter, ico);	
 			
@@ -162,7 +171,7 @@ public class ReportWriter {
 		xmlWriter.writeCharacters("" + ico.getTotalCompareDiffsUnhandled());
 		// Close element: CompareReport | IntegratedConfiguration | CompareOverview | Differences | Unhandled
 		xmlWriter.writeEndElement();
-		
+				
 		// Close element:  CompareReport | IntegratedConfiguration | CompareOverview | Differences
 		xmlWriter.writeEndElement();
 		
@@ -186,13 +195,17 @@ public class ReportWriter {
 			
 			// Create element:  | CompareDetails | Compare | Files | Source
 			xmlWriter.writeStartElement(XML_PREFIX, "Source", XML_NS);
-			xmlWriter.writeCharacters(comp.getSourceFile().toString());
+			xmlWriter.writeAttribute("file", extractInfoFromPath(comp.getSourceFile(), "FILE"));
+			xmlWriter.writeAttribute("bytes", "" + comp.getSourceFileSize());
+			xmlWriter.writeCharacters(comp.getSourceFile().toAbsolutePath().toString().replace(comp.getSourceFile().getFileName().toString(), ""));
 			// Close element: | CompareDetails | Compare | Source
 			xmlWriter.writeEndElement();
 			
 			// Create element:  | CompareDetails | Compare | Files | Target
 			xmlWriter.writeStartElement(XML_PREFIX, "Target", XML_NS);
-			xmlWriter.writeCharacters(comp.getCompareFile().toString());
+			xmlWriter.writeAttribute("file", extractInfoFromPath(comp.getCompareFile(), "FILE"));
+			xmlWriter.writeAttribute("bytes", "" + comp.getCompareFileSize());
+			xmlWriter.writeCharacters(extractInfoFromPath(comp.getCompareFile(), "DIRECTORY"));
 			// Close element: | CompareDetails | Compare | Target
 			xmlWriter.writeEndElement();
 			
@@ -216,6 +229,13 @@ public class ReportWriter {
 		xmlWriter.writeStartElement(XML_PREFIX, "Status", XML_NS);
 		xmlWriter.writeCharacters(comp.getCompareSkipped() == 1 ? "Skipped" : "Success");
 		// Close element: | Found
+		xmlWriter.writeEndElement();
+		
+		// Create element: | DifferenceList | Difference | ExecutionTime
+		xmlWriter.writeStartElement(XML_PREFIX, "ExecutionTime", XML_NS);
+		xmlWriter.writeAttribute("unit", "seconds");
+		xmlWriter.writeCharacters("" + comp.getExecutionTimeSeconds());			
+		// Close element: | DifferenceList | Difference | ExecutionTime
 		xmlWriter.writeEndElement();
 		
 		// Create element: | Error
@@ -353,6 +373,12 @@ public class ReportWriter {
 		xmlWriter.writeStartElement(XML_PREFIX, "Total", XML_NS);
 		xmlWriter.writeCharacters("" + this.countIcoTotal);
 		xmlWriter.writeEndElement();
+		
+		// Create element: CompareReport | IcoOverview | ExecutionTime
+		xmlWriter.writeStartElement(XML_PREFIX, "ExecutionTime", XML_NS);
+		xmlWriter.writeAttribute("unit", "seconds");
+		xmlWriter.writeCharacters("" + this.totalExecutionTime);
+		xmlWriter.writeEndElement();
 
 		// Close element: CompareReport | IcoOverview
 		xmlWriter.writeEndElement();
@@ -392,5 +418,24 @@ public class ReportWriter {
 		}
 		
 		return value;
+	}
+	
+	
+	private String extractInfoFromPath(Path p, String type) {
+		String value = "";
+		
+		try {
+			if (type.equals("FILE")) {
+				value = p.getFileName().toString();	
+			} else {
+				value = p.toString().replace(p.getFileName().toString(), "");
+			}
+			
+		} catch (NullPointerException e) {
+			value = "null";
+		}
+		
+		return value;
+		
 	}
 }

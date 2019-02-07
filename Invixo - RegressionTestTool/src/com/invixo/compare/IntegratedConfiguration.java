@@ -34,6 +34,8 @@ public class IntegratedConfiguration {
 	private int totalCompareSkipped = 0;
 	private int totalCompareSuccess = 0;
 	private int totalCompareProcessed = 0;
+	private double totalCompareExecutionTime = 0;
+
 	private List<Comparer> compareProcessedList = new ArrayList<Comparer>();
 	private CompareException ce;
 
@@ -187,10 +189,11 @@ public class IntegratedConfiguration {
 			this.totalCompareSkipped += comp.getCompareSkipped();
 			this.totalCompareSuccess += comp.getCompareSuccess();
 			this.totalCompareProcessed = this.totalCompareSkipped + this.totalCompareSuccess;
+			this.totalCompareExecutionTime += comp.getExecutionTimeSeconds();
 		}
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.name + "\" completed.\nActual: Success: " + this.totalCompareSuccess + " Skipped: " + this.totalCompareSkipped);
-		
+		logger.writeDebug(LOCATION, SIGNATURE, "Total execution time (seconds): " + this.totalCompareExecutionTime);
 	}
 	
 	
@@ -201,21 +204,27 @@ public class IntegratedConfiguration {
 	 * @param messageIdMap			Source <--> Target message id's	
 	 * @return
 	 */
-	private static Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> messageIdMap) {
+	private Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> messageIdMap) {
 		String SIGNATURE = "getMatchingCompareFile(Path, List<Path>, Map<String, String>)";
+		Path compareFileFound = null;
 		
 		// Extract message id from filename 
 		String sourceMsgId = Util.getFileName(sourceFilePath.getFileName().toString(), false);
-		
+
 		logger.writeDebug(LOCATION, SIGNATURE, "Prepare: Getting matching compare file for sourceId: " + sourceMsgId);
 
 		// Get compare message id from map using source id
 		String compareMsgId = messageIdMap.get(sourceMsgId);
-		
-		logger.writeDebug(LOCATION, SIGNATURE, "Prepare: match found, compare file msgId: " + compareMsgId);
-		
+
+		if (compareMsgId == null) {
+			// Build comparefolder structure
+			String compareFolderStructure = FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.name + "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+			compareFileFound = new File(compareFolderStructure + "null.payload").toPath();
+		} else {
+
+			logger.writeDebug(LOCATION, SIGNATURE, "Prepare: match found, compare file msgId: " + compareMsgId);
+
 			// Search for compare id in compare file list
-			Path compareFileFound = null;
 			for (int i = 0; i < compareFiles.size(); i++) {
 				String currentFile = compareFiles.get(i).getFileName().toString();
 
@@ -227,14 +236,10 @@ public class IntegratedConfiguration {
 					break;
 				}
 			}
-
-			// Handle situation where compare file is not found using mapping file
-			if (compareFileFound == null) {
-				compareFileFound = new File("File not found for msgId - " + compareMsgId).toPath();
-			}
-			
-			// return compare file found
-			return compareFileFound;
+		}
+		
+		// return compare file found
+		return compareFileFound;
 	}
 	
 	
@@ -289,4 +294,9 @@ public class IntegratedConfiguration {
 	public void setCompareException(CompareException ce) {
 		this.ce = ce;
 	}
+	
+	public double getTotalCompareExecutionTime() {
+		return totalCompareExecutionTime;
+	}
+
 }
