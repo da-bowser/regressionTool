@@ -26,7 +26,6 @@ import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
-import com.invixo.main.Main;
 
 public class MessageKey {
 	/*====================================================================================
@@ -65,8 +64,8 @@ public class MessageKey {
 		this.ico 				= ico;
 		this.sapMessageKey 		= messageKey;
 		this.sapMessageId 		= extractMessageIdFromKey(messageKey);
-		this.targetPathFirst 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
-		this.targetPathLast 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + Main.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+		this.targetPathFirst 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+		this.targetPathLast 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 		this.fileName 			= this.sapMessageId + ".payload";
 	}
 	

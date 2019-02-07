@@ -15,16 +15,15 @@ import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.directory.api.DirectoryApiException;
 import com.invixo.main.GlobalParameters;
-import com.invixo.main.Main;
 
 public abstract class WebServiceHandler {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = WebServiceHandler.class.getName();
 	private static final boolean ENABLE_WS_LOGGING = Boolean.valueOf(PropertyAccessor.getProperty("ENABLE_WS_LOGGING"));	
 	private static final String ENCODING = GlobalParameters.ENCODING;
-	private static final String WEB_SERVICE_USER = Main.CREDENTIAL_USER;
-	private static final String WEB_SERVICE_PASS = Main.CREDENTIAL_PASS;
-	private static final String ENDPOINT = Main.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_DIR_API");
+	private static final String WEB_SERVICE_USER = GlobalParameters.CREDENTIAL_USER;
+	private static final String WEB_SERVICE_PASS = GlobalParameters.CREDENTIAL_PASS;
+	private static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_DIR_API");
 	private static final int TIMEOUT = Integer.parseInt(PropertyAccessor.getProperty("TIMEOUT"));
 
 	public static ByteArrayInputStream callWebService(byte[] requestBytes) throws DirectoryApiException {

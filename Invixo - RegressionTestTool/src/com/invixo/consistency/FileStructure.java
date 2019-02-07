@@ -18,15 +18,13 @@ import javax.xml.stream.XMLStreamWriter;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.main.GlobalParameters;
-import com.invixo.main.Main;
-
 
 public class FileStructure {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = FileStructure.class.getName();
 	
 	// Base/root file location
-	public static final String FILE_BASE_LOCATION					= Main.PARAM_VAL_BASE_DIR;
+	public static final String FILE_BASE_LOCATION					= GlobalParameters.PARAM_VAL_BASE_DIR;
 	
 	// Extract: input
 	private static final String DIR_EXTRACT							= FILE_BASE_LOCATION + "\\_Extract";
@@ -55,7 +53,7 @@ public class FileStructure {
 	// Files
 	public static final String FILE_CONFIG_SYSTEM_MAPPING			= DIR_CONFIG + "systemMapping.txt";
 	public static final String FILE_CONFIG_COMPARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
-	public static final String FILE_MSG_ID_MAPPING					= DIR_INJECT + Main.PARAM_VAL_SOURCE_ENV + "_to_" + Main.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
+	public static final String FILE_MSG_ID_MAPPING					= DIR_INJECT + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_to_" + GlobalParameters.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
 	
 	static {
 		final String SIGNATURE = "static";
@@ -77,7 +75,7 @@ public class FileStructure {
 		checkBaseFiles();
 		
 		// Clean-up old data from "Output"
-		if (Main.PARAM_VAL_ALLOW_SAME_ENV) {
+		if (GlobalParameters.PARAM_VAL_ALLOW_SAME_ENV) {
 			logger.writeDebug(LOCATION, SIGNATURE, "Deletion of target data skipped (due to program parameter setting)");	
 		} else {
 			deleteOldRunData();
@@ -94,8 +92,8 @@ public class FileStructure {
 		final String SIGNATURE = "deleteOldRunData()";
 		try {       
 			// Cleanup: delete all files contained in "Extract Output". Only done for sub-directories part of the specified target environment
-			deletePayloadFiles(DIR_EXTRACT_OUTPUT_PRE, Main.PARAM_VAL_TARGET_ENV);
-			logger.writeDebug(LOCATION, SIGNATURE, "Housekeeping: all old payload files deleted from root: " + DIR_EXTRACT_OUTPUT_PRE + " for environment: " + Main.PARAM_VAL_TARGET_ENV);
+			deletePayloadFiles(DIR_EXTRACT_OUTPUT_PRE, GlobalParameters.PARAM_VAL_TARGET_ENV);
+			logger.writeDebug(LOCATION, SIGNATURE, "Housekeeping: all old payload files deleted from root: " + DIR_EXTRACT_OUTPUT_PRE + " for environment: " + GlobalParameters.PARAM_VAL_TARGET_ENV);
 		} catch (Exception e) {
 			String ex = "Housekeeping terminated with error! " + e;
 			logger.writeError(LOCATION, SIGNATURE, ex);
@@ -153,8 +151,8 @@ public class FileStructure {
 		}
 		
 		// Always create the ICO exception file with current ICO request files when a new run i started / overwrite if exists
-		if (Main.PARAM_VAL_OPERATION.equals(Main.Operation.extract.toString())) {
-			logger.writeDebug(LOCATION, SIGNATURE, Main.PARAM_VAL_OPERATION + " scenario found, create a new " + FILE_CONFIG_SYSTEM_MAPPING + " to make sure all ICO's are represented for later compare run");
+		if (GlobalParameters.PARAM_VAL_OPERATION.equals(GlobalParameters.Operation.extract.toString())) {
+			logger.writeDebug(LOCATION, SIGNATURE, GlobalParameters.PARAM_VAL_OPERATION + " scenario found, create a new " + FILE_CONFIG_SYSTEM_MAPPING + " to make sure all ICO's are represented for later compare run");
 			generateInitialIcoExeptionContent();
 		}
 	}

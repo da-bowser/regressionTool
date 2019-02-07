@@ -18,7 +18,6 @@ import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.injection.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
-import com.invixo.main.Main;
 
 
 public class IntegratedConfiguration extends IntegratedConfigurationMain  {
@@ -208,7 +207,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String SIGNATURE = "initialize()";
 
 		// Set directory for Payloads (FIRST)
-		this.sourcePayloadDirectory = FileStructure.DIR_EXTRACT_OUTPUT_PRE + super.name + "\\" + Main.PARAM_VAL_SOURCE_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+		this.sourcePayloadDirectory = FileStructure.DIR_EXTRACT_OUTPUT_PRE + super.name + "\\" + GlobalParameters.PARAM_VAL_SOURCE_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
 		logger.writeDebug(LOCATION, SIGNATURE, "Source directory containing FIRST messages: " + this.sourcePayloadDirectory);
 	}
 	

@@ -18,8 +18,7 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
-import com.invixo.main.Main;
-
+import com.invixo.main.GlobalParameters;
 
 public class IntegratedConfigurationMain {
 	/*====================================================================================
@@ -50,8 +49,8 @@ public class IntegratedConfigurationMain {
 	private static final boolean OVERRULE_MSG_SIZE 		= Boolean.parseBoolean(PropertyAccessor.getProperty("OVERRULE_MSG_SIZE"));
 	private static final int MAX_MSG_SIZE_OVERRULED 	= Integer.parseInt(PropertyAccessor.getProperty("MESSAGE_SIZE_OVERRULED"));
 	
-	private static final String SOURCE_ENV_ICO_REQUESTS	= Main.PARAM_VAL_ICO_REQUEST_FILES_ENV;
-	private static final String TARGET_ENV 				= Main.PARAM_VAL_TARGET_ENV;
+	private static final String SOURCE_ENV_ICO_REQUESTS	= GlobalParameters.PARAM_VAL_ICO_REQUEST_FILES_ENV;
+	private static final String TARGET_ENV 				= GlobalParameters.PARAM_VAL_TARGET_ENV;
 	private static HashMap<String, String> SYSTEM_MAP	= null;
 	private static int counter							= 1;
 	
@@ -201,26 +200,26 @@ public class IntegratedConfigurationMain {
 		this.qualityOfService = qualityOfService;
 	}
 	public String getFetchFromTime() {
-		if (Main.PARAM_VAL_FROM_TIME == null) {
+		if (GlobalParameters.PARAM_VAL_FROM_TIME == null) {
 			// Not part of program parameter
 			// Return whatever (if any) value provided in file request
 			return fetchFromTime;
 		} else {
 			// Overrule value in file request (if any) with the program parameter
-			return Main.PARAM_VAL_FROM_TIME;
+			return GlobalParameters.PARAM_VAL_FROM_TIME;
 		}
 	}
 	public void setFetchFromTime(String fetchFromTime) {
 		this.fetchFromTime = fetchFromTime;
 	}
 	public String getFetchToTime() {
-		if (Main.PARAM_VAL_TO_TIME == null) {
+		if (GlobalParameters.PARAM_VAL_TO_TIME == null) {
 			// Not part of program parameter
 			// Return whatever (if any) value provided in file request
 			return fetchToTime;	
 		} else {
 			// Overrule value in file request (if any) with the program parameter
-			return Main.PARAM_VAL_TO_TIME;
+			return GlobalParameters.PARAM_VAL_TO_TIME;
 		}
 	}
 	public void setFetchToTime(String fetchToTime) {
@@ -254,9 +253,9 @@ public class IntegratedConfigurationMain {
 		try {
 			// Determine source index (how the request ICO's are created)
 			int sourceIndex = -1;
-			if (Main.Environment.DEV.toString().equals(sourceEnv)) {
+			if (GlobalParameters.Environment.DEV.toString().equals(sourceEnv)) {
 				sourceIndex = 0;
-			} else if (Main.Environment.TST.toString().equals(sourceEnv)) {
+			} else if (GlobalParameters.Environment.TST.toString().equals(sourceEnv)) {
 				sourceIndex = 1;
 			} else {
 				sourceIndex = 2;
@@ -264,9 +263,9 @@ public class IntegratedConfigurationMain {
 			
 			// Determine target index (which target system to map to when injecting)
 			int targetIndex = -1;
-			if (Main.Environment.DEV.toString().equals(targetEnv)) {
+			if (GlobalParameters.Environment.DEV.toString().equals(targetEnv)) {
 				targetIndex = 0;
-			} else if (Main.Environment.TST.toString().equals(targetEnv)) {
+			} else if (GlobalParameters.Environment.TST.toString().equals(targetEnv)) {
 				targetIndex = 1;
 			} else {
 				targetIndex = 2;

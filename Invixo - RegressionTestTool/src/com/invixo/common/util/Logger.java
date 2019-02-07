@@ -3,8 +3,7 @@ package com.invixo.common.util;
 import java.io.FileWriter;
 import java.io.StringWriter;
 
-import com.invixo.main.Main;
-
+import com.invixo.main.GlobalParameters;
 
 public class Logger {
 	// Variables
@@ -13,7 +12,7 @@ public class Logger {
 	private static final String LOG_TYPE_ERROR_TXT = "[ERROR]";
     private static final String LOG_TYPE_DEBUG_TXT = "[DEBUG]";
 	
-	private final String logFileName = "RunLog_" + System.currentTimeMillis() + "_" + Main.PARAM_VAL_OPERATION + ".txt";
+	private final String logFileName = "RunLog_" + System.currentTimeMillis() + "_" + GlobalParameters.PARAM_VAL_OPERATION + ".txt";
 	private FileWriter fileWriter = null;
     private static Logger instance;
     private enum LoggingTypes {CONSOLE, FILE};
@@ -33,7 +32,7 @@ public class Logger {
                 // Initialize log file
                 if (LoggingTypes.FILE.toString().equals(LOGGING_TYPE)) {
                 	// TODO FileStructure is not initialized at this point and thus cannot be used... This should be fixed at some point...
-                	String logFile = Main.PARAM_VAL_BASE_DIR + "\\Logs\\" + instance.logFileName;
+                	String logFile = GlobalParameters.PARAM_VAL_BASE_DIR + "\\Logs\\" + instance.logFileName;
         			instance.fileWriter = new FileWriter(logFile, true);            	
                 }
         	}

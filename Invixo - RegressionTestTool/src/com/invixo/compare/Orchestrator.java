@@ -7,7 +7,7 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.compare.IntegratedConfiguration;
-import com.invixo.main.Main;
+import com.invixo.main.GlobalParameters;
 
 public class Orchestrator {
 	private static Logger logger = Logger.getInstance();
@@ -40,8 +40,8 @@ public class Orchestrator {
 			logger.writeDebug(LOCATION, SIGNATURE, "[ICO: " + (i+1) + " ] processing");
 			Path currentSourcePath = sourceIcoFiles.get(i);
 			String icoName = Util.getFileName(currentSourcePath.toString(), false);
-			String sourceIcoComparePath = buildEnvironmentComparePath(currentSourcePath, Main.PARAM_VAL_SOURCE_ENV, icoName);
-			String targetIcoComparePath = buildEnvironmentComparePath(currentSourcePath, Main.PARAM_VAL_TARGET_ENV, icoName);
+			String sourceIcoComparePath = buildEnvironmentComparePath(currentSourcePath, GlobalParameters.PARAM_VAL_SOURCE_ENV, icoName);
+			String targetIcoComparePath = buildEnvironmentComparePath(currentSourcePath, GlobalParameters.PARAM_VAL_TARGET_ENV, icoName);
 
 			// Create instance of CompareHandler containing all relevant data for a given ICO compare
 			IntegratedConfiguration ico = new IntegratedConfiguration(sourceIcoComparePath, targetIcoComparePath, icoName);

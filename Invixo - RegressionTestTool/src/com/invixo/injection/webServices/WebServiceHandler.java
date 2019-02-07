@@ -24,16 +24,15 @@ import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.injection.InjectionPayloadException;
 import com.invixo.main.GlobalParameters;
-import com.invixo.main.Main;
 
 public class WebServiceHandler {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = WebServiceHandler.class.getName();
 	private static final String ENCODING = GlobalParameters.ENCODING;
-	private static final String WEB_SERVICE_USER = Main.CREDENTIAL_USER;
-	private static final String WEB_SERVICE_PASS = Main.CREDENTIAL_PASS;
-	private static final String SERVICE_HOST_PORT = Main.SAP_PO_HTTP_HOST_AND_PORT;
-	private static final String SERVICE_PATH_INJECT = PropertyAccessor.getProperty("SERVICE_PATH_INJECT") + Main.PARAM_VAL_SENDER_COMPONENT + ":" + Main.PARAM_VAL_XI_SENDER_ADAPTER;
+	private static final String WEB_SERVICE_USER = GlobalParameters.CREDENTIAL_USER;
+	private static final String WEB_SERVICE_PASS = GlobalParameters.CREDENTIAL_PASS;
+	private static final String SERVICE_HOST_PORT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT;
+	private static final String SERVICE_PATH_INJECT = PropertyAccessor.getProperty("SERVICE_PATH_INJECT") + GlobalParameters.PARAM_VAL_SENDER_COMPONENT + ":" + GlobalParameters.PARAM_VAL_XI_SENDER_ADAPTER;
 	private static final String ENDPOINT = SERVICE_HOST_PORT + SERVICE_PATH_INJECT;
 	public static final String CID_PAYLOAD = "INJECTION_PAYLOAD";
 	public static final String CID_HEADER = "INJECTION_HEADER";

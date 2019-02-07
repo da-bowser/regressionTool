@@ -25,8 +25,6 @@ import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
-import com.invixo.main.Main;
-
 
 public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/*====================================================================================
@@ -97,7 +95,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Check: execution can take place in 2 modes: 
 			// 1) init (first time extracting data from PROD)
 			// 2) non-init (reference time for extracting data - not from PROD)
-			if (Boolean.parseBoolean(Main.PARAM_VAL_EXTRACT_MODE_INIT)) {
+			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
 				extractModeInit();
 			} else {
 				extractModeNonInit();
@@ -354,7 +352,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			this.messageKeys.add(msgKey);
 			
 			// Fetch payload: FIRST
-			if (Boolean.parseBoolean(Main.PARAM_VAL_EXTRACT_MODE_INIT)) {
+			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
 				msgKey.processMessageKey(key, true);
 			}
 			

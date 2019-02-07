@@ -15,75 +15,53 @@ import com.invixo.consistency.FileStructure;
 import com.invixo.directory.api.Orchestrator;
 
 public class Main {
-	
 	private static Logger logger = null;
-	private static final String LOCATION	= Main.class.getName();
-	
-	public enum Environment { DEV, TST, PRD };
-	public enum Operation { extract, inject, compare , createIcoOverview};
+	private static final String LOCATION = Main.class.getName();
 	
 	// Parameter: dictates which environment *all* ICO request files are based on. (used for translation/mapping of sender system)
 	private static final String PARAM_KEY_ICO_REQUEST_FILES_ENV = "icoRequestFilesEnv";
-	public static String PARAM_VAL_ICO_REQUEST_FILES_ENV 		= null;
 	
 	// Parameter: base directory for all reading and writing to/from file system
 	private static final String PARAM_KEY_BASE_DIR 				= "baseDirectory";
-	public static String PARAM_VAL_BASE_DIR 					= null;
 	
 	// Parameter: target environment to extract from, inject to or compare with
 	private static final String PARAM_KEY_TARGET_ENV 			= "targetEnv";
-	public static String PARAM_VAL_TARGET_ENV 					= null;
 	
 	// Parameter: operation for program to perform (extract, inject, compare)
 	private static final String PARAM_KEY_OPERATION 			= "operation";
-	public static String PARAM_VAL_OPERATION 					= null;
 	
 	// Parameter: source environment to compare to targetEnvironment or in the case on injection, which environment to inject payload files from
 	private static final String PARAM_KEY_SOURCE_ENV 			= "sourceEnv";
-	public static String PARAM_VAL_SOURCE_ENV 					= null;
 	
 	// Parameter: location of a credentials file (expected to contain 2 lines. First line contains user name only, second line contains password
 	private static final String PARAM_KEY_CREDENTIALS_FILE		= "credentialsFile";
 	private static String PARAM_VAL_CREDENTIALS_FILE 			= null;
 	
-	// Data read from credentials file (line 1 and 2)
-	public static String CREDENTIAL_USER						= null;
-	public static String CREDENTIAL_PASS 						= null;
-	
 	// Parameter: SAP PO host name. Example: ipod.invixo.com
 	private static final String PARAM_KEY_HTTP_HOST				= "httpHost";
-	public static String PARAM_VAL_HTTP_HOST					= null;
+	private static String PARAM_VAL_HTTP_HOST					= null;
 
 	// Parameter: SAP PO host name. Example: 50000
 	private static String PARAM_KEY_HTTP_PORT					= "httpPort";
-	public static String PARAM_VAL_HTTP_PORT 					= null;
-	
-	// SAP PO URL PREFIX/START. Example result: http://ipod.invixo.com:50000/
-	public static String SAP_PO_HTTP_HOST_AND_PORT				= null;
+	private static String PARAM_VAL_HTTP_PORT 					= null;
 	
 	// Parameter: SAP XI sender adapter name
 	private static final String PARAM_KEY_XI_SENDER_ADAPTER		= "xiSenderAdapter";
-	public static String PARAM_VAL_XI_SENDER_ADAPTER 			= null;
 
 	// Parameter: SAP XI sender component containing the XI adapter
 	private static final String PARAM_KEY_SENDER_COMPONENT		= "senderComponent";
-	public static String PARAM_VAL_SENDER_COMPONENT 			= null;
 
 	// Parameter: internal test parameter to skip deletion of target env payload files when source and target env are identical 
 	private static final String PARAM_KEY_ALLOW_SAME_ENV		= "allowSameEnv";
-	public static boolean PARAM_VAL_ALLOW_SAME_ENV 				= false;
 	
 	// Parameter: From time (for extraction)
 	private static final String PARAM_KEY_FROM_TIME				= "fromTime";
-	public static String PARAM_VAL_FROM_TIME 					= null;
 
 	// Parameter: To time (for extraction)
 	private static final String PARAM_KEY_TO_TIME				= "toTime";
-	public static String PARAM_VAL_TO_TIME 						= null;
 	
 	// Parameter: Extract mode (init or non-init)
 	private static final String PARAM_KEY_EXTRACT_MODE_INIT		= "extractModeInit";
-	public static String PARAM_VAL_EXTRACT_MODE_INIT 			= null;
 	
 	
 	public static void main(String[] args) {
@@ -103,7 +81,7 @@ public class Main {
 			logger = Logger.getInstance();
 			
 			// Execute
-			if (Operation.extract.toString().equals(PARAM_VAL_OPERATION)) {
+			if (GlobalParameters.Operation.extract.toString().equals(GlobalParameters.PARAM_VAL_OPERATION)) {
 				// Validate operation specific parameters
 				validateExtractParameters();
 				
@@ -111,11 +89,11 @@ public class Main {
 				readAndSetCredentials(PARAM_VAL_CREDENTIALS_FILE);
 				
 				// Post parameter handling: build complete PO host and port
-				SAP_PO_HTTP_HOST_AND_PORT = buildHttpHostPort();
+				GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT = buildHttpHostPort();
 				
 				// Process
 				extract();
-			} else if (Operation.inject.toString().equals(PARAM_VAL_OPERATION)) {
+			} else if (GlobalParameters.Operation.inject.toString().equals(GlobalParameters.PARAM_VAL_OPERATION)) {
 				// Validate operation specific parameters
 				validateInjectParameters();
 				
@@ -123,11 +101,11 @@ public class Main {
 				readAndSetCredentials(PARAM_VAL_CREDENTIALS_FILE);
 				
 				// Post parameter handling: build complete PO host and port
-				SAP_PO_HTTP_HOST_AND_PORT = buildHttpHostPort();
+				GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT = buildHttpHostPort();
 				
 				// Process
 				inject(); 
-			} else if (Operation.compare.toString().equals(PARAM_VAL_OPERATION)) {
+			} else if (GlobalParameters.Operation.compare.toString().equals(GlobalParameters.PARAM_VAL_OPERATION)) {
 				// Process				
 				compare();
 			} else {
@@ -135,7 +113,7 @@ public class Main {
 				readAndSetCredentials(PARAM_VAL_CREDENTIALS_FILE);
 				
 				// Post parameter handling: build complete PO host and port
-				SAP_PO_HTTP_HOST_AND_PORT = buildHttpHostPort();
+				GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT = buildHttpHostPort();
 				
 				// Process
 				createIcoOverview();
@@ -158,32 +136,32 @@ public class Main {
 	private static void validateGeneralParameters() throws ValidationException {
 		StringWriter sw = new StringWriter();
 		
-		if (PARAM_VAL_SOURCE_ENV == null) {
+		if (GlobalParameters.PARAM_VAL_SOURCE_ENV == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_SOURCE_ENV + " not set.\n");
-		} else if (!environmentContains(PARAM_VAL_SOURCE_ENV)) {
-			sw.write("Program parameter " + PARAM_KEY_SOURCE_ENV + " contains unsupported value. Value provided is: '" + PARAM_VAL_SOURCE_ENV + "'");			
+		} else if (!environmentContains(GlobalParameters.PARAM_VAL_SOURCE_ENV)) {
+			sw.write("Program parameter " + PARAM_KEY_SOURCE_ENV + " contains unsupported value. Value provided is: '" + GlobalParameters.PARAM_VAL_SOURCE_ENV + "'");			
 		}	
 		
-		if (PARAM_VAL_ICO_REQUEST_FILES_ENV == null) {
+		if (GlobalParameters.PARAM_VAL_ICO_REQUEST_FILES_ENV == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_ICO_REQUEST_FILES_ENV + " not set.\n");
-		} else if (!environmentContains(PARAM_VAL_ICO_REQUEST_FILES_ENV)) {
-			sw.write("Program parameter " + PARAM_KEY_ICO_REQUEST_FILES_ENV + " contains unsupported value. Value provided is: '" + PARAM_VAL_ICO_REQUEST_FILES_ENV + "'");			
+		} else if (!environmentContains(GlobalParameters.PARAM_VAL_ICO_REQUEST_FILES_ENV)) {
+			sw.write("Program parameter " + PARAM_KEY_ICO_REQUEST_FILES_ENV + " contains unsupported value. Value provided is: '" + GlobalParameters.PARAM_VAL_ICO_REQUEST_FILES_ENV + "'");			
 		}
 
-		if (PARAM_VAL_BASE_DIR == null) {
+		if (GlobalParameters.PARAM_VAL_BASE_DIR == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_BASE_DIR + " not set.\n");
 		}
 
-		if (PARAM_VAL_TARGET_ENV == null) {
+		if (GlobalParameters.PARAM_VAL_TARGET_ENV == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_TARGET_ENV + " not set.\n");
-		} else if (!environmentContains(PARAM_VAL_TARGET_ENV)) {
-			sw.write("Program parameter " + PARAM_KEY_TARGET_ENV + " contains unsupported value. Value provided is: '" + PARAM_VAL_TARGET_ENV + "'");			
+		} else if (!environmentContains(GlobalParameters.PARAM_VAL_TARGET_ENV)) {
+			sw.write("Program parameter " + PARAM_KEY_TARGET_ENV + " contains unsupported value. Value provided is: '" + GlobalParameters.PARAM_VAL_TARGET_ENV + "'");			
 		}
 		
-		if (PARAM_VAL_OPERATION == null) {
+		if (GlobalParameters.PARAM_VAL_OPERATION == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_OPERATION + " not set.\n");
-		} else if (!operationContains(PARAM_VAL_OPERATION)) {
-			sw.write("Program parameter " + PARAM_KEY_OPERATION + " contains unsupported value. Value provided is: '" + PARAM_VAL_OPERATION + "'");			
+		} else if (!operationContains(GlobalParameters.PARAM_VAL_OPERATION)) {
+			sw.write("Program parameter " + PARAM_KEY_OPERATION + " contains unsupported value. Value provided is: '" + GlobalParameters.PARAM_VAL_OPERATION + "'");			
 		}
 		
 		if (!sw.toString().equals("")) {
@@ -202,7 +180,7 @@ public class Main {
 			sw.write(e.getMessage());
 		}
 		
-		if (PARAM_VAL_EXTRACT_MODE_INIT == null) {
+		if (GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_EXTRACT_MODE_INIT + " not set.\n");
 		} 
 		
@@ -215,10 +193,10 @@ public class Main {
 	private static void validateCommonExtractAndInjectParameters() throws ValidationException {
 		StringWriter sw = new StringWriter();
 		
-		if (PARAM_VAL_ICO_REQUEST_FILES_ENV == null) {
+		if (GlobalParameters.PARAM_VAL_ICO_REQUEST_FILES_ENV == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_ICO_REQUEST_FILES_ENV + " not set.\n");
-		} else if (!environmentContains(PARAM_VAL_ICO_REQUEST_FILES_ENV)) {
-			sw.write("Program parameter " + PARAM_KEY_ICO_REQUEST_FILES_ENV + " contains unsupported value. Value provided is: '" + PARAM_VAL_ICO_REQUEST_FILES_ENV + "'");			
+		} else if (!environmentContains(GlobalParameters.PARAM_VAL_ICO_REQUEST_FILES_ENV)) {
+			sw.write("Program parameter " + PARAM_KEY_ICO_REQUEST_FILES_ENV + " contains unsupported value. Value provided is: '" + GlobalParameters.PARAM_VAL_ICO_REQUEST_FILES_ENV + "'");			
 		}
 		
 		if (PARAM_VAL_CREDENTIALS_FILE == null) {
@@ -252,15 +230,15 @@ public class Main {
 		}
 		
 		// Do not allow injecting to PRD
-		if (Environment.PRD.toString().equals(PARAM_VAL_TARGET_ENV)) {
+		if (GlobalParameters.Environment.PRD.toString().equals(GlobalParameters.PARAM_VAL_TARGET_ENV)) {
 			sw.write("Program parameter " + PARAM_KEY_TARGET_ENV + " points to PRD. This is not supported\n");
 		}	
 		
-		if (PARAM_VAL_XI_SENDER_ADAPTER == null) {
+		if (GlobalParameters.PARAM_VAL_XI_SENDER_ADAPTER == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_XI_SENDER_ADAPTER + " not set.\n");
 		} 
 		
-		if (PARAM_VAL_SENDER_COMPONENT == null) {
+		if (GlobalParameters.PARAM_VAL_SENDER_COMPONENT == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_SENDER_COMPONENT + " not set.\n");
 		} 
 		
@@ -273,15 +251,15 @@ public class Main {
 	private static void setInternalParameters(String[] args) {
 		for (String param : args) {	
 			if(param.contains(PARAM_KEY_ICO_REQUEST_FILES_ENV)) {
-				PARAM_VAL_ICO_REQUEST_FILES_ENV = param.replace(PARAM_KEY_ICO_REQUEST_FILES_ENV + "=", "");
+				GlobalParameters.PARAM_VAL_ICO_REQUEST_FILES_ENV = param.replace(PARAM_KEY_ICO_REQUEST_FILES_ENV + "=", "");
 			} else if(param.contains(PARAM_KEY_BASE_DIR)) {
-				PARAM_VAL_BASE_DIR = param.replace(PARAM_KEY_BASE_DIR + "=", "");
+				GlobalParameters.PARAM_VAL_BASE_DIR = param.replace(PARAM_KEY_BASE_DIR + "=", "");
 			} else if(param.contains(PARAM_KEY_TARGET_ENV)) {
-				PARAM_VAL_TARGET_ENV = param.replace(PARAM_KEY_TARGET_ENV + "=", "");
+				GlobalParameters.PARAM_VAL_TARGET_ENV = param.replace(PARAM_KEY_TARGET_ENV + "=", "");
 			} else if(param.contains(PARAM_KEY_OPERATION)) {
-				PARAM_VAL_OPERATION = param.replace(PARAM_KEY_OPERATION + "=", "");
+				GlobalParameters.PARAM_VAL_OPERATION = param.replace(PARAM_KEY_OPERATION + "=", "");
 			} else if(param.contains(PARAM_KEY_SOURCE_ENV)) {
-				PARAM_VAL_SOURCE_ENV = param.replace(PARAM_KEY_SOURCE_ENV + "=", "");
+				GlobalParameters.PARAM_VAL_SOURCE_ENV = param.replace(PARAM_KEY_SOURCE_ENV + "=", "");
 			} else if(param.contains(PARAM_KEY_CREDENTIALS_FILE)) {
 				PARAM_VAL_CREDENTIALS_FILE = param.replace(PARAM_KEY_CREDENTIALS_FILE + "=", "");
 			} else if(param.contains(PARAM_KEY_HTTP_HOST)) {
@@ -289,20 +267,20 @@ public class Main {
 			} else if(param.contains(PARAM_KEY_HTTP_PORT)) {
 				PARAM_VAL_HTTP_PORT = param.replace(PARAM_KEY_HTTP_PORT + "=", "");
 			} else if(param.contains(PARAM_KEY_XI_SENDER_ADAPTER)) {
-				PARAM_VAL_XI_SENDER_ADAPTER = param.replace(PARAM_KEY_XI_SENDER_ADAPTER + "=", "");
+				GlobalParameters.PARAM_VAL_XI_SENDER_ADAPTER = param.replace(PARAM_KEY_XI_SENDER_ADAPTER + "=", "");
 			} else if(param.contains(PARAM_KEY_SENDER_COMPONENT)) {
-				PARAM_VAL_SENDER_COMPONENT = param.replace(PARAM_KEY_SENDER_COMPONENT + "=", "");
+				GlobalParameters.PARAM_VAL_SENDER_COMPONENT = param.replace(PARAM_KEY_SENDER_COMPONENT + "=", "");
 			} else if(param.contains(PARAM_KEY_ALLOW_SAME_ENV)) {
 				// Only ever set this parameter to true, if the source and target environments are actually identical
-				if (PARAM_VAL_SOURCE_ENV.equals(PARAM_VAL_TARGET_ENV)) {
-					PARAM_VAL_ALLOW_SAME_ENV = Boolean.parseBoolean(param.replace(PARAM_KEY_ALLOW_SAME_ENV + "=", ""));
+				if (GlobalParameters.PARAM_VAL_SOURCE_ENV.equals(GlobalParameters.PARAM_VAL_TARGET_ENV)) {
+					GlobalParameters.PARAM_VAL_ALLOW_SAME_ENV = Boolean.parseBoolean(param.replace(PARAM_KEY_ALLOW_SAME_ENV + "=", ""));
 				}
 			} else if(param.contains(PARAM_KEY_FROM_TIME)) {
-				PARAM_VAL_FROM_TIME = param.replace(PARAM_KEY_FROM_TIME + "=", "");
+				GlobalParameters.PARAM_VAL_FROM_TIME = param.replace(PARAM_KEY_FROM_TIME + "=", "");
 			} else if(param.contains(PARAM_KEY_TO_TIME)) {
-				PARAM_VAL_TO_TIME = param.replace(PARAM_KEY_TO_TIME + "=", "");
+				GlobalParameters.PARAM_VAL_TO_TIME = param.replace(PARAM_KEY_TO_TIME + "=", "");
 			} else if(param.contains(PARAM_KEY_EXTRACT_MODE_INIT)) {
-				PARAM_VAL_EXTRACT_MODE_INIT = param.replace(PARAM_KEY_EXTRACT_MODE_INIT + "=", "");
+				GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT = param.replace(PARAM_KEY_EXTRACT_MODE_INIT + "=", "");
 			}
 		}
 	}
@@ -317,10 +295,10 @@ public class Main {
 			List<String> credentialLines = Files.lines(credentialsFile.get(0)).collect(Collectors.toList());
 			
 			// Line 1: user name
-			CREDENTIAL_USER = credentialLines.get(0);
+			GlobalParameters.CREDENTIAL_USER = credentialLines.get(0);
 			
 			// line 2: password
-			CREDENTIAL_PASS = credentialLines.get(1);
+			GlobalParameters.CREDENTIAL_PASS = credentialLines.get(1);
 			
 		} catch (IOException e) {
 			String msg = "Error | Problem reading credentials file from :" + sourceDirectory + " " + e.getMessage();
@@ -394,7 +372,7 @@ public class Main {
 	}
 
 	public static boolean operationContains(String value) {
-	    for (Operation operation : Operation.values()) {
+	    for (GlobalParameters.Operation operation : GlobalParameters.Operation.values()) {
 	        if (operation.name().equals(value)) {
 	            return true;
 	        }
@@ -404,7 +382,7 @@ public class Main {
 
 	
 	public static boolean environmentContains(String value) {
-	    for (Environment env : Environment.values()) {
+	    for (GlobalParameters.Environment env : GlobalParameters.Environment.values()) {
 	        if (env.name().equals(value)) {
 	            return true;
 	        }
