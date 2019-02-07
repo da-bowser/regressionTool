@@ -19,13 +19,6 @@ public class Orchestrator {
 	private static ArrayList<IntegratedConfiguration> icoExtractList = new ArrayList<IntegratedConfiguration>();
 	
 
-	
-	public static void main(String[] args) {
-		// Test process for all files
-		start();
-	}
-	
-
 	/**
 	 * This method extracts data from SAP PO based on request ICO files on file system.
 	 */

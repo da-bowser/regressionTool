@@ -323,7 +323,7 @@ public class MessageKey {
 		}
 	
 		// Make sure the new dynamic directory is created
-		FileStructure.createDirIfNotExists(targetDir);
+		Util.createDirIfNotExists(targetDir);
 		return targetDir;
 	}
 	

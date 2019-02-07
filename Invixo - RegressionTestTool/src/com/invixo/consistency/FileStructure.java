@@ -45,7 +45,7 @@ public class FileStructure {
 	public static final String DIR_INJECT							= FILE_BASE_LOCATION + "\\_Inject\\";
 	
 	// Various
-	public static final String DIR_LOGS								= FILE_BASE_LOCATION + "\\Logs\\";
+	public static final String DIR_LOGS								= FILE_BASE_LOCATION + "\\Logs\\";		// Manually set in Logger also.
 	public static final String DIR_REPORTS							= FILE_BASE_LOCATION + "\\Reports\\";
 	public static final String DIR_CONFIG							= FILE_BASE_LOCATION + "\\Config\\";
 	public static final String DIR_DEBUG							= FILE_BASE_LOCATION + "\\Debug\\";
@@ -106,15 +106,15 @@ public class FileStructure {
 	 * Ensure project folder structure is healthy.
 	 */
 	private static void checkFolderStructure() {
-		createDirIfNotExists(FILE_BASE_LOCATION);
-		createDirIfNotExists(DIR_EXTRACT);
-		createDirIfNotExists(DIR_EXTRACT_INPUT);
-		createDirIfNotExists(DIR_EXTRACT_OUTPUT_PRE);
-		createDirIfNotExists(DIR_INJECT);
-		createDirIfNotExists(DIR_LOGS);
-		createDirIfNotExists(DIR_REPORTS);
-		createDirIfNotExists(DIR_CONFIG);
-		createDirIfNotExists(DIR_DEBUG);
+		Util.createDirIfNotExists(FILE_BASE_LOCATION);
+		Util.createDirIfNotExists(DIR_EXTRACT);
+		Util.createDirIfNotExists(DIR_EXTRACT_INPUT);
+		Util.createDirIfNotExists(DIR_EXTRACT_OUTPUT_PRE);
+		Util.createDirIfNotExists(DIR_INJECT);
+		Util.createDirIfNotExists(DIR_LOGS);
+		Util.createDirIfNotExists(DIR_REPORTS);
+		Util.createDirIfNotExists(DIR_CONFIG);
+		Util.createDirIfNotExists(DIR_DEBUG);
 		
 		// Generate dynamic output folders based on ICO request files
 		List<Path> icoFiles = Util.generateListOfPaths(DIR_EXTRACT_INPUT, "FILE");
@@ -123,20 +123,20 @@ public class FileStructure {
 			String icoDynamicPath = DIR_EXTRACT_OUTPUT_PRE + Util.getFileName(path.toAbsolutePath().toString(), false);
 			
 			// Create ICO directory
-			createDirIfNotExists(icoDynamicPath);
+			Util.createDirIfNotExists(icoDynamicPath);
 			
 			// Create output folders for DEV, TST, PROD
-			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_DEV_FIRST);
-			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_DEV_LAST);
-			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_TST_FIRST);
-			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_TST_LAST);
-			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_PRD_FIRST);
-			createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_PRD_LAST);
+			Util.createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_DEV_FIRST);
+			Util.createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_DEV_LAST);
+			Util.createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_TST_FIRST);
+			Util.createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_TST_LAST);
+			Util.createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_PRD_FIRST);
+			Util.createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_PRD_LAST);
 		}
 	}
 
 	
-	public static void checkBaseFiles() {
+	private static void checkBaseFiles() {
 		String SIGNATURE = "checkBaseFiles()";
 		
 		File systemMappingFile = new File(FILE_CONFIG_SYSTEM_MAPPING);
@@ -201,7 +201,6 @@ public class FileStructure {
 				
 				// Close element: Configuration | IntegratedConfiguration
 				xmlWriter.writeEndElement();
-				
 			}
 			
 			// Close element: IntegratedConfigurations
@@ -210,14 +209,13 @@ public class FileStructure {
 			// Finalize writing
 			xmlWriter.flush();
 			xmlWriter.close();
-
 		} catch (XMLStreamException | FileNotFoundException e) {
 			throw new RuntimeException("Error generating compareExceptions.xml file! " + e);
 		}
 	}
 	
 
-	public static void deletePayloadFiles(String rootDirectory, String environment) {
+	private static void deletePayloadFiles(String rootDirectory, String environment) {
 		// Create pathMatcher which will match all files and directories (in the world of this tool, only files) that
 		// are located in FIRST or LAST directories for the specified environment.
 		String pattern = "^(?=.*\\\\" + environment + "\\\\.*\\\\.*\\\\.*\\\\).*$";
@@ -235,19 +233,6 @@ public class FileStructure {
 			});
 		} catch (IOException e) {
 			throw new RuntimeException("*deletePayloadFiles* Error finding files." + e);
-		}
-	}
-	
-	
-	/**
-	 * Create directories part of a directory path, if they are missing
-	 * @param directoryPath
-	 */
-	public static void createDirIfNotExists(String directorypath) {
-		try {
-			Files.createDirectories(Paths.get(directorypath));			
-		} catch (IOException e) {
-			throw new RuntimeException("*createDirIfNotExists* Error creating directories for path: " + directorypath);
 		}
 	}
 	

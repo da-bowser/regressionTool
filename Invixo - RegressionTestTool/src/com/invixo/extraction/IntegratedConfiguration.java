@@ -40,19 +40,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *====================================================================================*/
 	private ArrayList<String> responseMessageKeys = new ArrayList<String>();	// MessageKey IDs returned by Web Service GetMessageList
 	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();	// List of MessageKeys created/processed
-
-	
-	
-	/*====================================================================================
-	 *------------- Main (for testing purposes)
-	 *====================================================================================*/	
-	public static void main(String[] args) throws GeneralException {
-		// Test GetMessageList request creation
-		String file = "c:\\Users\\dhek\\Desktop\\_beginning_\\_Extract\\Input\\Integrated Configurations\\Varemodtagelse - Sys_P_WMS_ODENSE oa_GoodsNotification_ODE_to_Sys_PRD_011_ia_GoodsReceipt.xml";
-		String mappingFile = "c:\\Users\\dhek\\Desktop\\_beginning_\\Config\\systemMapping.txt";
-		IntegratedConfiguration ico = new IntegratedConfiguration(file, mappingFile, "PRD", "TST");
-		createGetMessageListRequest(ico);
-	}
 	
 	
 	

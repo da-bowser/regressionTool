@@ -241,5 +241,18 @@ public class Util {
 		// Return map
 		return map;
 	}
+	
+	
+	/**
+	 * Create directories part of a directory path, if they are missing
+	 * @param directoryPath
+	 */
+	public static void createDirIfNotExists(String directorypath) {
+		try {
+			Files.createDirectories(Paths.get(directorypath));			
+		} catch (IOException e) {
+			throw new RuntimeException("*createDirIfNotExists* Error creating directories for path: " + directorypath);
+		}
+	}
 
 }

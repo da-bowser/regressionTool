@@ -3,7 +3,6 @@ package com.invixo.common.util;
 import java.io.FileWriter;
 import java.io.StringWriter;
 
-import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
 
 public class Logger {
@@ -35,7 +34,7 @@ public class Logger {
                 	// TODO FileStructure is not initialized at this point and thus cannot be used... This should be fixed at some point...
                 	String logDir = GlobalParameters.PARAM_VAL_BASE_DIR + "\\Logs\\";
                 	String logFile = logDir + instance.logFileName;
-                	FileStructure.createDirIfNotExists(logDir);
+                	Util.createDirIfNotExists(logDir);
         			instance.fileWriter = new FileWriter(logFile, true);            	
                 }
         	}
