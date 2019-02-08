@@ -1,7 +1,12 @@
 package com.invixo.extraction;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Paths;
 
@@ -47,13 +52,34 @@ class IntegratedConfigurationTest {
 			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest, pathSystemMapping, "PRD", "TST");
 			byte[] request = IntegratedConfiguration.createGetMessageListRequest(ico);
 			
-			if (request == null) {
-				fail();
-			}
+			// Check
+			assertNotNull(request);
 		} catch (Exception e) {
-			System.out.println("It aint cooking chef! " + e);
-			fail();
+			fail("It aint cooking chef! " + e);
 		}
 	}
 
+	
+	@Test
+	@DisplayName("Verify extractMessageInfo filters split messages data correct")
+	void extractMessageInfoFiltersCorrect() {
+		try {
+			// Get path: web service response (GetMessagesWithSuccessors)
+			String response = "../../../resources/extraction/testfiles/extractMessageInfo_Input.xml";
+			URL urlResponse = this.getClass().getResource(response);
+			String pathResponse = Paths.get(urlResponse.toURI()).toString();
+			
+			// Read response bytes
+			InputStream is = new FileInputStream(new File(pathResponse));
+			
+			// Create GetMessageList request
+			MessageInfo msgInfo = IntegratedConfiguration.extractMessageInfo(is, "ia_CrossApplicationLogging");
+			
+			// Check
+			assertEquals(20, msgInfo.getSplitMessageIds().size());
+		} catch (Exception e) {
+			fail("It aint cooking chef! " + e);
+		}
+	}
+	
 }

@@ -77,7 +77,7 @@ public class Logger {
 		}
 		
 		// Add remaining to string
-		sw.write(" | " + System.nanoTime() + " | " + location + "@" + signature + " | " + msg + "\n");
+		sw.write(" | " + System.currentTimeMillis() + " | " + location + "@" + signature + " | " + msg + "\n");
     	
 		sw.flush();
 		return sw.toString();
