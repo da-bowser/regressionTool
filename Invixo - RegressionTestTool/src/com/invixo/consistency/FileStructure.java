@@ -3,15 +3,8 @@ package com.invixo.consistency;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Stream;
-
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -74,31 +67,7 @@ public class FileStructure {
 		// Ensure critical run files exists
 		checkBaseFiles();
 		
-		// Clean-up old data from "Output"
-		if (GlobalParameters.PARAM_VAL_ALLOW_SAME_ENV) {
-			logger.writeDebug(LOCATION, SIGNATURE, "Deletion of target data skipped (due to program parameter setting)");	
-		} else {
-			deleteOldRunData();
-		}
-		
 		logger.writeDebug(LOCATION, SIGNATURE, "File structure check completed!");
-	}
-
-
-	/**
-	 * Makes sure all old run data for target environment is deleted before a new run.
-	 */
-	private static void deleteOldRunData() {
-		final String SIGNATURE = "deleteOldRunData()";
-		try {       
-			// Cleanup: delete all files contained in "Extract Output". Only done for sub-directories part of the specified target environment
-			deletePayloadFiles(DIR_EXTRACT_OUTPUT_PRE, GlobalParameters.PARAM_VAL_TARGET_ENV);
-			logger.writeDebug(LOCATION, SIGNATURE, "Housekeeping: all old payload files deleted from root: " + DIR_EXTRACT_OUTPUT_PRE + " for environment: " + GlobalParameters.PARAM_VAL_TARGET_ENV);
-		} catch (Exception e) {
-			String ex = "Housekeeping terminated with error! " + e;
-			logger.writeError(LOCATION, SIGNATURE, ex);
-			throw new RuntimeException(e);
-		}            
 	}
 
 
@@ -211,28 +180,6 @@ public class FileStructure {
 			xmlWriter.close();
 		} catch (XMLStreamException | FileNotFoundException e) {
 			throw new RuntimeException("Error generating compareExceptions.xml file! " + e);
-		}
-	}
-	
-
-	private static void deletePayloadFiles(String rootDirectory, String environment) {
-		// Create pathMatcher which will match all files and directories (in the world of this tool, only files) that
-		// are located in FIRST or LAST directories for the specified environment.
-		String pattern = "^(?=.*\\\\" + environment + "\\\\.*\\\\.*\\\\.*\\\\).*$";
-		PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("regex:" + pattern);
-		
-		// Find all matches to above regex starting from the specified DIR
-		try (Stream<Path> paths = Files.find(Paths.get(rootDirectory), 100, (path, f)->pathMatcher.matches(path))) {
-			// Delete all matches
-			paths.forEach(path -> {
-				try {
-					Files.delete(path);
-				} catch (IOException e) {
-					throw new RuntimeException("*deletePayloadFiles* Error deleting file '" + path + "'\n" + e);
-				}
-			});
-		} catch (IOException e) {
-			throw new RuntimeException("*deletePayloadFiles* Error finding files." + e);
 		}
 	}
 	

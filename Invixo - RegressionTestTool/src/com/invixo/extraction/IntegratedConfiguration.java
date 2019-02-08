@@ -5,9 +5,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -78,7 +84,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		final String SIGNATURE = "startExtraction(String)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO request file: " + this.fileName);
-					
+			
+			// Housekeeping: Delete old ICO extract data
+			deleteOldRunData();
+			
 			// Check: execution can take place in 2 modes: 
 			// 1) init (first time extracting data from PROD)
 			// 2) non-init (reference time for extracting data - not from PROD)
@@ -94,7 +103,48 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		}
 	}
 	
-	
+	/**
+	 * Makes sure all old run data for target environment is deleted before a new run.
+	 */
+	private void deleteOldRunData() {
+		final String SIGNATURE = "deleteOldRunData()";
+		try {       
+			// Build output directory path
+			String outputDirWithIcoName = FileStructure.DIR_EXTRACT_OUTPUT_PRE + "\\" + this.getName();
+			
+			// Cleanup: delete all files contained in "Extract Output" for current ico. Only done for sub-directories part of the specified target environment
+			deletePayloadFiles(outputDirWithIcoName, GlobalParameters.PARAM_VAL_TARGET_ENV);
+			logger.writeDebug(LOCATION, SIGNATURE, "Housekeeping: all old payload files deleted from: " + outputDirWithIcoName + " for environment: " + GlobalParameters.PARAM_VAL_TARGET_ENV);
+		} catch (Exception e) {
+			String ex = "Housekeeping terminated with error! " + e;
+			logger.writeError(LOCATION, SIGNATURE, ex);
+			throw new RuntimeException(e);
+		}       
+	}
+
+
+	private void deletePayloadFiles(String rootDirectory, String environment) {
+		// Create pathMatcher which will match all files and directories (in the world of this tool, only files) that
+		// are located in FIRST or LAST directories for the specified environment.
+		String pattern = "^(?=.*\\\\" + environment + "\\\\.*\\\\.*\\\\.*\\\\).*$";
+		PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("regex:" + pattern);
+		
+		// Find all matches to above regex starting from the specified DIR
+		try (Stream<Path> paths = Files.find(Paths.get(rootDirectory), 100, (path, f)->pathMatcher.matches(path))) {
+			// Delete all matches
+			paths.forEach(path -> {
+				try {
+					Files.delete(path);
+				} catch (IOException e) {
+					throw new RuntimeException("*deletePayloadFiles* Error deleting file '" + path + "'\n" + e);
+				}
+			});
+		} catch (IOException e) {
+			throw new RuntimeException("*deletePayloadFiles* Error finding files." + e);
+		}	
+	}
+
+
 	/**
 	 * Method extracts messages from SAP PO.
 	 * The messages extracted are those that has already been injected previously by this tool.
