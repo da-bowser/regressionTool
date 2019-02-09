@@ -1,0 +1,3 @@
+[DEBUG] | 1549728219055 | com.invixo.consistency.FileStructure@static | File containing Message ID Mapping initialized to: null\_Inject\null_to_null_msgId_map.txt
+[ERROR] | 1549728219057 | com.invixo.common.IntegratedConfigurationMain@initializeSystemMap(String, String, String) | Error generating system mapping
+java.io.FileNotFoundException: null\Config\systemMapping.txt (The system cannot find the path specified)

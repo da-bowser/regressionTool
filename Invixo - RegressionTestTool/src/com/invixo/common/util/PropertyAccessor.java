@@ -15,10 +15,10 @@ public class PropertyAccessor {
 		try {
 			String value;
 			
-			value = getProperty("USER");
+			value = getProperty("LOG_TYPE");
 			System.out.println(value);
 			
-			value = getProperty("PASSWORD");
+			value = getProperty("SERVICE_PATH_EXTRACT");
 			System.out.println(value);
 		} catch (Exception e) {
 			System.err.println(e);
