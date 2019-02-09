@@ -104,6 +104,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		}
 	}
 	
+	
 	/**
 	 * Makes sure all old run data for target environment is deleted before a new run.
 	 */
@@ -336,10 +337,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @throws ExtractorException
 	 */
 	public static MessageInfo extractMessageInfo(InputStream responseBytes, String receiverInterfaceName) throws ExtractorException {
-		final String SIGNATURE = "extractMessageInfo(InputStream)";
+		final String SIGNATURE = "extractMessageInfo(InputStream, String)";
 		try {
 	        MessageInfo msgInfo = new MessageInfo();
-
 	        String messageId = null;
 	        String parentId = null;
 	        boolean receiverInterfaceElementFound = false;
