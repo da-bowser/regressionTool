@@ -84,14 +84,6 @@ public class IntegratedConfigurationMain {
 	protected Exception ex = null;					// Error details
 	
 	
-
-	/*====================================================================================
-	 *------------- Main (for testing)
-	 *====================================================================================*/
-	public static void main(String[] args) throws GeneralException {
-	}
-	
-	
 	
 	/*====================================================================================
 	 *------------- Constructors

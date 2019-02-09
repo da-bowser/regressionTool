@@ -18,9 +18,9 @@ class OrchestratorTest {
 		GlobalParameters.PARAM_VAL_SOURCE_ENV="TST";
 		GlobalParameters.PARAM_VAL_TARGET_ENV="TST";
 		
-		GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT="http://ipod.invixo.com:50000";
+		GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT="http://ipod.invixo.com:50000/";
 		GlobalParameters.CREDENTIAL_USER = "rttuser";
-		GlobalParameters.CREDENTIAL_PASS = "aLvD#l^[R\\52";
+		GlobalParameters.CREDENTIAL_PASS = "aLvD#l^[R(52";
     }
 	
 	

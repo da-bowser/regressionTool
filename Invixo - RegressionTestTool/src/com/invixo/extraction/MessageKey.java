@@ -57,6 +57,7 @@ public class MessageKey {
 	private Exception ex = null;					// Error details
 	
 	
+	
 	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
@@ -67,33 +68,6 @@ public class MessageKey {
 		this.targetPathFirst 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
 		this.targetPathLast 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 		this.fileName 			= this.sapMessageId + ".payload";
-	}
-	
-	
-	
-	/*====================================================================================
-	 *------------- Class methods
-	 *====================================================================================*/
-	public static void main(String[] args) {
-		try {
-			// Prepare
-			IntegratedConfiguration ico = new IntegratedConfiguration("c:\\Users\\dhek\\Desktop\\Test\\NoScenario - Invixo - DEK.xml");
-			String messageKey = "a3386b2a-1383-11e9-a723-000000554e16\\OUTBOUND\\5590550\\EO\\0";
-			MessageKey msgKey = new MessageKey(ico, messageKey);
-			
-			// Test extraction of Message ID from MessageKey
-			System.out.println("TEST: MessageId: " + extractMessageIdFromKey(messageKey));
-			
-			// Test creation of a new request message (FIRST)
-			InputStream is = msgKey.createNewRequest(messageKey, 0);
-			System.out.println("\nTEST: Request payload created: \n" + new String(is.readAllBytes()));
-			System.out.println();
-			
-			// Test processing a single message key
-			msgKey.processMessageKey(msgKey.sapMessageKey, true);
-		} catch (Exception e) {
-			System.err.println(e);
-		}
 	}
 	
 	
@@ -165,7 +139,7 @@ public class MessageKey {
 	 * @throws ExtractorException
 	 */
 	public void processMessageKey(String messageKey, boolean getFirstPayload) throws ExtractorException {
-		final String SIGNATURE = "processMessageKey(String, boolean, String)";
+		final String SIGNATURE = "processMessageKey(String, boolean)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [" + ((getFirstPayload)?"FIRST":"LAST") + "] processing started...");
 			
@@ -204,8 +178,8 @@ public class MessageKey {
 	 * @throws NoMsgFoundException
 	 * @throws ExtractorException
 	 */
-	private String storePayload(byte[] content, Boolean isFirst) throws NoMsgFoundException, ExtractorException {
-		final String SIGNATURE = "storePayload(byte[], Boolean, String)";
+	private String storePayload(byte[] content, boolean isFirst) throws NoMsgFoundException, ExtractorException {
+		final String SIGNATURE = "storePayload(byte[], Boolean)";
 		try {
 			// Write GetMessageBytesJavaLangStringIntBoolean response to file system if debug for this is enabled (property)
 			if (GlobalParameters.DEBUG) {
@@ -251,7 +225,7 @@ public class MessageKey {
 	 * @return
 	 * @throws ExtractorException
 	 */
-	private ByteArrayInputStream createNewRequest(String messageKey, int version) throws ExtractorException {
+	ByteArrayInputStream createNewRequest(String messageKey, int version) throws ExtractorException {
 		final String SIGNATURE = "createNewRequest(String, int)";
 		try {
 			StringWriter stringWriter = new StringWriter();
@@ -336,8 +310,8 @@ public class MessageKey {
 	 * @throws NoMsgFoundException
 	 * @throws ExtractorException
 	 */
-	private MimeMultipart getMultipartMessageFromResponse(byte[] responseBytes, Boolean isFirst) throws NoMsgFoundException, ExtractorException {
-		final String SIGNATURE = "getMultipartMessageFromResponse(byte[], Boolean)";
+	private MimeMultipart getMultipartMessageFromResponse(byte[] responseBytes, boolean isFirst) throws NoMsgFoundException, ExtractorException {
+		final String SIGNATURE = "getMultipartMessageFromResponse(byte[], boolean)";
 		try {
 			// Extract base64 payload
 			String encodedPayload = this.extractEncodedPayload(responseBytes);
@@ -373,7 +347,6 @@ public class MessageKey {
 	private String extractEncodedPayload(byte[] fileContent) throws ExtractorException {
 		final String SIGNATURE = "extractEncodedPayload(byte[])";
 		boolean fetchData = false;
-		
 		try {
 			String response = "";
 			XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -416,7 +389,7 @@ public class MessageKey {
 	 * @param key
 	 * @return
 	 */
-	private static String extractMessageIdFromKey(String key) {
+	static String extractMessageIdFromKey(String key) {
 		String messageId = key.substring(0, key.indexOf("\\"));
 		return messageId;
 	}
