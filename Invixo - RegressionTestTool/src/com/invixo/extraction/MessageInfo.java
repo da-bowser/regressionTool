@@ -1,17 +1,17 @@
 package com.invixo.extraction;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class MessageInfo {
 
-	private ArrayList<String> objectKeys = new ArrayList<String>();
+	private HashSet<String> objectKeys = new HashSet<String>();
 	private HashMap<String, String> splitMessageIds = new HashMap<String, String>();
 	
-	public ArrayList<String> getObjectKeys() {
+	public HashSet<String> getObjectKeys() {
 		return objectKeys;
 	}
-	public void setObjectKeys(ArrayList<String> objectKeys) {
+	public void setObjectKeys(HashSet<String> objectKeys) {
 		this.objectKeys = objectKeys;
 	}
 	public HashMap<String, String> getSplitMessageIds() {
