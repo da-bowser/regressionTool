@@ -16,7 +16,6 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
 import com.invixo.directory.api.webServices.WebServiceHandler;
@@ -33,11 +32,8 @@ public class Orchestrator {
 	private static ArrayList<IntegratedConfigurationReadRequest> icoReadRequestList = new ArrayList<IntegratedConfigurationReadRequest>();
 	
 	
-	public static String start() {
-		
-			
+	public static String start() {		
 		try {
-			
 			// Create initial ICO query request - get all ICO's in source PO system
 			byte[] requestIcoQueryBytes = createIntegratedConfigurationQueryRequest();
 			
@@ -161,20 +157,20 @@ public class Orchestrator {
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(responseBytes);
 			ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
-			IntegratedConfiguration ico = null;
+//			IntegratedConfiguration ico = null;
 			
 			while (eventReader.hasNext()) {
 				XMLEvent event = eventReader.nextEvent();
 
 				switch (event.getEventType()) {
 				case XMLStreamConstants.START_ELEMENT:
-					String currentElementName = event.asStartElement().getName().getLocalPart();
+//					String currentElementName = event.asStartElement().getName().getLocalPart();
 
 					
 					break;
 				
 				case XMLStreamConstants.END_ELEMENT:
-					String currentEndElementName = event.asEndElement().getName().getLocalPart();
+//					String currentEndElementName = event.asEndElement().getName().getLocalPart();
 					
 					
 					break;

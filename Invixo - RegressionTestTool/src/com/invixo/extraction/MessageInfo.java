@@ -11,14 +11,7 @@ public class MessageInfo {
 	public HashSet<String> getObjectKeys() {
 		return objectKeys;
 	}
-	public void setObjectKeys(HashSet<String> objectKeys) {
-		this.objectKeys = objectKeys;
-	}
 	public HashMap<String, String> getSplitMessageIds() {
 		return splitMessageIds;
 	}
-	public void setSplitMessageIds(HashMap<String, String> splitMessageIds) {
-		this.splitMessageIds = splitMessageIds;
-	}
-	
 }

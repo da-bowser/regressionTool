@@ -17,6 +17,7 @@ public class Orchestrator {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = Orchestrator.class.getName();
 	private static ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
+	private static int numberOfIcosToBeProcessed = 0;
 	
 	
 	public static void main(String[] args) {
@@ -34,11 +35,14 @@ public class Orchestrator {
 			
 			// Get list of all ICO request files to be processed
 			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_EXTRACT_INPUT);
-			logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files to be processed: " + files.length);
+			numberOfIcosToBeProcessed = files.length;
+			logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files to be processed: " + numberOfIcosToBeProcessed);
 			
 			// Process each ICO request file
+			int counter = 0;
 			for (File file : files) {
-				processSingleIco(file);
+				counter++;
+				processSingleIco(file, counter);
 			}
 			
 			logger.writeDebug(LOCATION, SIGNATURE, "Finished processing all ICO's...");
@@ -57,11 +61,11 @@ public class Orchestrator {
 	}
 	
 	
-	private static void processSingleIco(File file) {
-		final String SIGNATURE = "processSingleIco(File)";
+	private static void processSingleIco(File file, int counter) {
+		final String SIGNATURE = "processSingleIco(File, int)";
 		IntegratedConfiguration ico = null;
 		try {
-			logger.writeDebug(LOCATION, SIGNATURE, "*********** Start processing ICO request file: " + file);
+			logger.writeDebug(LOCATION, SIGNATURE, "*********** (" + counter + " / " + numberOfIcosToBeProcessed + ") Start processing ICO request file: " + file);
 			
 			// Prepare
 			ico = new IntegratedConfiguration(file.getAbsolutePath());

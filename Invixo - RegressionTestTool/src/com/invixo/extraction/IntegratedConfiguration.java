@@ -94,8 +94,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// 1) init (first time extracting data from PROD)
 			// 2) non-init (reference time for extracting data - not from PROD)
 			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
+				// Extract whatever data is in SAP PO matching the ICO
 				extractModeInit();
 			} else {
+				// Extract only Message IDs previously injected for ICO 
 				extractModeNonInit();
 			}
 		} catch (ExtractorException e) {
@@ -190,6 +192,17 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 
 
+	/**
+	 * Extract data (LAST payloads) for a single non-init batch run.
+	 * In non-init mode data extracted comes from the Message ID mapping file generated during injection.
+	 * As some ICOs may split messages, this needs to be handled, since split messages are given a new Message ID by SAP at runtime.
+	 * This means that a Message ID in the Message ID mapping file cannot be used to get LAST payloads for split messages.
+	 * As such all Message IDs in the Message Mapping file must be checked to see if they are in fact 'Parent ID' to other messages.
+	 * The Web Service 'GetMessagesWithSuccessors' is used to determine this, since it returns details for the message itself along with 
+	 * any messages spawned (split) by it (messages that the message is parent to).
+	 * @param messageIdMap
+	 * @throws ExtractorException
+	 */
 	private void processNonInitInBatch(Map<String, String> messageIdMap) throws ExtractorException {
 		final String SIGNATURE = "processNonInitInBatch(Map<String, String>)";
 		// Create request for GetMessagesWithSuccessors
@@ -220,7 +233,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		// If this is not done then the Message ID Mapping file will not make sense and cannot be used during Comparison.
 		correctMessageMappingFile(msgInfo.getSplitMessageIds());
 			
-		// Set list of Message Keys to be extracted (for split scenarios, message IDs are replaced)
+		// Set list of Message Keys to be extracted. This list is consist of all MessageKeys extracted from WS response matching 
+		// the ICO receiver interface at hand. Should any of the MessageKeys be a parent Message, then the key is replaced with 
+		// the Message ID from the split message.
 		this.responseMessageKeys = buildListOfMessageIdsToBeExtracted(msgInfo.getObjectKeys(), msgInfo.getSplitMessageIds());
 		
 		// Set MessageKeys from web Service response

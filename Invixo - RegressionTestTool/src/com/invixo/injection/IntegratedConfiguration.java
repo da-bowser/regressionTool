@@ -26,7 +26,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 *====================================================================================*/
 	private static Logger logger 						= Logger.getInstance();
 	private static final String LOCATION 				= IntegratedConfiguration.class.getName();	
-	public static BufferedWriter mapWriter				= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID	
+	public static BufferedWriter mapWriter				= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID
+	private int filesToBeProcessedTotal					= 0;
 	
 	
 	
@@ -75,7 +76,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		try {
 			// Get list of all request/payload files related to ICO
 			File[] files = Util.getListOfFilesInDirectory(this.sourcePayloadDirectory);
-			logger.writeDebug(LOCATION, SIGNATURE, "Number of payload files to be processed: " + files.length);
+			this.filesToBeProcessedTotal = files.length;
+			logger.writeDebug(LOCATION, SIGNATURE, "Number of payload files to be processed: " + this.filesToBeProcessedTotal);
 			
 			// Prepare
 			if (files.length > 0) {
@@ -145,7 +147,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	private void injectMessage(String payloadFile, InjectionRequest ir) throws InjectionPayloadException {
 		final String SIGNATURE = "injectMessage(String, InjectionRequest)";
 		try {
-			logger.writeDebug(LOCATION, SIGNATURE, "---- Payload processing BEGIN: " + payloadFile);
+			logger.writeDebug(LOCATION, SIGNATURE, "---- (File " + this.injections.size() + " / " + this.filesToBeProcessedTotal + ") Payload processing BEGIN: " + payloadFile);
 			ir.setSourcePayloadFile(payloadFile);
 
 			// Add payload to injection request. Payload is taken from an "instance" payload file (a file extracted previously)
@@ -191,7 +193,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String separator = GlobalParameters.FILE_DELIMITER;
 		
 		// Create mapping line
-		String mapEntry = System.nanoTime() + separator + sourceMsgId + separator + targetMsgId + separator + icoName + "\n";
+		String mapEntry = System.currentTimeMillis() + separator + sourceMsgId + separator + targetMsgId + separator + icoName + "\n";
 		
 		// Write line to map
 		mapWriter.write(mapEntry);
