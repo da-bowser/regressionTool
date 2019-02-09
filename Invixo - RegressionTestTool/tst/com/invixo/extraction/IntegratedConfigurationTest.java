@@ -85,7 +85,7 @@ class IntegratedConfigurationTest {
 	
 	
 	@Test
-	@DisplayName("Verify buildListOfMessageIdsToBeExtracted build a correct list of non-split message IDs and split message IDs")
+	@DisplayName("Verify buildListOfMessageIdsToBeExtracted builds a correct list of non-split message IDs and split message IDs")
 	void checkBuildingOfMessageIdListWorks() {
 		try {
 			// Get path: web service response (GetMessagesWithSuccessors)
