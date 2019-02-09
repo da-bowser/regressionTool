@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -48,6 +49,14 @@ public class Util {
 		double milliseconds = (end - start) / 1000000.0;
 		double seconds = milliseconds / 1000.0;
 		return seconds; 
+	}
+	
+	
+	public static String convertBytesToMegaBytes(int bytes) {
+		DecimalFormat df = new DecimalFormat("#.####");
+		int kb = bytes /1024;
+		int mb = kb / 1024;
+		return df.format(mb);
 	}
 	
 	

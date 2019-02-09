@@ -152,7 +152,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 
 			// Add payload to injection request. Payload is taken from an "instance" payload file (a file extracted previously)
 			byte[] payload = Util.readFile(payloadFile);
-
+			logger.writeDebug(LOCATION, SIGNATURE, "Payload size (MB): " + Util.convertBytesToMegaBytes(payload.length));
+			
 			// Generate SOAP XI Header
 			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(this, ir);
 			
