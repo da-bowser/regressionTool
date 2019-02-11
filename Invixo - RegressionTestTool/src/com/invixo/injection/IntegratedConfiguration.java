@@ -96,7 +96,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		} catch (InjectionException e) {
 			this.setEx(e);
 		} catch (InjectionPayloadException e) {
-			if (ir != null ) {
+			if (ir != null) {
 				ir.setError(e);
 			}
 		} finally {

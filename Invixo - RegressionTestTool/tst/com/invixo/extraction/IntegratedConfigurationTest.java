@@ -51,7 +51,7 @@ class IntegratedConfigurationTest {
 			
 			// Create GetMessageList request
 			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest, pathSystemMapping, "PRD", "TST");
-			byte[] request = IntegratedConfiguration.createGetMessageListRequest(ico);
+			byte[] request = IntegratedConfiguration.createGetMessageListRequest(ico, ico.getMaxMessages());
 			
 			// Check
 			assertNotNull(request);
@@ -107,6 +107,21 @@ class IntegratedConfigurationTest {
 		} catch (Exception e) {
 			fail("It aint cooking chef! " + e);
 		}
+	}
+	
+	
+	@Test
+	@DisplayName("Batch size calculation")
+	void calculateBatchCount() {
+		// Set input
+		int batchSize 	= 100;
+		int maxMessages	= 423;
+		
+		// Calculate
+		int result = IntegratedConfiguration.getBatchCount(maxMessages, batchSize);
+				
+		// Test
+		assertEquals(5, result);
 	}
 	
 }
