@@ -66,7 +66,6 @@ public class Comparer {
 			
 			// Increment compare success for reporting purposes
 			this.compareSuccessCount++;
-			
 		} catch (FileNotFoundException e) {
 			// Increment compare skipped for reporting purposes
 			this.compareSkippedCount++;
@@ -90,7 +89,7 @@ public class Comparer {
 			this.compareFileSize = Files.size(compareFile);
 			
 		} catch (IOException e) {
-			// Not critical - just nice to know when reporting so no exeption needs to be thrown
+			// Not critical - just nice to know when reporting so no exception needs to be thrown
 			logger.writeError(LOCATION, SIGNATURE, "Error during determination of file sizes" + "\n" + e.getMessage());
 		}
 	}
