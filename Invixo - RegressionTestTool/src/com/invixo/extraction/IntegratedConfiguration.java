@@ -317,7 +317,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @throws ExtractorException
 	 */
 	private void processMessageKeysMultiple(HashSet<String> messageKeys, int internalObjectId) throws ExtractorException {
-		final String SIGNATURE = "processMessageKeysMultiple(HashSet<String>, internalObjectId)";
+		final String SIGNATURE = "processMessageKeysMultiple(HashSet<String>, int)";
 		
 		// For each MessageKey fetch payloads (first and/or last)
 		int counter = 1;
@@ -332,7 +332,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 
 
 	/**
-	 * Replace parent message Ids with actual message ids in Message Id Mapping file.
+	 * Replace parent message ids with actual message ids in Message Id Mapping file.
 	 * NB: Parent ID is ONLY EVAR exiting in response in the case of a message split for async messages.
 	 * 
 	 * This method updates/modifies the Message Mapping file.
@@ -423,8 +423,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			    			
 			    			// We are no longer interested in more data before next iteration
 							receiverInterfaceElementFound = false;
-							
-							logger.writeDebug(LOCATION, SIGNATURE, "Matching receiver interface element found: " + receiverInterfaceName);
 						}
 			    	}
 					break;
