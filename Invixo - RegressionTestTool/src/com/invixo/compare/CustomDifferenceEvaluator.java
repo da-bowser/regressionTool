@@ -27,7 +27,7 @@ public class CustomDifferenceEvaluator implements DifferenceEvaluator {
 	
 	@Override
 	public ComparisonResult evaluate(Comparison comp, ComparisonResult compResult) {
-		String SIGNATURE = "evaluate(Comparison, ComparisonResult)";
+		final String SIGNATURE = "evaluate(Comparison, ComparisonResult)";
 		
 		// React only to differences found during evaluation
 		if (compResult.name().equals("DIFFERENT")) {
@@ -54,8 +54,6 @@ public class CustomDifferenceEvaluator implements DifferenceEvaluator {
 				}
 			}			
 		}
-		
-		// Return result
 		return compResult;
 	}
 

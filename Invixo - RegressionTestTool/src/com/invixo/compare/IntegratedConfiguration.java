@@ -48,8 +48,8 @@ public class IntegratedConfiguration {
 	 * @throws CompareException 
 	 */
 	public IntegratedConfiguration(String sourceIcoPath, String compareIcoPath, String icoName) {
-		String SIGNATURE = "IntegratedConfiguration(String, String, String";
-		logger.writeDebug(LOCATION, SIGNATURE, "Initialize compare data of ICO compare");
+		final String SIGNATURE = "IntegratedConfiguration(String, String, String";
+		logger.writeDebug(LOCATION, SIGNATURE, "Initialize compare data for ICO compare");
 
 		try {
 			// Set current ICO
@@ -123,7 +123,6 @@ public class IntegratedConfiguration {
 			
 			// Return exceptions found
 			return icoExceptions; 
-			
 		} catch (Exception e) {
 			String msg = "Error extracting exceptions.\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -140,7 +139,6 @@ public class IntegratedConfiguration {
 	 */
 	private static Map<String, String> buildMessageIdMap() throws CompareException {
 		String SIGNATURE = "buildMessageIdMap()";
-		
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + FileStructure.FILE_MSG_ID_MAPPING);
 			
@@ -152,7 +150,6 @@ public class IntegratedConfiguration {
 			
 	        // Return map
 	        return mapFromFile;
-	        
 		} catch (IOException e) {
 			String msg = "Error creating msgId map from file: " + FileStructure.FILE_MSG_ID_MAPPING + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -171,7 +168,6 @@ public class IntegratedConfiguration {
 		// Start looping over source files
 		Path currentSourcePath;
 		for (int i = 0; i < sourceFiles.size(); i++) {
-
 			// Get matching compare file using message id map
 			currentSourcePath = sourceFiles.get(i);
 
@@ -206,7 +202,7 @@ public class IntegratedConfiguration {
 	 * @return
 	 */
 	private Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> messageIdMap) {
-		String SIGNATURE = "getMatchingCompareFile(Path, List<Path>, Map<String, String>)";
+		final String SIGNATURE = "getMatchingCompareFile(Path, List<Path>, Map<String, String>)";
 		Path compareFileFound = null;
 		
 		// Extract message id from filename 
@@ -222,7 +218,6 @@ public class IntegratedConfiguration {
 			String compareFolderStructure = FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.name + "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 			compareFileFound = new File(compareFolderStructure + "null.payload").toPath();
 		} else {
-
 			logger.writeDebug(LOCATION, SIGNATURE, "Prepare: match found, compare file msgId: " + compareMsgId);
 
 			// Search for compare id in compare file list
@@ -242,6 +237,7 @@ public class IntegratedConfiguration {
 		// return compare file found
 		return compareFileFound;
 	}
+	
 	
 	
 	/*====================================================================================

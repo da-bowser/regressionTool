@@ -18,7 +18,7 @@ public class Orchestrator {
 	private static double totalExecutionTime = 0;
 	
 	public static ArrayList<IntegratedConfiguration> start() {
-		String SIGNATURE = "start()";
+		final String SIGNATURE = "start()";
 		logger.writeDebug(LOCATION, SIGNATURE, "Start compare");
 		
 		// Get number of ICO's to handle
