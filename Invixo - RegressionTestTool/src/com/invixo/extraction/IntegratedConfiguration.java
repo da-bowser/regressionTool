@@ -80,10 +80,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/**
 	 * Process a single Integrated Configuration object.
 	 * This also includes all MessageKeys related to this object.
-	 * @param file
 	 */
 	public void startExtraction() {
-		final String SIGNATURE = "startExtraction(String)";
+		final String SIGNATURE = "startExtraction()";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO request file: " + this.fileName);
 			
@@ -91,8 +90,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			deleteOldRunData();
 			
 			// Check: execution can take place in 2 modes: 
-			// 1) init (first time extracting data from PROD)
-			// 2) non-init (reference time for extracting data - not from PROD)
+			// 1) init (first extraction of data from a given system environment (DEV, TST, PRD))
+			// 2) non-init (extract injected messages, so that a comparison can be made at later stage)
 			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
 				// Extract whatever data is in SAP PO matching the ICO
 				extractModeInit();
@@ -180,7 +179,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	        }
 	        
 	        // Process remaining/leftover maps
-        	logger.writeDebug(LOCATION, SIGNATURE, "Leftovers to be processed: " + currentBatch.size());
+        	logger.writeDebug(LOCATION, SIGNATURE, "Batch leftovers to be processed: " + currentBatch.size());
         	if (currentBatch.size() > 0) {
     	        processNonInitInBatch(currentBatch);        		
         	}
@@ -200,7 +199,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * As such all Message IDs in the Message Mapping file must be checked to see if they are in fact 'Parent ID' to other messages.
 	 * The Web Service 'GetMessagesWithSuccessors' is used to determine this, since it returns details for the message itself along with 
 	 * any messages spawned (split) by it (messages that the message is parent to).
-	 * @param messageIdMap
+	 * @param messageIdMap					Message Id map build from Message Id mapping file created during injection.
 	 * @throws ExtractorException
 	 */
 	private void processNonInitInBatch(Map<String, String> messageIdMap) throws ExtractorException {
@@ -213,7 +212,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		if (GlobalParameters.DEBUG) {
 			String file = FileStructure.getDebugFileName("GetMessagesWithSuccessors", true, this.getName(), "xml");
 			Util.writeFileToFileSystem(file, requestBytes);
-			logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> getMessagesWithSuccessors request message to be sent to SAP PO is stored here: " + file);
+			logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessagesWithSuccessors request message to be sent to SAP PO is stored here: " + file);
 		}
 					
 		// Call web service (GetMessagesWithSuccessors)
@@ -237,9 +236,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		// the ICO receiver interface at hand. Should any of the MessageKeys be a parent Message, then the key is replaced with 
 		// the Message ID from the split message.
 		this.responseMessageKeys = buildListOfMessageIdsToBeExtracted(msgInfo.getObjectKeys(), msgInfo.getSplitMessageIds());
-		
-		// Set MessageKeys from web Service response
-		logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys contained in Web Service response: " + this.responseMessageKeys.size());
+		logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys to be extracted: " + this.responseMessageKeys.size());
 		
 		// Process extracted message keys
 		processMessageKeysMultiple(this.responseMessageKeys, this.internalObjectId);		
@@ -261,8 +258,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		
 		for (Object messageKey : objectKeys.toArray()) {
 			String currentMsgKey = messageKey.toString(); 
+			
 			for (Entry<String, String> entry : splitMessageIds.entrySet()) {
-				// Replace derived split message id with parent message id
+				// Check if current Message Key should be replaced
 				if (currentMsgKey.contains(entry.getKey())) {
 					String newKey = currentMsgKey.replace(entry.getKey(), entry.getValue());
 					result.add(newKey);
@@ -312,8 +310,14 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 
 
+	/**
+	 * Extract payloads for a list of SAP Message Keys and store these on the file system.
+	 * @param messageKeys					List of SAP Message Keys to be processed.
+	 * @param internalObjectId				Internal counter. Used to track which MessageKey number is being processed in the log.
+	 * @throws ExtractorException
+	 */
 	private void processMessageKeysMultiple(HashSet<String> messageKeys, int internalObjectId) throws ExtractorException {
-		final String SIGNATURE = "processMessageKeysMultiple(ArrayList<String>)";
+		final String SIGNATURE = "processMessageKeysMultiple(ArrayList<String>, internalObjectId)";
 		
 		// For each MessageKey fetch payloads (first and/or last)
 		int counter = 1;
@@ -371,7 +375,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	
 	/**
 	 * Extract message info from Web Service response (extraction is generic and used across multiple services responses)
-	 * @param responseBytes
+	 * @param responseBytes					XML to extract data from 
+	 * @param receiverInterfaceName			Only extract message info from integrated configurations having this receiver interface name
 	 * @return
 	 * @throws ExtractorException
 	 */
@@ -410,7 +415,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			    	} else if("name".equals(currentElementName) && eventReader.peek().isCharacters() && receiverInterfaceElementFound) {
 			    		String name = eventReader.peek().asCharacters().getData();
 
-			    		// REASON: In case of messageSplit we get all interfaces in the response payload
+			    		// REASON: In case of message split we get all interfaces in the response payload
 			    		// we only want the ones matching the receiverInterfaceName of the current ICO being processed
 			    		if (name.equals(receiverInterfaceName) && receiverInterfaceElementFound) {
 			    			// We found a match we want to add to our "splitMessageIds" map
@@ -419,8 +424,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			    			// We are no longer interested in more data before next iteration
 							receiverInterfaceElementFound = false;
 							
-							logger.writeDebug(LOCATION, SIGNATURE, "Interface being processed: " + receiverInterfaceName);
-			    			logger.writeDebug(LOCATION, SIGNATURE, "Found in response payload: " + matchingReceiverInterfaceNameFound);
+							logger.writeDebug(LOCATION, SIGNATURE, "Matching receiver interface element found: " + receiverInterfaceName);
 						}
 			    	}
 					break;
@@ -658,12 +662,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 
 	/**
 	 * Create request message for GetMessagesWithSuccessors
-	 * @param ico
-	 * @param messageIdMap
+	 * @param ico					Integration Configuration
+	 * @param messageIdMap			List of Message IDs to get message details from. Map(key, value) = Map(original extract message id, inject message id)
 	 * @return
 	 */
 	public static byte[] createGetMessagesWithSuccessors(IntegratedConfiguration ico, Map<String, String> messageIdMap) {
-		final String SIGNATURE = "createGetMessagesWithSuccessors(IntegratedConfiguration)";
+		final String SIGNATURE = "createGetMessagesWithSuccessors(IntegratedConfiguration, Map<String, String>)";
 		try {
 			final String XML_NS_URN_PREFIX	= "urn";
 			final String XML_NS_URN_NS		= "urn:AdapterMessageMonitoringVi";
@@ -692,7 +696,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Create element: Envelope | Body | getMessagesWithSuccessors | messageIds
 			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "messageIds", XML_NS_URN_NS);
 
-			// Add message id's to XML
+			// Add (inject) message id's to XML
 	        for (Map.Entry<String, String> entry : messageIdMap.entrySet()) {
 				String injectMessageId = entry.getValue();
 				

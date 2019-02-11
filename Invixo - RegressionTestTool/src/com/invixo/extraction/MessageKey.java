@@ -210,7 +210,7 @@ public class MessageKey {
 			
 			return fileName;
 		} catch (ArrayIndexOutOfBoundsException|MessagingException|IOException e) {
-			String msg = "Error extracting payload from multipart message and storing it on file sytem\n" + e;
+			String msg = "Error extracting payload from multipart message and storing it on file system\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			ExtractorException ex = new ExtractorException(msg);
 			throw ex;
@@ -324,7 +324,7 @@ public class MessageKey {
 				throw new NoMsgFoundException(msg);
 			} else {
 				if (isFirst) this.setXiMessageInResponseFirst(PAYLOAD_FOUND); else this.setXiMessageInResponseLast(PAYLOAD_FOUND);
-				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains a XI message.");
+				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains XI message.");
 			}
 			
 			// Decode base64

@@ -134,11 +134,12 @@ public class IntegratedConfiguration {
 	
 	/**
 	 * Build list of matching source and target message id's created during "Inject".
+	 * List is created from Message Id mapping file.
 	 * @return						List of source and target message id's used when matching "LAST" files for compare
 	 * @throws CompareException
 	 */
 	private static Map<String, String> buildMessageIdMap() throws CompareException {
-		String SIGNATURE = "buildMessageIdMap(String)";
+		String SIGNATURE = "buildMessageIdMap()";
 		
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + FileStructure.FILE_MSG_ID_MAPPING);
@@ -146,7 +147,7 @@ public class IntegratedConfiguration {
 			// Build path to mapping file generated during inject
 			String mappingFilePath = FileStructure.FILE_MSG_ID_MAPPING;
 			
-			// Create map splitting on delimiter from map file
+			// Create map splitting on delimiter from map file <original extract id, inject message id>
 	        Map<String, String> mapFromFile = Util.getMessageIdsFromFile(mappingFilePath, GlobalParameters.FILE_DELIMITER, null, 1, 2);
 			
 	        // Return map
