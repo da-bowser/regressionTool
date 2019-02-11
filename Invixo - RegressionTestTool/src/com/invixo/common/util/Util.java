@@ -31,10 +31,11 @@ public class Util {
 	}
 	
 	
-	public static String convertBytesToMegaBytes(int bytes) {
-		DecimalFormat df = new DecimalFormat("#.####");
-		int kb = bytes /1024;
-		int mb = kb / 1024;
+	public static String convertBytesToMegaBytes(int inputBytes) {
+		DecimalFormat df = new DecimalFormat("#.#####");
+		double bytes = inputBytes;
+		double kb = bytes / 1024;
+		double mb = kb / 1024;
 		return df.format(mb);
 	}
 	

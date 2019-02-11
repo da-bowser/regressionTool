@@ -53,5 +53,19 @@ class UtilTest {
 			fail("It aint cooking chef! " + e);
 		}
 	}
+	
+	
+	@Test
+	@DisplayName("Test conversion from bytes to megabytes")
+	void convertBytesToMegaBytes() {
+		// Set input
+		int bytes = 1234;
+		
+		// Do conversion
+		String megabytes = Util.convertBytesToMegaBytes(bytes);
+				
+		// Test
+		assertEquals("0,00118", megabytes);
+	}
 
 }
