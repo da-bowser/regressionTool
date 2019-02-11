@@ -79,7 +79,6 @@ public class MessageKey {
 		return sapMessageKey;
 	}
 
-
 	public String getSapMessageId() {
 		return sapMessageId;
 	}
@@ -179,7 +178,7 @@ public class MessageKey {
 	 * @throws ExtractorException
 	 */
 	private String storePayload(byte[] content, boolean isFirst) throws NoMsgFoundException, ExtractorException {
-		final String SIGNATURE = "storePayload(byte[], Boolean)";
+		final String SIGNATURE = "storePayload(byte[], boolean)";
 		try {
 			// Write GetMessageBytesJavaLangStringIntBoolean response to file system if debug for this is enabled (property)
 			if (GlobalParameters.DEBUG) {

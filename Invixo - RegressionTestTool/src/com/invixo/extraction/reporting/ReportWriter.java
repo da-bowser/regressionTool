@@ -214,8 +214,7 @@ public class ReportWriter {
 	}
 
 
-	private void addIcoDetails(ArrayList<IntegratedConfiguration> icoList,
-			XMLStreamWriter xmlWriter) throws XMLStreamException {
+	private void addIcoDetails(ArrayList<IntegratedConfiguration> icoList, XMLStreamWriter xmlWriter) throws XMLStreamException {
 		// Add detail info per ICO
 		for (IntegratedConfiguration ico : icoList) {
 			// Create element: ExtractReport | IntegratedConfiguration

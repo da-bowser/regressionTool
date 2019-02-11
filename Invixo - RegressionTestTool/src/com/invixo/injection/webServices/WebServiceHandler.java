@@ -84,7 +84,7 @@ public class WebServiceHandler {
 	
 	
 	private static void handleWebServiceResponse(CloseableHttpResponse response) throws UnsupportedOperationException, IOException {
-		final String SIGNATURE = "handleWebServiceResponse(byte[], byte[])";
+		final String SIGNATURE = "handleWebServiceResponse(CloseableHttpResponse)";
 		
 		int status = response.getStatusLine().getStatusCode();
 		logger.writeDebug(LOCATION, SIGNATURE, "Injection Web Service returned HTTP status code: " + status);

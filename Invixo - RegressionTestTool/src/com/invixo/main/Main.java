@@ -299,7 +299,6 @@ public class Main {
 			
 			// line 2: password
 			GlobalParameters.CREDENTIAL_PASS = credentialLines.get(1);
-			
 		} catch (IOException e) {
 			String msg = "Error | Problem reading credentials file from :" + sourceDirectory + " " + e.getMessage();
 			throw new ValidationException(msg);
@@ -364,6 +363,7 @@ public class Main {
 		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
 	
+	
 	public static void createIcoOverview() {
 		final String SIGNATURE = "createIcoOverview";
 		
@@ -371,6 +371,7 @@ public class Main {
 		logger.writeDebug(LOCATION, SIGNATURE, "Ico overview generated: " + fileName);
 	}
 
+	
 	public static boolean operationContains(String value) {
 	    for (GlobalParameters.Operation operation : GlobalParameters.Operation.values()) {
 	        if (operation.name().equals(value)) {

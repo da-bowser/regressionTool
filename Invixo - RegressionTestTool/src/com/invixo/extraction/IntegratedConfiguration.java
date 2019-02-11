@@ -317,7 +317,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @throws ExtractorException
 	 */
 	private void processMessageKeysMultiple(HashSet<String> messageKeys, int internalObjectId) throws ExtractorException {
-		final String SIGNATURE = "processMessageKeysMultiple(ArrayList<String>, internalObjectId)";
+		final String SIGNATURE = "processMessageKeysMultiple(HashSet<String>, internalObjectId)";
 		
 		// For each MessageKey fetch payloads (first and/or last)
 		int counter = 1;

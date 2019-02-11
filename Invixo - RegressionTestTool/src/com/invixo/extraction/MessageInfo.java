@@ -11,6 +11,7 @@ public class MessageInfo {
 	public HashSet<String> getObjectKeys() {
 		return objectKeys;
 	}
+	
 	public HashMap<String, String> getSplitMessageIds() {
 		return splitMessageIds;
 	}
