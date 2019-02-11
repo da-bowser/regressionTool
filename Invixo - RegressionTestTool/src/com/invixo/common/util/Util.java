@@ -32,7 +32,7 @@ public class Util {
 	
 	
 	public static String convertBytesToMegaBytes(int inputBytes) {
-		DecimalFormat df = new DecimalFormat("#.#####");
+		DecimalFormat df = new DecimalFormat("#.######");
 		double bytes = inputBytes;
 		double kb = bytes / 1024;
 		double mb = kb / 1024;

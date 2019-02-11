@@ -65,7 +65,7 @@ class UtilTest {
 		String megabytes = Util.convertBytesToMegaBytes(bytes);
 				
 		// Test
-		assertEquals("0,00118", megabytes);
+		assertEquals("0,001177", megabytes);
 	}
 
 }
