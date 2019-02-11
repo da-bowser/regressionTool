@@ -103,6 +103,12 @@ public class Util {
 	}
 	
 	
+	/**
+	 * Extract the file name from a path.
+	 * @param fileName					Path including a file name
+	 * @param includeFileExtension		Indicates if file extension should be preserved in output or not
+	 * @return
+	 */
 	public static String getFileName(String fileName, boolean includeFileExtension) {
 		File file = new File(fileName);
 		if (includeFileExtension) {
@@ -116,13 +122,14 @@ public class Util {
 				// There is an extension
 				return file.getName().substring(0, index);	
 			}
-			
 		}	
 	}
 	
 	
 	/**
-	 * Delete all files in a directory
+	 * Delete all files in a given directory.
+	 * @param dir				Directory where files should be deleted
+	 * @throws IOException
 	 */
 	public static void deleteFilesInDirectory(String dir) throws IOException {
 		Path directory = Paths.get(dir + ".");
@@ -176,14 +183,14 @@ public class Util {
 		List<Path> readList = new ArrayList<Path>();
 		try {
 			if (readMode.equals("FILE")) {
-				// Get all files in directory AND subdirectories and return			
+				// Get all files in directory AND sub-directories and return			
 				readList = Files.walk(Paths.get(directory)).filter(Files::isRegularFile).collect(Collectors.toList());
 			} else {
-				// Get all files in directory AND subdirectories and return
+				// Get all files in directory AND sub-directories and return
 				readList = Files.walk(Paths.get(directory)).filter(Files::isDirectory).collect(Collectors.toList());	
 
 				if (readList.size() > 1) {
-					// Remove "parent" (self) directory, to only return subdirs
+					// Remove "parent" (self) directory, to only return sub-directories
 					readList.remove(0);
 				}
 			}
