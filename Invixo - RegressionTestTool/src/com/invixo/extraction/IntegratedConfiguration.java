@@ -28,7 +28,6 @@ import javax.xml.stream.events.XMLEvent;
 import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
@@ -40,8 +39,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *------------- Class variables
 	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
-	private static final String LOCATION = IntegratedConfiguration.class.getName();
-	private static final int BATCH_SIZE = Integer.parseInt(PropertyAccessor.getProperty("BATCH_SIZE"));
+	private static final String LOCATION = IntegratedConfiguration.class.getName();	
 
 
 	
@@ -50,7 +48,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *====================================================================================*/
 	private HashSet<String> responseMessageKeys = new HashSet<String>();		// MessageKey IDs returned by Web Service GetMessageList
 	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();	// List of MessageKeys created/processed
-	private int messageKeysProcessed = 1;
+	
 	
 	
 	/*====================================================================================
@@ -170,8 +168,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	        Map<String, String> currentBatch = new HashMap<String, String>();
 	        for (Entry<String, String> entry : messageIdMap.entrySet()) {
 	        	// Process batches if max batch size is reached
-	        	if (currentBatch.size() >= BATCH_SIZE) {
-	        		logger.writeDebug(LOCATION, SIGNATURE, "Batch size (" + BATCH_SIZE + ") reached. Current batch is being processed...");
+	        	if (currentBatch.size() >= 100) {
+	        		logger.writeDebug(LOCATION, SIGNATURE, "Batch size reached. Current batch is being processed...");
 	        		processNonInitInBatch(currentBatch);
 	        		currentBatch.clear();
 	        	}
@@ -283,44 +281,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @throws ExtractorException
 	 */
 	private void extractModeInit() throws ExtractorException {
-		final String SIGNATURE 	= "extractModeInit()";
-		int batchTotal 			= getBatchCount(this.getMaxMessages(), BATCH_SIZE);
-		int currentBatch 		= 1;
-		int currentBatchSize 	= 0;
-		
-		logger.writeDebug(LOCATION, SIGNATURE, "Number of batches to be processed: " + batchTotal);
-		
-		while (currentBatch <= batchTotal) {
-			logger.writeDebug(LOCATION, SIGNATURE, "Processing batch " + currentBatch + " of " + batchTotal);
-			
-			// Set batch size to be used
-			if (batchTotal-currentBatch == 1) {
-				currentBatchSize = this.getMaxMessages() % BATCH_SIZE;
-			} else {
-				currentBatchSize = BATCH_SIZE;
-			}
-			
-			// Run batch
-			logger.writeDebug(LOCATION, SIGNATURE, "Batch size used: " + currentBatchSize);
-			int messagesProcessed = processInitInBatch(currentBatchSize);
-			
-			// Check if system returned less messages than batch size used
-			if (messagesProcessed < BATCH_SIZE) {
-				logger.writeDebug(LOCATION, SIGNATURE, "GetMessageList response contains less messages than the batch size used. This means it makes no sense to execute more batches");
-				break;
-			}
-			
-			// Increment
-			currentBatch++;
-		}
-	}
-	
-	
-	private int processInitInBatch(int maxMessages) throws ExtractorException {
-		final String SIGNATURE = "processInitInBatch(int)";
+		final String SIGNATURE = "extractModeInit()";
 		
 		// Create request for GetMessageList
-		byte[] requestBytes = createGetMessageListRequest(this, maxMessages);
+		byte[] requestBytes = createGetMessageListRequest(this);
 		logger.writeDebug(LOCATION, SIGNATURE, "GetMessageList request created");
 		
 		// Write request to file system if debug for this is enabled (property)
@@ -343,15 +307,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		
 		// Process extracted message keys
 		processMessageKeysMultiple(this.responseMessageKeys, this.internalObjectId);
-		
-		// Set number of messages returned by system
-		return msgInfo.getMessagesFound();
-	}
-	
-	
-	public static int getBatchCount(double maxMessages, double batchSize) {
-		double batches = Math.ceil( maxMessages / batchSize );
-		return (int) batches;	
 	}
 
 
@@ -365,12 +320,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		final String SIGNATURE = "processMessageKeysMultiple(ArrayList<String>, internalObjectId)";
 		
 		// For each MessageKey fetch payloads (first and/or last)
+		int counter = 1;
 		for (String key : messageKeys) {
 			// Process a single Message Key
-			logger.writeDebug(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + messageKeysProcessed + "] MessageKey processing started for key: " + key);
+			logger.writeDebug(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing started for key: " + key);
 			this.processMessageKeySingle(key);
-			logger.writeDebug(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + messageKeysProcessed + "] MessageKey processing finished");
-			messageKeysProcessed++;
+			logger.writeDebug(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing finished");
+			counter++;
 		}
 	}
 
@@ -456,7 +412,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			    	} else if ("receiverInterface".equals(currentElementName)) {
 			    		// We found the correct element
 			    		receiverInterfaceElementFound = true;
-
 			    	} else if("name".equals(currentElementName) && eventReader.peek().isCharacters() && receiverInterfaceElementFound) {
 			    		String name = eventReader.peek().asCharacters().getData();
 
@@ -471,12 +426,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 							
 							logger.writeDebug(LOCATION, SIGNATURE, "Matching receiver interface element found: " + receiverInterfaceName);
 						}
-			    	
-			    	} else if ("number".equals(currentElementName)) {
-			    		int number = Integer.parseInt(eventReader.peek().asCharacters().getData());
-			    		msgInfo.setMessagesFound(number);
 			    	}
-
 					break;
 					
 				case XMLStreamConstants.END_ELEMENT:
@@ -543,7 +493,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @param ico
 	 * @return
 	 */
-	public static byte[] createGetMessageListRequest(IntegratedConfiguration ico, int maxMessages) {
+	public static byte[] createGetMessageListRequest(IntegratedConfiguration ico) {
 		final String SIGNATURE = "createGetMessageListRequest(IntegratedConfiguration)";
 		try {
 			final String XML_NS_URN_PREFIX	= "urn";
@@ -688,7 +638,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			
 			// Create element: Envelope | Body | getMessageList | filter | maxMessages
 			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "maxMessages", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters("" + maxMessages);
+			xmlWriter.writeCharacters("" + ico.getMaxMessages());
 			xmlWriter.writeEndElement();
 			
 			// Close tags
