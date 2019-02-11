@@ -162,7 +162,6 @@ public class Comparer {
 		return sourceFileSize;
 	}
 
-
 	public long getCompareFileSize() {
 		return compareFileSize;
 	}
