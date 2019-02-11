@@ -232,9 +232,10 @@ public class IntegratedConfigurationMain {
 	public Exception getEx() {
 		return this.ex;
 	}
-	public Exception setEx(Exception ex) {
-		return this.ex;
+	public void setEx(Exception ex) {
+		this.ex = ex;
 	}
+	
 	
 
 	/*====================================================================================

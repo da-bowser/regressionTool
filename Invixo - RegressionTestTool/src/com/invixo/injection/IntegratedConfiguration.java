@@ -99,6 +99,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			if (ir != null) {
 				ir.setError(e);
 			}
+			
+			// Set error on entire ICO
+			this.setEx(new GeneralException("Error occurred while injecting a payload file. Entire ICO set in error state"));
 		} finally {
 			try {
 				// Logging
