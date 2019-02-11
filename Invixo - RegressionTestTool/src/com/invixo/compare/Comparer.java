@@ -46,8 +46,7 @@ public class Comparer {
 	 * Start Compare
 	 */
 	void start() {
-		String SIGNATURE = "start()";
-		
+		final String SIGNATURE = "start()";
 		try {
 			// Set file sizes for later reporting purposes
 			setFileSizes(this.sourceFile, this.compareFile);
@@ -75,7 +74,6 @@ public class Comparer {
 						 "As a result of this, a message is not injected to the " + GlobalParameters.PARAM_VAL_TARGET_ENV + " environment making a compare impossible.";
 
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			
 			this.ce = new CompareException(msg);
 		}
 	}
@@ -118,6 +116,7 @@ public class Comparer {
 	}
 
 
+	
 	/*====================================================================================
 	 *------------- Getters and Setters
 	 *====================================================================================*/
@@ -156,8 +155,7 @@ public class Comparer {
 	public double getExecutionTimeSeconds() {
 		return this.executionTimeSeconds;
 	}
-	
-	
+
 	public long getSourceFileSize() {
 		return sourceFileSize;
 	}
