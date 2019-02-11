@@ -18,7 +18,13 @@ public class ReportWriter {
 	private static final String	XML_PREFIX = "inv";
 	private static final String	XML_NS = "urn:invixo.com.extract.report";
 
-	private final String REPORT_FILE = FileStructure.DIR_REPORTS + "ExtractReport_" + System.currentTimeMillis() + ".xml";
+	private final String REPORT_FILE	= FileStructure.DIR_REPORTS 
+										+ "ExtractReport_" 
+										+ GlobalParameters.PARAM_VAL_TARGET_ENV 
+										+ "_" 
+										+ System.currentTimeMillis() 
+										+ ".xml";
+	
 	private ArrayList<IntegratedConfiguration>	icoList;
 
 	// ICO general
