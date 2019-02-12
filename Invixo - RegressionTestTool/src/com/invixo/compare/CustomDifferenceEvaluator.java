@@ -54,6 +54,7 @@ public class CustomDifferenceEvaluator implements DifferenceEvaluator {
 				}
 			}			
 		}
+		
 		return compResult;
 	}
 

@@ -25,7 +25,7 @@ public class Orchestrator {
 		List<Path> sourceIcoFiles = Util.generateListOfPaths(FileStructure.DIR_EXTRACT_INPUT, "FILE");
 
 		// Start processing files for compare
-		icoList = processCompareLibs(SIGNATURE, sourceIcoFiles);
+		icoList = processCompareLibs(sourceIcoFiles);
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Compare completed");
 		
@@ -33,7 +33,8 @@ public class Orchestrator {
 	}
 
 	
-	private static ArrayList<IntegratedConfiguration> processCompareLibs(String SIGNATURE, List<Path> sourceIcoFiles) {
+	private static ArrayList<IntegratedConfiguration> processCompareLibs(List<Path> sourceIcoFiles) {
+		final String SIGNATURE = "processCompareLibs(List)";
 		logger.writeDebug(LOCATION, SIGNATURE, "ICO's found and ready to process: " + sourceIcoFiles.size());
 
 		// Process found ICO's
@@ -77,6 +78,11 @@ public class Orchestrator {
 	}
 	
 	
+	
+	
+	/*====================================================================================
+	 *------------- Getters and Setters
+	 *====================================================================================*/
 	public static int getIcoProcessSuccess() {
 		return icoProcessSuccess;
 	}

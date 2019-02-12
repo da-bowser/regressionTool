@@ -65,6 +65,7 @@ public class Comparer {
 			
 			// Increment compare success for reporting purposes
 			this.compareSuccessCount++;
+			
 		} catch (FileNotFoundException e) {
 			// Increment compare skipped for reporting purposes
 			this.compareSkippedCount++;
@@ -134,42 +135,52 @@ public class Comparer {
 		return this.ce;
 	}
 	
+	
 	public ArrayList<Difference> getCompareDifferences() {
 		return this.compareDifferences;
 	}
+	
 	
 	public void addDiffIgnored(String diffFound, String ignoreXPath) {
 		this.diffsIgnoredByConfiguration.put(diffFound, ignoreXPath);
 	}
 	
+	
 	public Map<String, String> getDiffsIgnoredByConfiguration() {
 		return this.diffsIgnoredByConfiguration;
 	}
+	
 	
 	public int getCompareSuccess() {
 		return this.compareSuccessCount;
 	}
 	
+	
 	public int getCompareSkipped() {
 		return this.compareSkippedCount;
 	}
+	
 	
 	public Path getSourceFile() {
 		return this.sourceFile;
 	}
 	
+	
 	public Path getCompareFile() {
 		return this.compareFile;
 	}
+	
 	
 	public double getExecutionTimeSeconds() {
 		return this.executionTimeSeconds;
 	}
 
+	
 	public long getSourceFileSize() {
 		return sourceFileSize;
 	}
 
+	
 	public long getCompareFileSize() {
 		return compareFileSize;
 	}

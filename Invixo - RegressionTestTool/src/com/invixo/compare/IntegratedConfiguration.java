@@ -247,9 +247,11 @@ public class IntegratedConfiguration {
 		return name;
 	}
 	
+	
 	public ArrayList<String> getXpathExceptions() {
 		return xpathExceptions;
 	}
+	
 	
 	public int getTotalCompareDiffsFound() {
 		return totalCompareDiffsFound;
@@ -284,13 +286,16 @@ public class IntegratedConfiguration {
 		return compareProcessedList;
 	}
 	
+	
 	public CompareException getCompareException() {
 		return ce;
 	}
 	
+	
 	public void setCompareException(CompareException ce) {
 		this.ce = ce;
 	}
+	
 	
 	public double getTotalCompareExecutionTime() {
 		return totalCompareExecutionTime;
