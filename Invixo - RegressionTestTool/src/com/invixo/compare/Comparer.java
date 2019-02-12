@@ -55,11 +55,9 @@ public class Comparer {
 			String sourceFileString = Util.inputstreamToString(new FileInputStream(this.sourceFile.toFile()), GlobalParameters.ENCODING);
 			String compareFileString = Util.inputstreamToString(new FileInputStream(this.compareFile.toFile()), GlobalParameters.ENCODING);
 			
-			logger.writeDebug(LOCATION, SIGNATURE, "---- Compare: start");
 			// Do compare
 			Diff diff = compare(sourceFileString, compareFileString);
 			
-			logger.writeDebug(LOCATION, SIGNATURE, "---- Compare: done");
 			// Add differences found for later reporting
 			for (Difference d : diff.getDifferences()) {
 				this.compareDifferences.add(d);
@@ -100,6 +98,10 @@ public class Comparer {
 
 
 	private Diff compare(String sourceFileString, String compareFileString) {
+		final String SIGNATURE = "compare(String, String)";
+		
+		logger.writeDebug(LOCATION, SIGNATURE, "---- Compare: start");
+		
 		// Set start timer
 		long startTime = Util.getTime();
 		
@@ -117,6 +119,8 @@ public class Comparer {
 		
 		// Calculate execution time
 		this.executionTimeSeconds = Util.measureTimeTaken(startTime, endTime);
+		
+		logger.writeDebug(LOCATION, SIGNATURE, "---- Compare: done");
 		
 		return diff;
 	}
