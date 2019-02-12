@@ -54,10 +54,12 @@ public class Comparer {
 			// Prepare files for compare
 			String sourceFileString = Util.inputstreamToString(new FileInputStream(this.sourceFile.toFile()), GlobalParameters.ENCODING);
 			String compareFileString = Util.inputstreamToString(new FileInputStream(this.compareFile.toFile()), GlobalParameters.ENCODING);
-						
+			
+			logger.writeDebug(LOCATION, SIGNATURE, "---- Compare: start");
 			// Do compare
 			Diff diff = compare(sourceFileString, compareFileString);
 			
+			logger.writeDebug(LOCATION, SIGNATURE, "---- Compare: done");
 			// Add differences found for later reporting
 			for (Difference d : diff.getDifferences()) {
 				this.compareDifferences.add(d);
@@ -83,8 +85,12 @@ public class Comparer {
 		final String SIGNATURE = "setFileSizes(Path, Path)";
 		
 		try {
+			
 			this.sourceFileSize = Files.size(sourceFile);
+			logger.writeDebug(LOCATION, SIGNATURE, "Source file size (bytes): " + this.sourceFileSize);
+			
 			this.compareFileSize = Files.size(compareFile);
+			logger.writeDebug(LOCATION, SIGNATURE, "Compare file size (bytes): " + this.sourceFileSize);
 			
 		} catch (IOException e) {
 			// Not critical - just nice to know when reporting so no exception needs to be thrown
