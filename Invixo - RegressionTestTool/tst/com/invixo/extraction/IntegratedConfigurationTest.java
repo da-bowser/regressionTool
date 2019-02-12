@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -104,6 +105,49 @@ class IntegratedConfigurationTest {
 			
 			// Check
 			assertEquals(2, result.size());
+		} catch (Exception e) {
+			fail("It aint cooking chef! " + e);
+		}
+	}
+	
+	
+	@Test
+	@DisplayName("Verify extractMessageInfo extracts data properly")
+	void checkExtractMessageInfo() {
+		try {
+			// Get path: web service response (GetMessagesWithSuccessors)
+			String response = "../../../resources/extraction/testfiles/extractMessageInfo_Input3.xml";
+			URL urlResponse = this.getClass().getResource(response);
+			String pathResponse = Paths.get(urlResponse.toURI()).toString();
+			
+			// Read response bytes
+			InputStream is = new FileInputStream(new File(pathResponse));
+			
+			// Extract data from response
+			MessageInfo msgInfo = IntegratedConfiguration.extractMessageInfo(is, "ia_PackingList_KOL");
+
+			// Build expected result: Message Keys
+			HashSet<String> objectKeys = new HashSet<String>();
+			objectKeys.add("12a612be-2ec5-11e9-ce07-0000210ff2e6\\OUTBOUND\\554693350\\EOIO\\70156\\");
+			objectKeys.add("127c91a0-2ec5-11e9-8cd1-0000210ff2e6\\OUTBOUND\\554693350\\EOIO\\70154\\");
+			objectKeys.add("8d83d3d3-4d3a-4024-bfe6-5fa22dc4eba7\\OUTBOUND\\554693350\\EOIO\\70152\\");
+			objectKeys.add("11b27a31-2ec5-11e9-8ec4-0000210ff2e6\\OUTBOUND\\554693350\\EOIO\\70151\\");
+			
+			// Build expected result: Split Message IDs <parent id, message id>
+			HashMap<String, String> splitMessageIds = new HashMap<String, String>();
+			splitMessageIds.put("0ef26453-d70c-4afa-a0d3-7378db07ed12", "12a612be-2ec5-11e9-ce07-0000210ff2e6");
+			splitMessageIds.put("f399de86-106a-4746-b35c-8a9750fab942", "127c91a0-2ec5-11e9-8cd1-0000210ff2e6");
+			splitMessageIds.put("1fb0fc01-e1a6-44aa-a8e2-aef233cf48fe", "11b27a31-2ec5-11e9-8ec4-0000210ff2e6");
+			
+			MessageInfo msgInfoRef = new MessageInfo();
+			msgInfoRef.setObjectKeys(objectKeys);
+			msgInfoRef.setSplitMessageIds(splitMessageIds);
+			
+			// Check: split message ids
+			assertEquals(msgInfo.getSplitMessageIds(), splitMessageIds);
+
+			// Check: message keys
+			assertEquals(msgInfo.getObjectKeys(), objectKeys);
 		} catch (Exception e) {
 			fail("It aint cooking chef! " + e);
 		}

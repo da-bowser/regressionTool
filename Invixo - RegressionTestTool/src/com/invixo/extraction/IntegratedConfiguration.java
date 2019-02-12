@@ -412,6 +412,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			    	} else if ("receiverInterface".equals(currentElementName)) {
 			    		// We found the correct element
 			    		receiverInterfaceElementFound = true;
+			    		
 			    	} else if("name".equals(currentElementName) && eventReader.peek().isCharacters() && receiverInterfaceElementFound) {
 			    		String name = eventReader.peek().asCharacters().getData();
 
@@ -436,6 +437,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 						}
 						msgInfo.getObjectKeys().add(messageKey);
 						matchingReceiverInterfaceNameFound = false;
+						parentId = null;
 					}
 					break;
 				}

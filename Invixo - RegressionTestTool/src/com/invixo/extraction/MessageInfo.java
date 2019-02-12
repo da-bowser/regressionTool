@@ -6,6 +6,14 @@ import java.util.HashSet;
 public class MessageInfo {
 
 	private HashSet<String> objectKeys = new HashSet<String>();
+	public void setObjectKeys(HashSet<String> objectKeys) {
+		this.objectKeys = objectKeys;
+	}
+
+	public void setSplitMessageIds(HashMap<String, String> splitMessageIds) {
+		this.splitMessageIds = splitMessageIds;
+	}
+
 	private HashMap<String, String> splitMessageIds = new HashMap<String, String>();
 	
 	public HashSet<String> getObjectKeys() {
