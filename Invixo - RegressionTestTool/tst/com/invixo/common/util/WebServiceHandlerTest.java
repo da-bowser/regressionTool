@@ -148,7 +148,7 @@ class WebServiceHandlerTest {
 			
 			// Perform test
 			HttpPost httpPost = WebServiceHandler.buildMultipartHttpPostRequest(endpoint, xiHeader.getBytes(), payload);
-			httpPost.getEntity().writeTo(System.out);
+//			httpPost.getEntity().writeTo(System.out);
 			byte[] positiveResponse = WebServiceHandler.post(httpPost);
 			
 			// Check

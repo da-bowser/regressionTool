@@ -10,10 +10,10 @@
                <urn2:name>Data_In_Async</urn2:name>
                <urn2:namespace>urn:invixo.com:sandbox:regressionTestTool</urn2:namespace>
             </urn1:interface>
-            <urn1:receiverName>RTT_Receiver</urn1:receiverName>
             <urn1:nodeId/>
             <urn1:onlyFaultyMessages>false</urn1:onlyFaultyMessages>
             <urn1:qualityOfService>EO</urn1:qualityOfService>
+            <urn1:receiverName>RTT_Receiver</urn1:receiverName>
             <urn1:retries/>
             <urn1:retryInterval/>
             <urn1:senderInterface>
