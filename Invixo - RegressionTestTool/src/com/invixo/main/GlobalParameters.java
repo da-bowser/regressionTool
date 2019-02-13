@@ -5,10 +5,11 @@ import org.apache.http.entity.ContentType;
 import com.invixo.common.util.PropertyAccessor;
 
 public class GlobalParameters {
-	public static final String ENCODING = PropertyAccessor.getProperty("ENCODING");
-	public static final boolean DEBUG = Boolean.parseBoolean(PropertyAccessor.getProperty("DEBUG"));
-	public static final String FILE_DELIMITER = "~";
-	public static final ContentType CONTENT_TYPE_TEXT_XML = ContentType.parse("text/xml");
+	public static final String ENCODING 					= PropertyAccessor.getProperty("ENCODING");
+	public static final boolean DEBUG 						= Boolean.parseBoolean(PropertyAccessor.getProperty("DEBUG"));
+	public static final String FILE_DELIMITER 				= "#";
+	public static final ContentType CONTENT_TYPE_TEXT_XML 	= ContentType.TEXT_XML.withCharset(ENCODING);
+	public static final ContentType CONTENT_TYPE_APP_XML 	= ContentType.APPLICATION_XML.withCharset(ENCODING);
 	
 	public enum Environment { DEV, TST, PRD };
 	public enum Operation { extract, inject, compare , createIcoOverview};

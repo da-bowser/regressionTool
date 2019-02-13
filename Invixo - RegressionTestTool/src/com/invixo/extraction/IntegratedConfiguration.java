@@ -388,7 +388,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @throws ExtractorException
 	 */
 	public static MessageInfo extractMessageInfo(byte[] responseBytes, String receiverInterfaceName) throws ExtractorException {
-		final String SIGNATURE = "extractMessageInfo(InputStream, String)";
+		final String SIGNATURE = "extractMessageInfo(byte[], String)";
 		try {
 	        MessageInfo msgInfo = new MessageInfo();
 	        String messageId = null;

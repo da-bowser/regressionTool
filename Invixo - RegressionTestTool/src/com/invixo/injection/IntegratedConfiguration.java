@@ -194,7 +194,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	
 	
 	/**
-	 * Write new SAP Message ID (source --> target -->) mapping to mapping file 
+	 * Write new SAP Message ID (source --> target) mapping to mapping file 
 	 * @param sourceMsgId
 	 * @param targetMsgId
 	 * @param icoName

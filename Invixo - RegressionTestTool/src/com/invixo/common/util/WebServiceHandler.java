@@ -74,7 +74,7 @@ public class WebServiceHandler {
 	
 	/**
 	 * General purpose HTTP post. 
-	 * Creates a plain HTTP post request to the specified endpoint with the specified content having the specified contenttype. 
+	 * Creates a plain HTTP post request to the specified endpoint with the specified content having the specified content-type. 
 	 * @param endpoint				HTTP endpoint to call
 	 * @param contentType			Content-type of request
 	 * @param requestContent		Content of request
@@ -256,7 +256,7 @@ public class WebServiceHandler {
 	 * @return
 	 */
 	private static FormBodyPart createMimePart(byte[] content, boolean isHeader) {
-		ContentBody cb = new ByteArrayBody(content, ContentType.APPLICATION_XML, "dummy");
+		ContentBody cb = new ByteArrayBody(content, GlobalParameters.CONTENT_TYPE_APP_XML, "dummy");
 		FormBodyPart fbp = FormBodyPartBuilder.create("Invixo Injection Header", cb).build();
 		fbp.addField( "Content-ID", (isHeader) ? CID_HEADER : CID_PAYLOAD);
 		return fbp;
