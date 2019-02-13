@@ -13,8 +13,7 @@ public class GlobalParameters {
 	public enum Environment { DEV, TST, PRD };
 	public enum Operation { extract, inject, compare , createIcoOverview};
 	
-	
-	
+
 	// Parameter: dictates which environment *all* ICO request files are based on. (used for translation/mapping of sender system)
 	public static String PARAM_VAL_ICO_REQUEST_FILES_ENV 	= null;
 	
