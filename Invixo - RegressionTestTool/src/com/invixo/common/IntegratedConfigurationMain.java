@@ -453,9 +453,6 @@ public class IntegratedConfigurationMain {
 	
 	private static String mapSystem(String key) {
 		String value = SYSTEM_MAP.get(key);
-		if (value == null) {
-			value = "";
-		}
 		return value;
 	}
 

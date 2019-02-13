@@ -88,7 +88,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO request file: " + this.fileName);
 			
 			// Housekeeping: Delete old ICO extract data
-			deleteOldRunData();
+			if (GlobalParameters.PARAM_VAL_ALLOW_SAME_ENV) {
+				// Do not delete data (this is a special test parameter)
+				logger.writeDebug(LOCATION, SIGNATURE, "Deletion of existing files in Extract output directory disabled due to program parameter.");
+			} else {
+				// Delete data
+				deleteOldRunData();				
+			}
 			
 			// Check: execution can take place in 2 modes: 
 			// 1) init (first extraction of data from a given system environment (DEV, TST, PRD))

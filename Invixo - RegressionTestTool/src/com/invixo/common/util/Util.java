@@ -11,11 +11,9 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Util {
 	
@@ -124,54 +122,7 @@ public class Util {
 			}
 		}	
 	}
-	
-	
-	/**
-	 * Delete all files in a given directory.
-	 * @param dir				Directory where files should be deleted
-	 * @throws IOException
-	 */
-	public static void deleteFilesInDirectory(String dir) throws IOException {
-		Path directory = Paths.get(dir + ".");
-		Stream<Path> fileList = Files.walk(directory);
-		Iterator<Path> iter = fileList.iterator();
-		
-		// Delete every file in directory
-		while (iter.hasNext()) {
-			Path path = iter.next();
-			File file = new File(path.toString());
-			
-			// Delete files (not directories)
-			if (file.isFile()) {
-				file.delete();					
-			}
-		}
-		fileList.close();
-	}
-
-	
-    /**
-    * Delete all folders, sub-folders and files.
-    * @param dir
-    * @throws IOException
-    */
-    public static void deleteFilesAndSubDirectories(String dir) throws IOException {
-    	File file = new File(dir);
-    	if (file.exists()) {
-    		for (File childFile : file.listFiles()) {
-    			if (childFile.isDirectory()) {
-    				// Recursive call to delete method to delete any child elements
-    				deleteFilesAndSubDirectories(childFile.getAbsolutePath());
-    			} else {
-                    // Delete child
-    				childFile.delete();
-    			}
-    		}
-    		// Delete file or folder
-            file.delete();
-    	}
-    }
-    
+   
     
     /**
      * Get FILE|DIRECTORY list
