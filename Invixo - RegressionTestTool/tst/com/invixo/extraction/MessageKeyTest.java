@@ -60,14 +60,21 @@ class MessageKeyTest {
 			URL urlicoRequest = this.getClass().getResource(icoRequest);
 			String pathIcoRequest = Paths.get(urlicoRequest.toURI()).toString();
 			
-			// Prepare
-			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest);
+			// Get path: System Component mapping file
+			String systemMapping = "../../../resources/config/systemMapping.txt";
+			URL urlSystemMapping = this.getClass().getResource(systemMapping);
+			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
+			
+			// Create GetMessageList request
+			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest, pathSystemMapping, "PRD", "TST");
+			
+			// Create message key
 			String messageKey = "a3386b2a-1383-11e9-a723-000000554e16\\OUTBOUND\\5590550\\EO\\0";
 			MessageKey msgKey = new MessageKey(ico, messageKey);
 			
 			// Test creation of a new request message (FIRST)
 			InputStream is = msgKey.createNewRequest(messageKey, 0);
-//			System.out.println("Request payload created: \n" + new String(is.readAllBytes()));
+//			System.out.println("-- UNIT TEST -- Request payload created: \n" + new String(is.readAllBytes()));
 			
 			// Check
 			assertNotNull(is);
@@ -86,8 +93,15 @@ class MessageKeyTest {
 			URL urlicoRequest = this.getClass().getResource(icoRequest);
 			String pathIcoRequest = Paths.get(urlicoRequest.toURI()).toString();
 			
-			// Prepare
-			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest);
+			// Get path: System Component mapping file
+			String systemMapping = "../../../resources/config/systemMapping.txt";
+			URL urlSystemMapping = this.getClass().getResource(systemMapping);
+			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
+			
+			// Create GetMessageList request
+			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest, pathSystemMapping, "PRD", "TST");
+			
+			// Create message key
 			String messageKey = "a3386b2a-1383-11e9-a723-000000554e16\\OUTBOUND\\5590550\\EO\\0";
 			MessageKey msgKey = new MessageKey(ico, messageKey);
 			
@@ -112,8 +126,15 @@ class MessageKeyTest {
 			URL urlicoRequest = this.getClass().getResource(icoRequest);
 			String pathIcoRequest = Paths.get(urlicoRequest.toURI()).toString();
 			
-			// Prepare
-			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest);
+			// Get path: System Component mapping file
+			String systemMapping = "../../../resources/config/systemMapping.txt";
+			URL urlSystemMapping = this.getClass().getResource(systemMapping);
+			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
+			
+			// Create GetMessageList request
+			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest, pathSystemMapping, "PRD", "TST");
+			
+			// Create message key
 			String messageKey = "6bf95597-293e-11e9-bf0f-000000554e16\\OUTBOUND\\5590550\\EO\\0\\";
 			MessageKey msgKey = new MessageKey(ico, messageKey);
 			
