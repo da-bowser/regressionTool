@@ -4,9 +4,9 @@ import java.util.UUID;
 
 public class InjectionRequest {
 	private String messageId = UUID.randomUUID().toString();
-	private String sourcePayloadFile = null;
-	private String injectionRequestFile = null;
-	private InjectionPayloadException error = null;
+	private String sourcePayloadFile = null;					// Source (extracted) payload 
+	private String injectionRequestFile = null;					// Injection request (SAP XI multipart message)
+	private Exception error = null;
 	
 	public String getMessageId() {
 		return messageId;
@@ -23,10 +23,10 @@ public class InjectionRequest {
 	public void setInjectionRequestFile(String injectionRequestFile) {
 		this.injectionRequestFile = injectionRequestFile;
 	}
-	public InjectionPayloadException getError() {
+	public Exception getError() {
 		return error;
 	}
-	public void setError(InjectionPayloadException error) {
+	public void setError(Exception error) {
 		this.error = error;
 	}
 	

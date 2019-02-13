@@ -20,11 +20,12 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
+import com.invixo.common.GeneralException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
+import com.invixo.common.util.WebServiceHandler;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
-import com.invixo.extraction.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
 
 public class MessageKey {
@@ -115,7 +116,7 @@ public class MessageKey {
 		return ex;
 	}
 	
-	public void setEx(ExtractorException e) {
+	public void setEx(Exception e) {
 		this.ex = e;
 	}
 	
@@ -129,15 +130,17 @@ public class MessageKey {
 	 *------------- Instance methods
 	 *====================================================================================*/
 	/**
+	 * 	/**
 	 * Main entry point for processing a Message Key.
 	 * Call Web Service for fetching SAP PO message data (SOAP envelope). 
 	 * A normal web service response will contain an XML payload containing base64 encoded SAP XI multipart message.
 	 * This method is responsible for extracting the actual payload data from the multipart message and storing the payload on file system.
 	 * @param messageKey
 	 * @param getFirstPayload
-	 * @throws ExtractorException
+	 * @throws ExtractorException			Other errors during extraction
+	 * @throws GeneralException				Web Service call failed
 	 */
-	public void processMessageKey(String messageKey, boolean getFirstPayload) throws ExtractorException {
+	public void processMessageKey(String messageKey, boolean getFirstPayload) throws ExtractorException, GeneralException {
 		final String SIGNATURE = "processMessageKey(String, boolean)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [" + ((getFirstPayload)?"FIRST":"LAST") + "] processing started...");
@@ -148,11 +151,11 @@ public class MessageKey {
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service request payload created for Message Key " + messageKey + " with version " + version);
 			
 			// Call Web Service fetching the payload
-			InputStream wsResponse = WebServiceHandler.callWebService(wsRequest.readAllBytes());
+			byte[] wsResponse = WebServiceHandler.post(IntegratedConfiguration.ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, wsRequest.readAllBytes());
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service called");
 				
 			// Extract the actual SAP PO payload from the Web Service response message and store it on file system
-			String sapPayloadFileName = storePayload(wsResponse.readAllBytes(), getFirstPayload);
+			String sapPayloadFileName = storePayload(wsResponse, getFirstPayload);
 			logger.writeDebug(LOCATION, SIGNATURE, "File with SAP PO payload created: " + sapPayloadFileName);			
 		} catch (IOException e) {
 			String msg = "Error reading all bytes from Inpustream\n" + e;

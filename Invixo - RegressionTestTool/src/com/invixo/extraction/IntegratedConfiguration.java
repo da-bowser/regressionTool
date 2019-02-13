@@ -3,7 +3,6 @@ package com.invixo.extraction;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -28,10 +27,11 @@ import javax.xml.stream.events.XMLEvent;
 import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.common.util.WebServiceHandler;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
-import com.invixo.extraction.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
 
 public class IntegratedConfiguration extends IntegratedConfigurationMain {
@@ -39,7 +39,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *------------- Class variables
 	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
-	private static final String LOCATION = IntegratedConfiguration.class.getName();	
+	private static final String LOCATION = IntegratedConfiguration.class.getName();
+	public static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
 
 
 	
@@ -99,7 +100,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				// Extract only Message IDs previously injected for ICO 
 				extractModeNonInit();
 			}
-		} catch (ExtractorException e) {
+		} catch (ExtractorException|GeneralException e) {
 			this.ex = e;
 		} finally {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Finished processing ICO request file");
@@ -156,7 +157,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * NB: messages resulting from a Message Split is also extracted.
 	 * @throws ExtractorException
 	 */
-	private void extractModeNonInit() throws ExtractorException {
+	private void extractModeNonInit() throws ExtractorException, GeneralException {
 		final String SIGNATURE = "extractModeNonInit()";
 		try {
 			// Get list of Message IDs to be extracted.
@@ -202,7 +203,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @param messageIdMap					Message Id map build from Message Id mapping file created during injection.
 	 * @throws ExtractorException
 	 */
-	private void processNonInitInBatch(Map<String, String> messageIdMap) throws ExtractorException {
+	private void processNonInitInBatch(Map<String, String> messageIdMap) throws ExtractorException, GeneralException {
 		final String SIGNATURE = "processNonInitInBatch(Map<String, String>)";
 		// Create request for GetMessagesWithSuccessors
 		byte[] requestBytes = createGetMessagesWithSuccessors(this, messageIdMap);
@@ -216,7 +217,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		}
 					
 		// Call web service (GetMessagesWithSuccessors)
-		ByteArrayInputStream responseBytes = WebServiceHandler.callWebService(requestBytes);
+		byte[] responseBytes = WebServiceHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
 		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessagesWithSuccessors) called");
 
 		// Extract message info from Web Service response
@@ -280,7 +281,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * The messages extracted are which ever messages present in SAP PO matching the requests made by this tool.
 	 * @throws ExtractorException
 	 */
-	private void extractModeInit() throws ExtractorException {
+	private void extractModeInit() throws ExtractorException, GeneralException {
 		final String SIGNATURE = "extractModeInit()";
 		
 		// Create request for GetMessageList
@@ -295,7 +296,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		}
 					
 		// Call web service (GetMessageList)
-		ByteArrayInputStream responseBytes = WebServiceHandler.callWebService(requestBytes);
+		byte[] responseBytes = WebServiceHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
 		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessageList) called");
 			
 		// Extract MessageKeys from web Service response
@@ -380,7 +381,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @return
 	 * @throws ExtractorException
 	 */
-	public static MessageInfo extractMessageInfo(InputStream responseBytes, String receiverInterfaceName) throws ExtractorException {
+	public static MessageInfo extractMessageInfo(byte[] responseBytes, String receiverInterfaceName) throws ExtractorException {
 		final String SIGNATURE = "extractMessageInfo(InputStream, String)";
 		try {
 	        MessageInfo msgInfo = new MessageInfo();
@@ -391,7 +392,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	        boolean matchingReceiverInterfaceNameFound = false;
 	        
 			XMLInputFactory factory = XMLInputFactory.newInstance();
-			XMLEventReader eventReader = factory.createXMLEventReader(responseBytes);
+			XMLEventReader eventReader = factory.createXMLEventReader(new ByteArrayInputStream(responseBytes));
 
 			while (eventReader.hasNext()) {
 				XMLEvent event = eventReader.nextEvent();
@@ -458,9 +459,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * this on file system.
 	 * This method can/will generate both FIRST and LAST payload if requested.
 	 * @param key
-	 * @throws ExtractorException
 	 */
-	private void processMessageKeySingle(String key) throws ExtractorException {
+	private void processMessageKeySingle(String key) {
 		MessageKey msgKey = null;
 		try {
 			// Create a new MessageKey object
@@ -476,7 +476,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			
 			// Fetch payload: LAST
 			msgKey.processMessageKey(key, false);			
-		} catch (ExtractorException e) {
+		} catch (ExtractorException|GeneralException e) {
 			if (msgKey != null) {
 				msgKey.setEx(e);
 			}

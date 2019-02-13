@@ -19,7 +19,7 @@ class UtilTest {
 	void getRelevantMessageIdsWithEmptyFilter() {
 		try {
 			// Get path: Message ID mapping test file 
-			String systemMapping = "../../../../resources/util/testfiles/TST_to_TST_msgId_map.txt";
+			String systemMapping = "../../../../resources/testfiles/com/invixo/common/util/TST_to_TST_msgId_map.txt";
 			URL urlSystemMapping = getClass().getResource(systemMapping);
 			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
 			
@@ -39,7 +39,7 @@ class UtilTest {
 	void getRelevantMessageIdsWithNonEmptyFilter() {
 		try {
 			// Get path: Message ID mapping test file 
-			String systemMapping = "../../../../resources/util/testfiles/TST_to_TST_msgId_map.txt";
+			String systemMapping = "../../../../resources/testfiles/com/invixo/common/util/TST_to_TST_msgId_map.txt";
 			URL urlSystemMapping = getClass().getResource(systemMapping);
 			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
 			

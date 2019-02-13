@@ -14,9 +14,10 @@ import org.apache.http.client.methods.HttpPost;
 import com.invixo.common.GeneralException;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.common.util.WebServiceHandler;
 import com.invixo.consistency.FileStructure;
-import com.invixo.injection.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
 
 
@@ -25,9 +26,15 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 *------------- Class variables
 	 *====================================================================================*/
 	private static Logger logger 						= Logger.getInstance();
-	private static final String LOCATION 				= IntegratedConfiguration.class.getName();	
+	private static final String LOCATION 				= IntegratedConfiguration.class.getName();
+	
+	private static final String SERVICE_HOST_PORT 		= GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT;
+	private static final String SERVICE_PATH_INJECT 	= PropertyAccessor.getProperty("SERVICE_PATH_INJECT") + GlobalParameters.PARAM_VAL_SENDER_COMPONENT + ":" + GlobalParameters.PARAM_VAL_XI_SENDER_ADAPTER;
+	private static final String ENDPOINT 				= SERVICE_HOST_PORT + SERVICE_PATH_INJECT;
+	
 	public static BufferedWriter mapWriter				= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID
 	private int filesToBeProcessedTotal					= 0;
+
 	
 	
 	
@@ -95,7 +102,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			}
 		} catch (InjectionException e) {
 			this.setEx(e);
-		} catch (InjectionPayloadException e) {
+		} catch (InjectionPayloadException|GeneralException e) {
 			if (ir != null) {
 				ir.setError(e);
 			}
@@ -142,12 +149,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 * Main entry point for processing/injecting a single payload file to SAP PO.
 	 * Create HTTP request message to be sent to SAP PO and inject it to the system.
 	 * Routing info is extracted from the ICO Request file.
-	 * Payload is taken from the referenced payload file.
+	 * Payload is taken from the referenced payload file. 
 	 * @param payloadFile
 	 * @param ir
 	 * @throws InjectionPayloadException
+	 * @throws GeneralException
 	 */
-	private void injectMessage(String payloadFile, InjectionRequest ir) throws InjectionPayloadException {
+	private void injectMessage(String payloadFile, InjectionRequest ir) throws InjectionPayloadException, GeneralException {
 		final String SIGNATURE = "injectMessage(String, InjectionRequest)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "---- (File " + this.injections.size() + " / " + this.filesToBeProcessedTotal + ") Payload processing BEGIN: " + payloadFile);
@@ -158,10 +166,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			logger.writeDebug(LOCATION, SIGNATURE, "Payload size (MB): " + Util.convertBytesToMegaBytes(payload.length));
 			
 			// Generate SOAP XI Header
-			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(this, ir);
+			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(this, ir.getMessageId());
 			
 			// Build Request to be sent via Web Service call
-			HttpPost webServiceRequest = WebServiceHandler.buildHttpPostRequest(soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
+			HttpPost webServiceRequest = WebServiceHandler.buildMultipartHttpPostRequest(ENDPOINT, soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
 			
 			// Store request on file system (only relevant for debugging purposes)
 			if (GlobalParameters.DEBUG) {
@@ -171,7 +179,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			}
 			
 			// Call SAP PO Web Service (using XI protocol)
-			WebServiceHandler.callWebService(webServiceRequest);
+			WebServiceHandler.post(webServiceRequest);
 			
 			// Write entry to mapping file
 			addMappingEntryToFile(Util.getFileName(payloadFile, false), ir.getMessageId(), this.getName());

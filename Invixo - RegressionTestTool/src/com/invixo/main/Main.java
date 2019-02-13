@@ -39,11 +39,9 @@ public class Main {
 	
 	// Parameter: SAP PO host name. Example: ipod.invixo.com
 	private static final String PARAM_KEY_HTTP_HOST				= "httpHost";
-	private static String PARAM_VAL_HTTP_HOST					= null;
 
 	// Parameter: SAP PO host name. Example: 50000
 	private static String PARAM_KEY_HTTP_PORT					= "httpPort";
-	private static String PARAM_VAL_HTTP_PORT 					= null;
 	
 	// Parameter: SAP XI sender adapter name
 	private static final String PARAM_KEY_XI_SENDER_ADAPTER		= "xiSenderAdapter";
@@ -129,7 +127,7 @@ public class Main {
 
 
 	private static String buildHttpHostPort() {
-		return "http://" + PARAM_VAL_HTTP_HOST + ":" + PARAM_VAL_HTTP_PORT + "/";
+		return "http://" + GlobalParameters.PARAM_VAL_HTTP_HOST + ":" + GlobalParameters.PARAM_VAL_HTTP_PORT + "/";
 	}
 
 
@@ -205,11 +203,11 @@ public class Main {
 			sw.write("Program parameter " + PARAM_KEY_CREDENTIALS_FILE + " does not point to a file that exists. Value provided: " + PARAM_VAL_CREDENTIALS_FILE + ".\n");
 		}
 		
-		if (PARAM_VAL_HTTP_HOST == null) {
+		if (GlobalParameters.PARAM_VAL_HTTP_HOST == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_HTTP_HOST + " not set.\n");
 		} 
 		
-		if (PARAM_VAL_HTTP_PORT == null) {
+		if (GlobalParameters.PARAM_VAL_HTTP_PORT == null) {
 			sw.write("Obligatory program parameter " + PARAM_KEY_HTTP_PORT + " not set.\n");
 		} 
 		
@@ -263,9 +261,9 @@ public class Main {
 			} else if(param.contains(PARAM_KEY_CREDENTIALS_FILE)) {
 				PARAM_VAL_CREDENTIALS_FILE = param.replace(PARAM_KEY_CREDENTIALS_FILE + "=", "");
 			} else if(param.contains(PARAM_KEY_HTTP_HOST)) {
-				PARAM_VAL_HTTP_HOST = param.replace(PARAM_KEY_HTTP_HOST + "=", "");
+				GlobalParameters.PARAM_VAL_HTTP_HOST = param.replace(PARAM_KEY_HTTP_HOST + "=", "");
 			} else if(param.contains(PARAM_KEY_HTTP_PORT)) {
-				PARAM_VAL_HTTP_PORT = param.replace(PARAM_KEY_HTTP_PORT + "=", "");
+				GlobalParameters.PARAM_VAL_HTTP_PORT = param.replace(PARAM_KEY_HTTP_PORT + "=", "");
 			} else if(param.contains(PARAM_KEY_XI_SENDER_ADAPTER)) {
 				GlobalParameters.PARAM_VAL_XI_SENDER_ADAPTER = param.replace(PARAM_KEY_XI_SENDER_ADAPTER + "=", "");
 			} else if(param.contains(PARAM_KEY_SENDER_COMPONENT)) {

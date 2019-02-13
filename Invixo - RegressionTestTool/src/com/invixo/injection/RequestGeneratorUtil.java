@@ -23,7 +23,7 @@ public class RequestGeneratorUtil {
 	private static final String TARGET_SAP_NS_PREFIX	= "sap";
 	
 	
-	static String generateSoapXiHeaderPart(IntegratedConfiguration ico, InjectionRequest ir) throws InjectionPayloadException {
+	public static String generateSoapXiHeaderPart(IntegratedConfiguration ico, String messageId) throws InjectionPayloadException {
 		final String SIGNATURE = "generateSoapXiHeaderPart(IntegratedConfiguration, InjectionRequest)";
 		try {
 			StringWriter stringWriter = new StringWriter();
@@ -79,7 +79,7 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | MessageId
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "MessageId");
 			xmlEventWriter.add(startElement);
-			value = xmlEventFactory.createCharacters(ir.getMessageId());
+			value = xmlEventFactory.createCharacters(messageId);
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "MessageId"));
 			
