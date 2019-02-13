@@ -29,7 +29,7 @@ import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
-import com.invixo.common.util.WebServiceHandler;
+import com.invixo.common.util.HttpHandler;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
@@ -223,7 +223,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		}
 					
 		// Call web service (GetMessagesWithSuccessors)
-		byte[] responseBytes = WebServiceHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
+		byte[] responseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
 		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessagesWithSuccessors) called");
 
 		// Extract message info from Web Service response
@@ -302,7 +302,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		}
 					
 		// Call web service (GetMessageList)
-		byte[] responseBytes = WebServiceHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
+		byte[] responseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
 		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessageList) called");
 			
 		// Extract MessageKeys from web Service response

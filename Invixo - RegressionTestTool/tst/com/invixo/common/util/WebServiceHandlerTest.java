@@ -58,7 +58,7 @@ class WebServiceHandlerTest {
 			byte[] requestContent = getFilecontent("httpPost_positive.xml");
 			
 			// Call endpoint
-			byte[] positiveResponse = WebServiceHandler.post(endpoint, contentType, requestContent);
+			byte[] positiveResponse = HttpHandler.post(endpoint, contentType, requestContent);
 			
 			// Check
 			assertTrue(positiveResponse.length > 0);
@@ -84,7 +84,7 @@ class WebServiceHandlerTest {
 		    	byte[] requestContent = getFilecontent("httpPost_negative.xml");
 		    		
 		    	// Call endpoint
-		    	WebServiceHandler.post(endpoint, contentType, requestContent);
+		    	HttpHandler.post(endpoint, contentType, requestContent);
             });
 	}
 
@@ -101,10 +101,10 @@ class WebServiceHandlerTest {
 			byte[] request2 = getFilecontent("httpPost_positive2.xml");
 			
 			// Call endpoint: 1
-			byte[] resp1 = WebServiceHandler.post(endpoint, contentType, request1);
+			byte[] resp1 = HttpHandler.post(endpoint, contentType, request1);
 			
 			// Call endpoint: 2
-			byte[] resp2 = WebServiceHandler.post(endpoint, contentType, request2);
+			byte[] resp2 = HttpHandler.post(endpoint, contentType, request2);
 						
 			// Check
 			assertTrue(resp1.length > 0);
@@ -147,9 +147,9 @@ class WebServiceHandlerTest {
 			String xiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(ico, ir.getMessageId());
 			
 			// Perform test
-			HttpPost httpPost = WebServiceHandler.buildMultipartHttpPostRequest(endpoint, xiHeader.getBytes(), payload);
+			HttpPost httpPost = HttpHandler.buildMultipartHttpPostRequest(endpoint, xiHeader.getBytes(), payload);
 //			httpPost.getEntity().writeTo(System.out);
-			byte[] positiveResponse = WebServiceHandler.post(httpPost);
+			byte[] positiveResponse = HttpHandler.post(httpPost);
 			
 			// Check
 			assertTrue(positiveResponse.length > 0);

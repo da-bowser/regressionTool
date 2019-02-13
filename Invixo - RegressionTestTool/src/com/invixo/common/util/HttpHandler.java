@@ -32,9 +32,9 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.main.GlobalParameters;
 
-public class WebServiceHandler {
+public class HttpHandler {
 	private static Logger logger = Logger.getInstance();
-	private static final String LOCATION = WebServiceHandler.class.getName();
+	private static final String LOCATION = HttpHandler.class.getName();
 	private static final int TIMEOUT = Integer.parseInt(PropertyAccessor.getProperty("TIMEOUT"));
 
 	private static final String CID_PAYLOAD = "INJECTION_PAYLOAD";

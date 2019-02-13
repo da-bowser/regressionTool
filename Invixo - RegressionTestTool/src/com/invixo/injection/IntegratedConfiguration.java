@@ -16,7 +16,7 @@ import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
-import com.invixo.common.util.WebServiceHandler;
+import com.invixo.common.util.HttpHandler;
 import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
 
@@ -169,7 +169,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(this, ir.getMessageId());
 			
 			// Build Request to be sent via Web Service call
-			HttpPost webServiceRequest = WebServiceHandler.buildMultipartHttpPostRequest(ENDPOINT, soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
+			HttpPost webServiceRequest = HttpHandler.buildMultipartHttpPostRequest(ENDPOINT, soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
 			
 			// Store request on file system (only relevant for debugging purposes)
 			if (GlobalParameters.DEBUG) {
@@ -179,7 +179,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			}
 			
 			// Call SAP PO Web Service (using XI protocol)
-			WebServiceHandler.post(webServiceRequest);
+			HttpHandler.post(webServiceRequest);
 			
 			// Write entry to mapping file
 			addMappingEntryToFile(Util.getFileName(payloadFile, false), ir.getMessageId(), this.getName());

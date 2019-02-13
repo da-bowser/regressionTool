@@ -23,7 +23,7 @@ import javax.xml.transform.stream.StreamSource;
 import com.invixo.common.GeneralException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.common.util.WebServiceHandler;
+import com.invixo.common.util.HttpHandler;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
@@ -151,7 +151,7 @@ public class MessageKey {
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service request payload created for Message Key " + messageKey + " with version " + version);
 			
 			// Call Web Service fetching the payload
-			byte[] wsResponse = WebServiceHandler.post(IntegratedConfiguration.ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, wsRequest.readAllBytes());
+			byte[] wsResponse = HttpHandler.post(IntegratedConfiguration.ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, wsRequest.readAllBytes());
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service called");
 				
 			// Extract the actual SAP PO payload from the Web Service response message and store it on file system
