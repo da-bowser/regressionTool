@@ -21,7 +21,7 @@ public class Orchestrator {
 		final String SIGNATURE = "start()";
 		logger.writeDebug(LOCATION, SIGNATURE, "Start compare");
 		
-		// Get number of ICO's to handle
+		// Get list of ICO's to handle
 		List<Path> sourceIcoFiles = Util.generateListOfPaths(FileStructure.DIR_EXTRACT_INPUT, "FILE");
 
 		// Start processing files for compare

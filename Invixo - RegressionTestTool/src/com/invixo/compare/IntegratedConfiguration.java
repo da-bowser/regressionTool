@@ -1,13 +1,14 @@
 package com.invixo.compare;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -23,11 +24,13 @@ import com.invixo.main.GlobalParameters;
 public class IntegratedConfiguration {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = IntegratedConfiguration.class.getName();
-	private List<Path> sourceFiles;
-	private List<Path> compareFiles;
-	private static Map<String, String> messageIdMap;
+	private Map<String, String> messageIdMap;
 	private ArrayList<String> xpathExceptions = new ArrayList<String>();
+
 	private String name;
+	private String baseFilePath = null;		// Path to LAST payloads, baseline (often PRD)
+	private String compareFilePath = null;	// Path to LAST payloads, compare (often TST)
+
 	private int totalCompareDiffsFound = 0;
 	private int totalCompareDiffsIgnored = 0;
 	private int totalCompareDiffsUnhandled = 0;
@@ -52,15 +55,12 @@ public class IntegratedConfiguration {
 		logger.writeDebug(LOCATION, SIGNATURE, "Initialize compare data for ICO compare");
 
 		try {
-			// Set current ICO
-			this.name = icoName;
-			
-			// Get files from source and compare directories
-			sourceFiles = Util.generateListOfPaths(sourceIcoPath.toString(), "FILE");
-			compareFiles = Util.generateListOfPaths(compareIcoPath.toString() , "FILE");
-			
+			this.name 				= icoName;			// ICO name
+			this.baseFilePath 		= sourceIcoPath;	// Path to LAST payloads: baseline (in many cases this is the extract from PRD)
+			this.compareFilePath 	= compareIcoPath;	// Path to LAST payloads: compare (in many cases this is extract from TST)
+					
 			// Build message id map to match "Prod"(source) and "Test"(compare) messages
-			messageIdMap = buildMessageIdMap();
+			this.messageIdMap = buildMessageIdMap(this.name);
 			
 			// Build exception map to be used to exclude data elements in later compare
 			xpathExceptions = extractIcoCompareExceptionsFromFile(FileStructure.FILE_CONFIG_COMPARE_EXEPTIONS, this.name);
@@ -134,11 +134,12 @@ public class IntegratedConfiguration {
 	/**
 	 * Build list of matching source and target message id's created during "Inject".
 	 * List is created from Message Id mapping file.
+	 * @param icoName				ICO name to be used for filtering the Message Id Mapping file
 	 * @return						List of source and target message id's used when matching "LAST" files for compare
 	 * @throws CompareException
 	 */
-	private static Map<String, String> buildMessageIdMap() throws CompareException {
-		String SIGNATURE = "buildMessageIdMap()";
+	private static Map<String, String> buildMessageIdMap(String icoName) throws CompareException {
+		String SIGNATURE = "buildMessageIdMap(String)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + FileStructure.FILE_MSG_ID_MAPPING);
 			
@@ -146,7 +147,7 @@ public class IntegratedConfiguration {
 			String mappingFilePath = FileStructure.FILE_MSG_ID_MAPPING;
 			
 			// Create map splitting on delimiter from map file <original extract id, inject message id>
-	        Map<String, String> mapFromFile = Util.getMessageIdsFromFile(mappingFilePath, GlobalParameters.FILE_DELIMITER, null, 1, 2);
+	        Map<String, String> mapFromFile = Util.getMessageIdsFromFile(mappingFilePath, GlobalParameters.FILE_DELIMITER, icoName, 1, 2);
 			
 	        // Return map
 	        return mapFromFile;
@@ -163,16 +164,12 @@ public class IntegratedConfiguration {
 	 */
 	public void start() {
 		String SIGNATURE = "start()";
-		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.name + "\"\nExpected compare count: " + this.sourceFiles.size());
+		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.name + "\"\nExpected compare count: " + this.messageIdMap.size());
 		
-		// Start looping over source files
-		Path currentSourcePath;
-		for (int i = 0; i < sourceFiles.size(); i++) {
-			// Get matching compare file using message id map
-			currentSourcePath = sourceFiles.get(i);
-
-			// Prepare: Locate matching compare file based on source msgId
-			Path comparePathMatch = getMatchingCompareFile(currentSourcePath, compareFiles, IntegratedConfiguration.messageIdMap);
+		// Process each Message Id representing the baseline (often PRD)
+		for (Entry<String, String> entry : this.messageIdMap.entrySet()) {
+			final Path currentSourcePath = Paths.get(this.baseFilePath + entry.getKey() + FileStructure.PAYLOAD_FILE_EXTENSION);
+			final Path comparePathMatch = Paths.get(this.compareFilePath + entry.getValue() + FileStructure.PAYLOAD_FILE_EXTENSION);
 
 			Comparer comp = new Comparer(currentSourcePath, comparePathMatch, this.xpathExceptions);
 			this.compareProcessedList.add(comp);
@@ -193,51 +190,7 @@ public class IntegratedConfiguration {
 		logger.writeDebug(LOCATION, SIGNATURE, "Total execution time (seconds): " + this.totalCompareExecutionTime);
 	}
 	
-	
-	/**
-	 * Match source message id to get a target message id - used to locate compare "LAST" file in target environment.
-	 * @param sourceFilePath		Location of source file
-	 * @param compareFiles			List of compare files
-	 * @param messageIdMap			Source <--> Target message id's	
-	 * @return
-	 */
-	private Path getMatchingCompareFile(Path sourceFilePath, List<Path> compareFiles, Map<String, String> messageIdMap) {
-		final String SIGNATURE = "getMatchingCompareFile(Path, List<Path>, Map<String, String>)";
-		Path compareFileFound = null;
-		
-		// Extract message id from filename 
-		String sourceMsgId = Util.getFileName(sourceFilePath.getFileName().toString(), false);
 
-		logger.writeDebug(LOCATION, SIGNATURE, "Prepare: Getting matching compare file for sourceId: " + sourceMsgId);
-
-		// Get compare message id from map using source id
-		String compareMsgId = messageIdMap.get(sourceMsgId);
-
-		if (compareMsgId == null) {
-			// Build comparefolder structure
-			String compareFolderStructure = FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.name + "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
-			compareFileFound = new File(compareFolderStructure + "null.payload").toPath();
-		} else {
-			logger.writeDebug(LOCATION, SIGNATURE, "Prepare: match found, compare file msgId: " + compareMsgId);
-
-			// Search for compare id in compare file list
-			for (int i = 0; i < compareFiles.size(); i++) {
-				String currentFile = compareFiles.get(i).getFileName().toString();
-
-				if (currentFile.toString().contains(compareMsgId)) {
-					// Get current file if we have a match
-					compareFileFound = compareFiles.get(i);
-
-					// Stop searching
-					break;
-				}
-			}
-		}
-		
-		// return compare file found
-		return compareFileFound;
-	}
-	
 	
 	
 	/*====================================================================================

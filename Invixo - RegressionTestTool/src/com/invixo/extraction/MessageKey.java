@@ -36,7 +36,7 @@ public class MessageKey {
 	private static final String LOCATION = MessageKey.class.getName();	
 	public static final String PAYLOAD_FOUND = "Found";
 	public static final String PAYLOAD_NOT_FOUND = "Not found";
-	
+
 
 	
 	/*====================================================================================
@@ -68,7 +68,8 @@ public class MessageKey {
 		this.sapMessageId 		= extractMessageIdFromKey(messageKey);
 		this.targetPathFirst 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
 		this.targetPathLast 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE + this.ico.getName() + "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
-		this.fileName 			= this.sapMessageId + ".payload";
+		this.fileName 			= this.sapMessageId + FileStructure.PAYLOAD_FILE_EXTENSION;
+
 	}
 	
 	
