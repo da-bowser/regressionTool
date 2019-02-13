@@ -161,6 +161,7 @@ public class Util {
 	 * @param path						Path to Message Id mapping file
 	 * @param fileDelimiter				Delimiter used in Message Id mapping file
 	 * @param filterString				Name of ICO. All ICO names not matching this id are filtered/removed/disregarded
+	 * 									Using value null will return everything.
 	 * @param keyIndex					Index in map pointing to Source Message Id (the id originally extracted during INIT extract)
 	 * @param valueIndex				Index in map pointing to Target Message Id (the id used when injecting)
 	 * @return

@@ -24,6 +24,7 @@ import com.invixo.main.GlobalParameters;
 public class IntegratedConfiguration {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = IntegratedConfiguration.class.getName();
+	
 	private Map<String, String> messageIdMap;
 	private ArrayList<String> xpathExceptions = new ArrayList<String>();
 
