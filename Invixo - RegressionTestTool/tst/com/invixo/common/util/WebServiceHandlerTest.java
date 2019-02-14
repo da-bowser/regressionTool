@@ -71,7 +71,7 @@ class WebServiceHandlerTest {
 	@Test
 	@DisplayName("Test HTTP Post: negative")
 	void httpPostWithNegativeResponse() {
-		assertThrows(GeneralException.class,
+		assertThrows(HttpException.class,
             () -> {
     			// Set endpoint: SAP PO Monitoring API
     			String endpoint = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT
