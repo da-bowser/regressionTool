@@ -15,11 +15,13 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 
+import com.invixo.common.util.HttpException;
+import com.invixo.common.util.HttpHandler;
 import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
-import com.invixo.directory.api.webServices.WebServiceHandler;
 import com.invixo.main.GlobalParameters;
 
 public class Orchestrator {
@@ -28,6 +30,7 @@ public class Orchestrator {
 	private static final String XML_PREFIX 	= "inv";
 	private static final String XML_NS 		= "urn:invixo.com.directory.api";
 	private static final String ICO_OVERVIEW_FILE = FileStructure.DIR_CONFIG + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_IntegratedConfigurationsOverview.xml";
+	private static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_DIR_API");
 	
 	private static ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
 	private static ArrayList<IntegratedConfigurationReadRequest> icoReadRequestList = new ArrayList<IntegratedConfigurationReadRequest>();
@@ -45,28 +48,27 @@ public class Orchestrator {
 			byte[] requestIcoQueryBytes = createIntegratedConfigurationQueryRequest();
 			
 			// Call web service
-			ByteArrayInputStream responseIcoQueryBytes = WebServiceHandler.callWebService(requestIcoQueryBytes);
+			byte[] responseIcoQueryBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestIcoQueryBytes);
 		
 			// Extract all ICOs from query response
-			Orchestrator.icoReadRequestList = extractIcoDataFromQueryResponse(responseIcoQueryBytes);
+			Orchestrator.icoReadRequestList = extractIcoDataFromQueryResponse(new ByteArrayInputStream(responseIcoQueryBytes));
 			
 			// Create read request to get additional information about ICO (Receiver, QoS, etc)
 			byte[] requestIcoReadBytes = createIntegratedConfigurationReadRequest(icoReadRequestList);
 						
 			// Call web service
-			ByteArrayInputStream responseIcoReadBytes = WebServiceHandler.callWebService(requestIcoReadBytes);
+			byte[] responseIcoReadBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestIcoReadBytes);
 			
-			// Read relevant sender and receiver information from read respones
-			Orchestrator.icoList = extractIcoInformationFromReadResponse(responseIcoReadBytes);
+			// Read relevant sender and receiver information from read responses
+			Orchestrator.icoList = extractIcoInformationFromReadResponse(new ByteArrayInputStream(responseIcoReadBytes));
 			
 			// Create complete ICO overview file
 			icoOverviewFilePath = createCompleteIcoOverviewFile(Orchestrator.icoList);
-			
-		} catch (DirectoryApiException e) {
+		} catch (HttpException e) {
 			String msg = "Error during web service call " + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
-		} catch (FileNotFoundException | XMLStreamException e) {
+		} catch (DirectoryApiException | FileNotFoundException | XMLStreamException e) {
 			String msg = "Error during creation of overview file " + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
@@ -284,7 +286,7 @@ public class Orchestrator {
 	 * @throws DirectoryApiException
 	 */
 	public static ArrayList<IntegratedConfiguration> extractIcoInformationFromReadResponse(InputStream responseBytes) throws DirectoryApiException {
-		final String SIGNATURE = "extractIcoReceiverInfo(InputStream, IntegratedConfiguration)";
+		final String SIGNATURE = "extractIcoInformationFromReadResponse(InputStream)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Extract ico info from read response: start");
 		try {
 	        
@@ -389,7 +391,7 @@ public class Orchestrator {
 	 * @return
 	 */
 	private static byte[] createIntegratedConfigurationReadRequest(ArrayList<IntegratedConfigurationReadRequest> icoRequestList) {
-		final String SIGNATURE = "createIntegratedConfigurationReadRequest(IntegratedConfiguration)";
+		final String SIGNATURE = "createIntegratedConfigurationReadRequest(ArrayList<IntegratedConfigurationReadRequest>)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Create ico read request: start");
 		try {
 			final String XML_NS_BAS_PREFIX	= "bas";
@@ -491,7 +493,7 @@ public class Orchestrator {
 	 * @throws DirectoryApiException
 	 */
 	public static ArrayList<IntegratedConfigurationReadRequest> extractIcoDataFromQueryResponse(InputStream responseBytes) throws DirectoryApiException {
-		final String SIGNATURE = "extractMessageInfo(InputStream)";
+		final String SIGNATURE = "extractIcoDataFromQueryResponse(InputStream)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Extracting data from ico query response");
 		try {
 
