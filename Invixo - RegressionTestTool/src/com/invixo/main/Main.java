@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
-import com.invixo.directory.api.Orchestrator;
+
 
 public class Main {
 	private static Logger logger = null;
@@ -362,15 +362,15 @@ public class Main {
 	}
 	
 	
-	public static void createIcoOverview() {
-		final String SIGNATURE = "createIcoOverview";
+	private static void createIcoOverview() {
+		final String SIGNATURE = "createIcoOverview()";
 		
-		String fileName = Orchestrator.start();
+		String fileName = com.invixo.directory.api.Orchestrator.start();
 		logger.writeDebug(LOCATION, SIGNATURE, "Ico overview generated: " + fileName);
 	}
 
 	
-	public static boolean operationContains(String value) {
+	private static boolean operationContains(String value) {
 	    for (GlobalParameters.Operation operation : GlobalParameters.Operation.values()) {
 	        if (operation.name().equals(value)) {
 	            return true;
@@ -380,7 +380,7 @@ public class Main {
 	}
 
 	
-	public static boolean environmentContains(String value) {
+	private static boolean environmentContains(String value) {
 	    for (GlobalParameters.Environment env : GlobalParameters.Environment.values()) {
 	        if (env.name().equals(value)) {
 	            return true;
