@@ -27,7 +27,7 @@ public class Orchestrator {
 	private static final String LOCATION = IntegratedConfiguration.class.getName();	
 	private static final String XML_PREFIX 	= "inv";
 	private static final String XML_NS 		= "urn:invixo.com.directory.api";
-	private static final String ICO_OVERVIEW_FILE = FileStructure.DIR_CONFIG + "IntegratedConfigurationsOverview.xml";
+	private static final String ICO_OVERVIEW_FILE = FileStructure.DIR_CONFIG + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_IntegratedConfigurationsOverview.xml";
 	
 	private static ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
 	private static ArrayList<IntegratedConfigurationReadRequest> icoReadRequestList = new ArrayList<IntegratedConfigurationReadRequest>();
@@ -118,7 +118,7 @@ public class Orchestrator {
 					
 					// Create element: IntegratedConfigurationList | IntegratedConfiguration | Name
 					xmlWriter.writeStartElement(XML_PREFIX, "Name", XML_NS);
-					xmlWriter.writeCharacters(ico.getSenderComponentId() + "_" + ico.getSenderInterfaceName() + "_to_" + r.getComponentId() + "_" + rir.getInterfaceName());
+					xmlWriter.writeCharacters(createCombinedName(ico, r, rir));
 					xmlWriter.writeEndElement(); // Close element: IntegratedConfigurationList | IntegratedConfiguration | Name
 					
 					// Create element: IntegratedConfigurationList | IntegratedConfiguration | QualityOfService
@@ -167,6 +167,56 @@ public class Orchestrator {
 	}
 
 	
+	/**
+	 * Combines ico data to create a unique name for a given ico.
+	 * @param ico		Integrated Configuration object
+	 * @param r			Receiver object
+	 * @param rir		ReceiverInterfaceRule object
+	 * @return			Combined name
+	 */
+	private static String createCombinedName(IntegratedConfiguration ico, Receiver r, ReceiverInterfaceRule rir) {
+		String senderPartyId = ico.getSenderPartyId();
+		String virtualReceiverPartyId = ico.getVirtualReceiverPartyId();
+		String virtualReceiverComponentId = ico.getVirtualReceiverComponentId();
+		String receiverPartyId = r.getPartyId();
+		
+		// Largely these info has a "" value, but in the rare case they don't - add a pre- or postfix to the name
+		senderPartyId = addPostOrPrefixHandler("postfix" ,senderPartyId, "_");
+		receiverPartyId = addPostOrPrefixHandler("postfix", receiverPartyId, "_");
+		virtualReceiverPartyId = addPostOrPrefixHandler("prefix", virtualReceiverPartyId, "_virt_");
+		virtualReceiverComponentId = addPostOrPrefixHandler("prefix", virtualReceiverComponentId, "_virt_");
+		
+		// Create combined ico name
+		String icoName = senderPartyId + ico.getSenderComponentId() + "_" + ico.getSenderInterfaceName() + virtualReceiverPartyId + virtualReceiverComponentId + "_to_" + receiverPartyId + r.getComponentId() + "_" + rir.getInterfaceName();
+		
+		// Return name
+		return icoName;
+	}
+
+	
+	/**
+	 * Add pre- or postfix to a value to make it fit into ico compined name.
+	 * @param type		Prefix/postfix
+	 * @param input		Text input to process
+	 * @param text		Pre- or postfix text to use
+	 * @return			Result
+	 */
+	private static String addPostOrPrefixHandler(String type, String input, String text) {
+		if (input.equals("")) { 
+			// No value, no pre- or postfix needed
+		} else if(type.equals("postfix")) {
+			// Add text as a postfix
+			input = input + text;
+		} else {
+			// Add text as prefix
+			input = text + input;
+		}
+		
+		// Return name
+		return input;
+	}
+
+
 	/**
 	 * Add "Sender" information to ico overview.
 	 * @param xmlWriter
@@ -269,6 +319,10 @@ public class Orchestrator {
 						ico.setSenderInterfaceNamespace(eventReader.peek().asCharacters().getData());
 					} else if ("QualityOfService".equals(currentElementName)) {
 						ico.setQualityOfService(eventReader.peek().asCharacters().getData());
+					} else if ("ReceiverPartyID".equals(currentElementName) & eventReader.peek().isCharacters()) {
+						ico.setVirtualReceiverPartyId(eventReader.peek().asCharacters().getData());
+					} else if ("ReceiverComponentID".equals(currentElementName) && eventReader.peek().isCharacters()) {
+						ico.setVirtualReceiverComponentId(eventReader.peek().asCharacters().getData());
 					}
 
 					/**
@@ -386,7 +440,18 @@ public class Orchestrator {
 				xmlWriter.writeCharacters(icoRequest.getSenderInterfaceNamespace());
 				// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | InterfaceNamespace
 				xmlWriter.writeEndElement();
+
+				// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | ReceiverPartyID
+				xmlWriter.writeStartElement("ReceiverPartyID");
+				xmlWriter.writeCharacters(icoRequest.getReceiverPartyId());
+				// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | ReceiverPartyID
+				xmlWriter.writeEndElement();
 				
+				// Create element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | ReceiverComponentID
+				xmlWriter.writeStartElement("ReceiverComponentID");
+				xmlWriter.writeCharacters(icoRequest.getReceiverComponentId());
+				// Close element: Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID | ReceiverComponentID
+				xmlWriter.writeEndElement();
 				xmlWriter.writeEndElement(); // Envelope | Body | IntegratedConfigurationReadRequest | IntegratedConfigurationID
 			}
 			
@@ -454,6 +519,10 @@ public class Orchestrator {
 						icoRequest.setSenderInterfaceName(eventReader.peek().asCharacters().getData());
 					} else if ("InterfaceNamespace".equals(currentElementName)) {
 						icoRequest.setSenderInterfaceNamespace(eventReader.peek().asCharacters().getData());
+					} else if ("ReceiverPartyID".equals(currentElementName) && eventReader.peek().isCharacters()) {
+						icoRequest.setReceiverPartyId(eventReader.peek().asCharacters().getData());
+					} else if ("ReceiverComponentID".equals(currentElementName) && eventReader.peek().isCharacters()) {
+						icoRequest.setReceiverComponentId(eventReader.peek().asCharacters().getData());
 					}
 					break;
 					

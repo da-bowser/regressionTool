@@ -8,6 +8,8 @@ public class IntegratedConfiguration {
 	private String senderComponentId = "";
 	private String senderInterfaceName = "";
 	private String senderInterfaceNamespace = "";
+	private String virtualReceiverPartyId = "";
+	private String virtualReceiverComponentId = "";
 	private String qualityOfService = "";
 	private ArrayList<Receiver> receiverList = new ArrayList<Receiver>(); 
 	
@@ -73,6 +75,26 @@ public class IntegratedConfiguration {
 	
 	public void setReceiverList(ArrayList<Receiver> receiverList) {
 		this.receiverList = receiverList;
+	}
+
+
+	public String getVirtualReceiverPartyId() {
+		return virtualReceiverPartyId;
+	}
+
+
+	public void setVirtualReceiverPartyId(String virtualReceiverPartyId) {
+		this.virtualReceiverPartyId = virtualReceiverPartyId;
+	}
+
+
+	public String getVirtualReceiverComponentId() {
+		return virtualReceiverComponentId;
+	}
+
+
+	public void setVirtualReceiverComponentId(String virtualReceiverComponentId) {
+		this.virtualReceiverComponentId = virtualReceiverComponentId;
 	}
 
 }

@@ -39,7 +39,7 @@ public class OrchestratorTest {
 	void verifyCorrectSenderCountInExtract() {
 		try {
 			// Get file from resources
-			String icoReadResponseSingle = "tst/resources/directory/api/testfiles/SingleIcoReadResponse.xml";
+			String icoReadResponseSingle = "tst/resources/testfiles/com/invixo/directory/api/SingleIcoReadResponse.xml";
 
 			// Convert to input stream
 			File f = new File(icoReadResponseSingle);
@@ -63,7 +63,7 @@ public class OrchestratorTest {
 	void verifyCorrectReceiverCountInExtract() {
 		try {
 			// Get file from resources
-			String icoReadResponseSingle = "tst/resources/directory/api/testfiles/SingleIcoReadResponse.xml";
+			String icoReadResponseSingle = "tst/resources/testfiles/com/invixo/directory/api/SingleIcoReadResponse.xml";
 
 			// Convert to input stream
 			File f = new File(icoReadResponseSingle);
@@ -87,7 +87,7 @@ public class OrchestratorTest {
 	void verifyCorrectReceiverInterfaceRuleCountInExtract() {
 		try {
 			// Get file from resources
-			String icoReadResponseSingle = "tst/resources/directory/api/testfiles/SingleIcoReadResponse.xml";
+			String icoReadResponseSingle = "tst/resources/testfiles/com/invixo/directory/api/SingleIcoReadResponse.xml";
 
 			// Convert to input stream
 			File f = new File(icoReadResponseSingle);
@@ -121,7 +121,7 @@ public class OrchestratorTest {
 	void verifyCreationOfOverviewFile() {
 		try {
 			// Get file from resources
-			String icoReadResponseSingle = "tst/resources/directory/api/testfiles/SingleIcoReadResponse.xml";
+			String icoReadResponseSingle = "tst/resources/testfiles/com/invixo/directory/api/SingleIcoReadResponse.xml";
 
 			// Convert to input stream
 			File f = new File(icoReadResponseSingle);

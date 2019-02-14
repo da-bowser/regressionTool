@@ -1,9 +1,9 @@
 package com.invixo.directory.api;
 
 public class ReceiverInterfaceRule {
-	private String interfaceOperation;
-	private String interfaceName;
-	private String interfaceNamespace;	
+	private String interfaceOperation = "";
+	private String interfaceName = "";
+	private String interfaceNamespace = "";	
 	
 	
 	/*====================================================================================

@@ -3,8 +3,8 @@ package com.invixo.directory.api;
 import java.util.ArrayList;
 
 public class Receiver {
-	private String partyId;
-	private String componentId;
+	private String partyId = "";
+	private String componentId = "";
 	private ArrayList<ReceiverInterfaceRule> receiverInterfaceRules = new ArrayList<ReceiverInterfaceRule>();
 	
 	
