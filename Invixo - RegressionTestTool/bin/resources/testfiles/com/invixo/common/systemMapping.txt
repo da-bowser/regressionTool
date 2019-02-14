@@ -1,0 +1,2 @@
+RTT_SenderDEV|RTT_SenderTST|RTT_SenderPRD
+RTT_ReceiverDEV|RTT_ReceiverTST|RTT_ReceiverPRD

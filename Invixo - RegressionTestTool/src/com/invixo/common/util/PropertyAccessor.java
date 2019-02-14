@@ -66,7 +66,8 @@ public class PropertyAccessor {
 		} catch (Exception e) {
 			throw new RuntimeException("*loadProperties* Error loading properties. " + e);
 		} finally {
-			is.close();
+			if (is!= null)
+				is.close();
 		}
 	}
 }

@@ -1,0 +1,31 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:AdapterMessageMonitoringVi" xmlns:urn1="urn:com.sap.aii.mdt.server.adapterframework.ws" xmlns:urn2="urn:com.sap.aii.mdt.api.data" xmlns:lang="urn:java/lang">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:getMessageList>
+         <urn:filter>
+            <urn1:archive>false</urn1:archive>
+            <urn1:dateType/>
+            <urn1:direction>OUTBOUND</urn1:direction>
+            <urn1:interface>
+               <urn2:name>Data_In_Async</urn2:name>
+               <urn2:namespace>urn:invixo.com:sandbox:regressionTestTool</urn2:namespace>
+            </urn1:interface>
+            <urn1:nodeId/>
+            <urn1:onlyFaultyMessages>false</urn1:onlyFaultyMessages>
+            <urn1:qualityOfService>EO</urn1:qualityOfService>
+            <urn1:receiverName>RTT_Receiver</urn1:receiverName>
+            <urn1:retries/>
+            <urn1:retryInterval/>
+            <urn1:senderInterface>
+               <urn2:name>Data_Out_Async</urn2:name>
+               <urn2:namespace>urn:invixo.com:sandbox:regressionTestTool</urn2:namespace>
+            </urn1:senderInterface>
+            <urn1:senderName>RTT_Sender</urn1:senderName>
+            <urn1:status>success</urn1:status>
+            <urn1:timesFailed/>
+            <urn1:wasEdited>false</urn1:wasEdited>
+         </urn:filter>
+         <urn:maxMessages>3</urn:maxMessages>
+      </urn:getMessageList>
+   </soapenv:Body>
+</soapenv:Envelope>
