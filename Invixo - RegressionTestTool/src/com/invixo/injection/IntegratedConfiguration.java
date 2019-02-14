@@ -85,7 +85,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			// Get list of all request/payload files related to ICO
 			File[] files = Util.getListOfFilesInDirectory(this.sourcePayloadDirectory);
 			this.filesToBeProcessedTotal = files.length;
-			logger.writeDebug(LOCATION, SIGNATURE, "Number of payload files to be processed: " + this.filesToBeProcessedTotal);
+			logger.writeInfo(LOCATION, SIGNATURE, "Number of payload files to be processed: " + this.filesToBeProcessedTotal);
 			
 			// Prepare
 			if (files.length > 0) {
@@ -114,7 +114,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			try {
 				// Logging
 				String msg = "Number of processed payload files: " + this.injections.size();
-				logger.writeDebug(LOCATION, SIGNATURE, msg);
+				logger.writeInfo(LOCATION, SIGNATURE, msg);
 				
 				// Close resources
 				if (mapWriter != null) {
@@ -159,12 +159,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	private void injectMessage(String payloadFile, InjectionRequest ir) throws InjectionPayloadException, HttpException {
 		final String SIGNATURE = "injectMessage(String, InjectionRequest)";
 		try {
-			logger.writeDebug(LOCATION, SIGNATURE, "---- (File " + this.injections.size() + " / " + this.filesToBeProcessedTotal + ") Payload processing BEGIN: " + payloadFile);
+			logger.writeInfo(LOCATION, SIGNATURE, "---- (File " + this.injections.size() + " / " + this.filesToBeProcessedTotal + ") Payload processing BEGIN: " + payloadFile);
 			ir.setSourcePayloadFile(payloadFile);
 
 			// Add payload to injection request. Payload is taken from an "instance" payload file (a file extracted previously)
 			byte[] payload = Util.readFile(payloadFile);
-			logger.writeDebug(LOCATION, SIGNATURE, "Payload size (MB): " + Util.convertBytesToMegaBytes(payload.length));
+			logger.writeInfo(LOCATION, SIGNATURE, "Payload size (MB): " + Util.convertBytesToMegaBytes(payload.length));
 			
 			// Generate SOAP XI Header
 			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(this, ir.getMessageId());
@@ -189,7 +189,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new InjectionPayloadException(msg);
 		} finally {
-			logger.writeDebug(LOCATION, SIGNATURE, "---- Payload processing END");
+			logger.writeInfo(LOCATION, SIGNATURE, "---- Payload processing END");
 		}
 	}
 	

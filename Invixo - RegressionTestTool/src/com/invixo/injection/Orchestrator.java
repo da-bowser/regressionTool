@@ -31,12 +31,12 @@ public class Orchestrator {
 	public static ArrayList<IntegratedConfiguration> start() {
 		try {
 			final String SIGNATURE = "start()";
-			logger.writeDebug(LOCATION, SIGNATURE, "Start processing all ICO's...");
+			logger.writeInfo(LOCATION, SIGNATURE, "Start processing all ICO's...");
 			
 			// Get list of all ICO request files to be processed
 			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_EXTRACT_INPUT);
 			numberOfIcosToBeProcessed = files.length;
-			logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files to be processed: " + numberOfIcosToBeProcessed);
+			logger.writeInfo(LOCATION, SIGNATURE, "Number of ICO request files to be processed: " + numberOfIcosToBeProcessed);
 			
 			// Process each ICO request file
 			int counter = 0;
@@ -45,7 +45,7 @@ public class Orchestrator {
 				processSingleIco(file, counter);
 			}
 			
-			logger.writeDebug(LOCATION, SIGNATURE, "Finished processing all ICO's...");
+			logger.writeInfo(LOCATION, SIGNATURE, "Finished processing all ICO's...");
 			return icoList;
 		} finally {
 			try {
@@ -65,7 +65,7 @@ public class Orchestrator {
 		final String SIGNATURE = "processSingleIco(File, int)";
 		IntegratedConfiguration ico = null;
 		try {
-			logger.writeDebug(LOCATION, SIGNATURE, "*********** (" + counter + " / " + numberOfIcosToBeProcessed + ") Start processing ICO request file: " + file);
+			logger.writeInfo(LOCATION, SIGNATURE, "*********** (" + counter + " / " + numberOfIcosToBeProcessed + ") Start processing ICO request file: " + file);
 			
 			// Prepare
 			ico = new IntegratedConfiguration(file.getAbsolutePath());
@@ -78,7 +78,7 @@ public class Orchestrator {
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new RuntimeException(e);
 		} finally {
-			logger.writeDebug(LOCATION, SIGNATURE, "*********** Processing ICO finished");
+			logger.writeInfo(LOCATION, SIGNATURE, "*********** Processing ICO finished");
 		}
 	}
 	
