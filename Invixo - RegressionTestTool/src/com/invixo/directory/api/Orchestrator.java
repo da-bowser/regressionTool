@@ -93,7 +93,8 @@ public class Orchestrator {
 		logger.writeDebug(LOCATION, SIGNATURE, "Ico overview file create: start");
 		XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
 		XMLStreamWriter xmlWriter = xMLOutputFactory.createXMLStreamWriter(new FileOutputStream(icoOverviewFilePath), GlobalParameters.ENCODING);
-
+		int interfaceCount = 0;
+		
 		// Add xml version and encoding to output
 		xmlWriter.writeStartDocument(GlobalParameters.ENCODING, "1.0");
 
@@ -110,6 +111,9 @@ public class Orchestrator {
 				ArrayList<ReceiverInterfaceRule> receiverInterfaceRules = r.getReceiverInterfaceRules();
 				
 				for (ReceiverInterfaceRule rir : receiverInterfaceRules) {
+					// New receiver interface is being processed, increment counter
+					interfaceCount++;
+					
 					// Create element: IntegratedConfigurationList | IntegratedConfiguration
 					xmlWriter.writeStartElement(XML_PREFIX, "IntegratedConfiguration", XML_NS);			
 					
@@ -162,7 +166,7 @@ public class Orchestrator {
 		xmlWriter.flush();
 		xmlWriter.close();
 		
-		logger.writeDebug(LOCATION, SIGNATURE, "Ico overview file create: end");
+		logger.writeDebug(LOCATION, SIGNATURE, "Ico overview file create done. Total interfaces extracted: " + interfaceCount);
 		
 		// Return file path
 		return icoOverviewFilePath;
