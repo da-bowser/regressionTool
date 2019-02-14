@@ -16,6 +16,7 @@ import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.common.util.HttpException;
 import com.invixo.common.util.HttpHandler;
 import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
@@ -102,7 +103,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			}
 		} catch (InjectionException e) {
 			this.setEx(e);
-		} catch (InjectionPayloadException|GeneralException e) {
+		} catch (InjectionPayloadException|HttpException e) {
 			if (ir != null) {
 				ir.setError(e);
 			}
@@ -153,9 +154,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 * @param payloadFile
 	 * @param ir
 	 * @throws InjectionPayloadException
-	 * @throws GeneralException
+	 * @throws HttpException
 	 */
-	private void injectMessage(String payloadFile, InjectionRequest ir) throws InjectionPayloadException, GeneralException {
+	private void injectMessage(String payloadFile, InjectionRequest ir) throws InjectionPayloadException, HttpException {
 		final String SIGNATURE = "injectMessage(String, InjectionRequest)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "---- (File " + this.injections.size() + " / " + this.filesToBeProcessedTotal + ") Payload processing BEGIN: " + payloadFile);

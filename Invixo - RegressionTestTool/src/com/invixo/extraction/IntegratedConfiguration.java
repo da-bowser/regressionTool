@@ -29,6 +29,7 @@ import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.common.util.HttpException;
 import com.invixo.common.util.HttpHandler;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
@@ -106,7 +107,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				// Extract only Message IDs previously injected for ICO 
 				extractModeNonInit();
 			}
-		} catch (ExtractorException|GeneralException e) {
+		} catch (ExtractorException|HttpException e) {
 			this.ex = e;
 		} finally {
 			logger.writeDebug(LOCATION, SIGNATURE, "*********** Finished processing ICO request file");
@@ -163,7 +164,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * NB: messages resulting from a Message Split is also extracted.
 	 * @throws ExtractorException
 	 */
-	private void extractModeNonInit() throws ExtractorException, GeneralException {
+	private void extractModeNonInit() throws ExtractorException, HttpException {
 		final String SIGNATURE = "extractModeNonInit()";
 		try {
 			// Get list of Message IDs to be extracted.
@@ -209,7 +210,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @param messageIdMap					Message Id map build from Message Id mapping file created during injection.
 	 * @throws ExtractorException
 	 */
-	private void processNonInitInBatch(Map<String, String> messageIdMap) throws ExtractorException, GeneralException {
+	private void processNonInitInBatch(Map<String, String> messageIdMap) throws ExtractorException, HttpException {
 		final String SIGNATURE = "processNonInitInBatch(Map<String, String>)";
 		// Create request for GetMessagesWithSuccessors
 		byte[] requestBytes = createGetMessagesWithSuccessors(this, messageIdMap);
@@ -287,7 +288,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * The messages extracted are which ever messages present in SAP PO matching the requests made by this tool.
 	 * @throws ExtractorException
 	 */
-	private void extractModeInit() throws ExtractorException, GeneralException {
+	private void extractModeInit() throws ExtractorException, HttpException {
 		final String SIGNATURE = "extractModeInit()";
 		
 		// Create request for GetMessageList
@@ -482,7 +483,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			
 			// Fetch payload: LAST
 			msgKey.processMessageKey(key, false);			
-		} catch (ExtractorException|GeneralException e) {
+		} catch (ExtractorException|HttpException e) {
 			if (msgKey != null) {
 				msgKey.setEx(e);
 			}

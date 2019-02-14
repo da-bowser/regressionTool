@@ -20,9 +20,9 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 
-import com.invixo.common.GeneralException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
+import com.invixo.common.util.HttpException;
 import com.invixo.common.util.HttpHandler;
 import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
@@ -131,7 +131,6 @@ public class MessageKey {
 	 *------------- Instance methods
 	 *====================================================================================*/
 	/**
-	 * 	/**
 	 * Main entry point for processing a Message Key.
 	 * Call Web Service for fetching SAP PO message data (SOAP envelope). 
 	 * A normal web service response will contain an XML payload containing base64 encoded SAP XI multipart message.
@@ -139,9 +138,9 @@ public class MessageKey {
 	 * @param messageKey
 	 * @param getFirstPayload
 	 * @throws ExtractorException			Other errors during extraction
-	 * @throws GeneralException				Web Service call failed
+	 * @throws HttpException				Web Service call failed
 	 */
-	public void processMessageKey(String messageKey, boolean getFirstPayload) throws ExtractorException, GeneralException {
+	public void processMessageKey(String messageKey, boolean getFirstPayload) throws ExtractorException, HttpException {
 		final String SIGNATURE = "processMessageKey(String, boolean)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [" + ((getFirstPayload)?"FIRST":"LAST") + "] processing started...");

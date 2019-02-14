@@ -81,7 +81,7 @@ public class HttpHandler {
 	 * @return
 	 * @throws GeneralException
 	 */
-	public static byte[] post(String endpoint, ContentType contentType, byte[] requestContent) throws GeneralException {
+	public static byte[] post(String endpoint, ContentType contentType, byte[] requestContent) throws HttpException {
 		final String SIGNATURE = "post(String, ContentType, byte[])";
 		logger.writeDebug(LOCATION, SIGNATURE, "Initiate HTTP post (plain)...");
 		
@@ -102,7 +102,7 @@ public class HttpHandler {
 	 * @return
 	 * @throws GeneralException
 	 */
-	public static byte[] post(HttpPost httpPost) throws GeneralException {
+	public static byte[] post(HttpPost httpPost) throws HttpException {
 		final String SIGNATURE = "post(HttpPost)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Initiate HTTP post (plain)...");
@@ -120,7 +120,7 @@ public class HttpHandler {
 			e.printStackTrace(new PrintWriter(sw));
 			String ex = "Technical error executing HTTP Post call.\n" + sw.toString();
 			logger.writeError(LOCATION, SIGNATURE, ex);
-			throw new GeneralException(ex);
+			throw new HttpException(ex);
 		}
 	}
 	
@@ -162,7 +162,7 @@ public class HttpHandler {
 	 * @return
 	 * @throws GeneralException
 	 */
-	private static InputStream processHttpResponse(CloseableHttpResponse response) throws GeneralException {
+	private static InputStream processHttpResponse(CloseableHttpResponse response) throws HttpException {
 		final String SIGNATURE = "processHttpResponse(CloseableHttpResponse)";
 		try {
 			// Get HTTP response code
@@ -178,7 +178,7 @@ public class HttpHandler {
 				String responseString = EntityUtils.toString(response.getEntity());
 				String ex = "Negative HTTP response received: " + responseCode + ". Response: \n" + responseString;
 				logger.writeError(LOCATION, SIGNATURE, ex);
-				throw new GeneralException(ex);
+				throw new HttpException(ex);
 			}
 			
 			// Get positive response
@@ -191,7 +191,7 @@ public class HttpHandler {
 			e.printStackTrace(new PrintWriter(sw));
 			String ex = "Technical error processing HTTP response.\n" + sw.toString();
 			logger.writeError(LOCATION, SIGNATURE, ex);
-			throw new GeneralException(ex);
+			throw new HttpException(ex);
 		}
 	}
 	
