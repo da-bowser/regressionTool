@@ -103,7 +103,7 @@ public class Logger {
      * @param msg
      */
     public void writeInfo(String location, String signature, String msg) {
-    	if (this.logInfo) {
+    	if (this.logInfo || this.logDebug) {
     		this.writeEntry(location, signature, msg, LOG_LEVEL.INFO);
     	}
     }
@@ -116,7 +116,7 @@ public class Logger {
      * @param msg
      */
     public void writeDebug(String location, String signature, String msg) {
-    	if (this.logInfo && this.logDebug) {
+    	if (this.logDebug) {
     		this.writeEntry(location, signature, msg, LOG_LEVEL.DEBUG);
     	}
     }
