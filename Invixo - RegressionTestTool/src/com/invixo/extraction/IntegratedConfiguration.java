@@ -110,6 +110,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		} catch (ExtractorException|HttpException e) {
 			this.ex = e;
 		} finally {
+			this.endTime = Util.getTime();
 			logger.writeInfo(LOCATION, SIGNATURE, "*********** Finished processing ICO request file");
 		}
 	}
@@ -163,6 +164,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * List of Message IDs previously injected is contained in the Message Mapping Id file.
 	 * NB: messages resulting from a Message Split is also extracted.
 	 * @throws ExtractorException
+	 * @throws HttpException
 	 */
 	private void extractModeNonInit() throws ExtractorException, HttpException {
 		final String SIGNATURE = "extractModeNonInit()";
@@ -209,9 +211,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * any messages spawned (split) by it (messages that the message is parent to).
 	 * @param messageIdMap					Message Id map build from Message Id mapping file created during injection.
 	 * @throws ExtractorException
+	 * @throws HttpException
 	 */
 	private void processNonInitInBatch(Map<String, String> messageIdMap) throws ExtractorException, HttpException {
 		final String SIGNATURE = "processNonInitInBatch(Map<String, String>)";
+		
 		// Create request for GetMessagesWithSuccessors
 		byte[] requestBytes = createGetMessagesWithSuccessors(this, messageIdMap);
 		logger.writeDebug(LOCATION, SIGNATURE, "GetMessagesWithSuccessors request created");
@@ -287,6 +291,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * Method extracts messages from SAP PO.
 	 * The messages extracted are which ever messages present in SAP PO matching the requests made by this tool.
 	 * @throws ExtractorException
+	 * @throws HttpException
 	 */
 	private void extractModeInit() throws ExtractorException, HttpException {
 		final String SIGNATURE = "extractModeInit()";

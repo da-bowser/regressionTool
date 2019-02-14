@@ -83,6 +83,8 @@ public class IntegratedConfigurationMain {
 	
 	// Others
 	protected Exception ex = null;					// Error details
+	protected long startTime = 0;
+	protected long endTime = 0;
 	
 	
 	
@@ -95,6 +97,9 @@ public class IntegratedConfigurationMain {
 	
 
 	public IntegratedConfigurationMain(String icoFileName, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
+		// Set start time
+		this.startTime = Util.getTime();
+		
 		// Set internal object id
 		this.internalObjectId = counter;
 		counter++;
@@ -235,6 +240,12 @@ public class IntegratedConfigurationMain {
 	}
 	public void setEx(Exception ex) {
 		this.ex = ex;
+	}
+	public long getStartTime() {
+		return startTime;
+	}
+	public long getEndTime() {
+		return endTime;
 	}
 	
 	

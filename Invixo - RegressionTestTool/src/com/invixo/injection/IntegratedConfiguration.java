@@ -122,6 +122,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 				}
 			} catch (Exception e) {
 				// Too bad...
+			} finally {
+				this.endTime = Util.getTime();
 			}
 		}
 	}

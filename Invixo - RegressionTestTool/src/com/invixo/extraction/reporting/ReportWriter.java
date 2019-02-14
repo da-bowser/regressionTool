@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+
+import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.IntegratedConfiguration;
 import com.invixo.extraction.MessageKey;
@@ -219,6 +221,8 @@ public class ReportWriter {
 		for (IntegratedConfiguration ico : icoList) {
 			// Create element: ExtractReport | IntegratedConfiguration
 			xmlWriter.writeStartElement(XML_PREFIX, "IntegratedConfiguration", XML_NS);
+			xmlWriter.writeAttribute("ProcessingTime", "" + Util.measureTimeTaken(ico.getStartTime(), ico.getEndTime()));
+			xmlWriter.writeAttribute("ProcessingTimeUnit", "seconds");
 
 			// Create element: ExtractReport | IntegratedConfiguration | Error
 			xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
