@@ -341,7 +341,7 @@ public class IntegratedConfigurationMain {
 	 * extracting and injecting to SAP PO.
 	 * @throws GeneralException
 	 */
-	public void extractInfoFromIcoRequest() throws GeneralException {
+	private void extractInfoFromIcoRequest() throws GeneralException {
 		final String SIGNATURE = "extractInfoFromIcoRequest()";
 		try {
 			// Get ICO file content

@@ -260,7 +260,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @param splitMessageIds
 	 * @return
 	 */
-	public static HashSet<String> buildListOfMessageIdsToBeExtracted(HashSet<String> objectKeys, HashMap<String, String> splitMessageIds) {
+	static HashSet<String> buildListOfMessageIdsToBeExtracted(HashSet<String> objectKeys, HashMap<String, String> splitMessageIds) {
 		HashSet<String> result = new HashSet<String>();
 		
 		for (Object messageKey : objectKeys.toArray()) {
@@ -387,7 +387,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @return
 	 * @throws ExtractorException
 	 */
-	public static MessageInfo extractMessageInfo(byte[] responseBytes, String receiverInterfaceName) throws ExtractorException {
+	static MessageInfo extractMessageInfo(byte[] responseBytes, String receiverInterfaceName) throws ExtractorException {
 		final String SIGNATURE = "extractMessageInfo(byte[], String)";
 		try {
 	        MessageInfo msgInfo = new MessageInfo();
@@ -499,7 +499,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @param ico
 	 * @return
 	 */
-	public static byte[] createGetMessageListRequest(IntegratedConfiguration ico) {
+	static byte[] createGetMessageListRequest(IntegratedConfiguration ico) {
 		final String SIGNATURE = "createGetMessageListRequest(IntegratedConfiguration)";
 		try {
 			final String XML_NS_URN_PREFIX	= "urn";
@@ -672,7 +672,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @param messageIdMap			List of Message IDs to get message details from. Map(key, value) = Map(original extract message id, inject message id)
 	 * @return
 	 */
-	public static byte[] createGetMessagesWithSuccessors(IntegratedConfiguration ico, Map<String, String> messageIdMap) {
+	private static byte[] createGetMessagesWithSuccessors(IntegratedConfiguration ico, Map<String, String> messageIdMap) {
 		final String SIGNATURE = "createGetMessagesWithSuccessors(IntegratedConfiguration, Map<String, String>)";
 		try {
 			final String XML_NS_URN_PREFIX	= "urn";
