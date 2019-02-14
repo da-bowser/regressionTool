@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.main.GlobalParameters;
 
 public class IntegratedConfigurationMainTest {
@@ -36,6 +37,13 @@ public class IntegratedConfigurationMainTest {
 			
 			// Create GetMessageList request
 			IntegratedConfigurationMain ico = new IntegratedConfigurationMain(pathIcoRequest, pathSystemMapping, "PRD", "TST");
+			
+			// Check: fail if message properties are not set correcly
+			final String overruleKey = "OVERRULE_MSG_SIZE";
+			boolean isOverruleEnabled = Boolean.parseBoolean(PropertyAccessor.getProperty(overruleKey));
+			if (isOverruleEnabled) {
+				fail("Overruling is enabled in messageProperties. Disable '"+ overruleKey + "' before running!");
+			}
 			
 			// Check: sender
 			assertEquals(null, ico.getSenderParty(), "SenderParty");
