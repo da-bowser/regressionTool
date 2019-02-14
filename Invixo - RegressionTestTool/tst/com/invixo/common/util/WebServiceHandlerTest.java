@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.invixo.common.GeneralException;
 import com.invixo.injection.InjectionRequest;
 import com.invixo.injection.IntegratedConfiguration;
 import com.invixo.injection.RequestGeneratorUtil;
