@@ -7,8 +7,8 @@ import com.invixo.main.GlobalParameters;
 
 public class Logger {
 	// Variables
-	private static final LOG_LEVEL PROP_LOG_TYPE = LOG_LEVEL.valueOf(PropertyAccessor.getProperty("LOG_TYPE"));		// CONSOLE | FILE
-	private static final LOG_LEVEL PROP_LOG_LEVEL = LOG_LEVEL.valueOf(PropertyAccessor.getProperty("LOG_LEVEL"));	// INFO | DEBUG | ERROR
+	private static final String PROP_LOG_TYPE = PropertyAccessor.getProperty("LOG_TYPE");		// CONSOLE | FILE
+	private static final String PROP_LOG_LEVEL = PropertyAccessor.getProperty("LOG_LEVEL");		// INFO | DEBUG | ERROR
 	
 	private static final String LOCATION = Logger.class.getName();
     private static final String LOG_TYPE_INFO_TXT = "[INFO]";
@@ -25,6 +25,7 @@ public class Logger {
     private enum LoggingTypes {CONSOLE, FILE};
     private enum LOG_LEVEL { INFO, DEBUG, ERROR };
     
+    
     // Constructor
     private Logger() {}
        
@@ -37,8 +38,10 @@ public class Logger {
                 instance = new Logger();
 
                 // Set log levels
-                instance.logInfo = LOG_LEVEL.INFO.equals(PROP_LOG_LEVEL);
-                instance.logDebug = LOG_LEVEL.DEBUG.equals(PROP_LOG_LEVEL);
+                instance.logInfo = LOG_LEVEL.INFO.toString().equals(PROP_LOG_LEVEL);
+                instance.logDebug = LOG_LEVEL.DEBUG.toString().equals(PROP_LOG_LEVEL);
+                System.out.println("DEBUG: " + instance.logDebug);
+                System.out.println("INFO: " + instance.logInfo);
                 
                 // Initialize log file
                 if (LoggingTypes.FILE.equals(PROP_LOG_TYPE)) {
@@ -64,7 +67,7 @@ public class Logger {
 			String newLogMessage = createLogMessage(location, signature, msg, logLevel); 
 			
 			// Write entry to specified trace
-			if (LoggingTypes.FILE.equals(PROP_LOG_TYPE)) {
+			if (LoggingTypes.FILE.toString().equals(PROP_LOG_TYPE)) {
             	this.fileWriter.write(newLogMessage);            	
     			this.fileWriter.flush();
             } else {
@@ -82,9 +85,9 @@ public class Logger {
     	
     	// Handle type of entry (error or debug)
 		switch (logLevel) {
-			case INFO	: sw.write(LOG_TYPE_INFO_TXT);
-			case DEBUG 	: sw.write(LOG_TYPE_DEBUG_TXT);
-			case ERROR 	: sw.write(LOG_TYPE_ERROR_TXT);
+			case INFO	: sw.write(LOG_TYPE_INFO_TXT); break;
+			case DEBUG 	: sw.write(LOG_TYPE_DEBUG_TXT); break;
+			case ERROR 	: sw.write(LOG_TYPE_ERROR_TXT); break;
 		}
 		
 		// Add remaining to string
@@ -115,7 +118,7 @@ public class Logger {
      * @param msg
      */
     public void writeDebug(String location, String signature, String msg) {
-    	if (this.logInfo || this.logDebug) {
+    	if (this.logInfo && this.logDebug) {
     		this.writeEntry(location, signature, msg, LOG_LEVEL.DEBUG);
     	}
     }
@@ -130,4 +133,5 @@ public class Logger {
     public void writeError(String location, String signature, String msg) {
     	this.writeEntry(location, signature, msg, LOG_LEVEL.ERROR);
     }
+    
 }

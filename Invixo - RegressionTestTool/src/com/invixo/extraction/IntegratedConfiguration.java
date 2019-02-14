@@ -86,7 +86,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	public void startExtraction() {
 		final String SIGNATURE = "startExtraction()";
 		try {
-			logger.writeDebug(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO request file: " + this.fileName);
+			logger.writeInfo(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO request file: " + this.fileName);
 			
 			// Housekeeping: Delete old ICO extract data
 			if (GlobalParameters.PARAM_VAL_ALLOW_SAME_ENV) {
@@ -110,7 +110,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		} catch (ExtractorException|HttpException e) {
 			this.ex = e;
 		} finally {
-			logger.writeDebug(LOCATION, SIGNATURE, "*********** Finished processing ICO request file");
+			logger.writeInfo(LOCATION, SIGNATURE, "*********** Finished processing ICO request file");
 		}
 	}
 	
@@ -170,7 +170,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Get list of Message IDs to be extracted.
 			// NB: these Message IDs are taken from the Message ID Mapping file (this was created during injection)
 	        Map<String, String> messageIdMap = Util.getMessageIdsFromFile(FileStructure.FILE_MSG_ID_MAPPING, GlobalParameters.FILE_DELIMITER, this.getName(), 1, 2);
-	        logger.writeDebug(LOCATION, SIGNATURE, "Number of entries (matching ICO) fetched from Message Id Mapping file: " + messageIdMap.size());
+	        logger.writeInfo(LOCATION, SIGNATURE, "Number of entries (matching ICO) fetched from Message Id Mapping file: " + messageIdMap.size());
 			
 	        // Split and process map in batches
 	        Map<String, String> currentBatch = new HashMap<String, String>();
@@ -331,9 +331,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		int counter = 1;
 		for (String key : messageKeys) {
 			// Process a single Message Key
-			logger.writeDebug(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing started for key: " + key);
+			logger.writeInfo(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing started for key: " + key);
 			this.processMessageKeySingle(key);
-			logger.writeDebug(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing finished");
+			logger.writeInfo(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing finished");
 			counter++;
 		}
 	}
