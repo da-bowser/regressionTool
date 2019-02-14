@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
@@ -28,9 +29,9 @@ public class OrchestratorTest {
 		GlobalParameters.PARAM_VAL_SOURCE_ENV="TST";
 		GlobalParameters.PARAM_VAL_TARGET_ENV="TST";
 		
-		GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT="http://ipod.invixo.com:50000";
+		GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT="http://ipod.invixo.com:50000/";
 		GlobalParameters.CREDENTIAL_USER = "rttuser";
-		GlobalParameters.CREDENTIAL_PASS = "aLvD#l^[R\\52";
+		GlobalParameters.CREDENTIAL_PASS = "aLvD#l^[R(52";
     }
 	
 	
@@ -52,7 +53,7 @@ public class OrchestratorTest {
 			// Do test
 			assertEquals(1, icorr.size());
 
-		} catch (FileNotFoundException | DirectoryApiException e) {
+		} catch (IOException | DirectoryApiException e) {
 			fail("It aint cooking chef! " + e);
 		}
 	}

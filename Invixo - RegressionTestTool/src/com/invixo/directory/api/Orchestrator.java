@@ -26,7 +26,7 @@ import com.invixo.main.GlobalParameters;
 
 public class Orchestrator {
 	private static Logger logger = Logger.getInstance();
-	private static final String LOCATION = IntegratedConfiguration.class.getName();	
+	private static final String LOCATION = Orchestrator.class.getName();	
 	private static final String XML_PREFIX 	= "inv";
 	private static final String XML_NS 		= "urn:invixo.com.directory.api";
 	private static final String ICO_OVERVIEW_FILE = FileStructure.DIR_CONFIG + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_IntegratedConfigurationsOverview.xml";
