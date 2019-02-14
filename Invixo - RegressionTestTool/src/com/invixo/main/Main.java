@@ -121,7 +121,7 @@ public class Main {
 			e.printStackTrace(System.err);
 		} finally {
 			long endTime = Util.getTime();
-			logger.writeDebug(LOCATION, SIGNATURE, "Program execution took (seconds): " + Util.measureTimeTaken(startTime, endTime));
+			logger.writeInfo(LOCATION, SIGNATURE, "Program execution took (seconds): " + Util.measureTimeTaken(startTime, endTime));
 		}
 	}
 
@@ -307,7 +307,6 @@ public class Main {
 	/**
 	 * Extract data from a productive or non-productive SAP PO system.
 	 * This creates payload files (FIRST and/or LAST) on file system: 
- 	 * NB: remember to set the proper properties in config file. Some should probably be parameterized in the class for safety and ease.
 	 */
 	public static void extract() {
 		final String SIGNATURE = "extract()";
@@ -321,12 +320,12 @@ public class Main {
 		// Write report
 		com.invixo.extraction.reporting.ReportWriter report = new com.invixo.extraction.reporting.ReportWriter(icoList);
 		String reportName = report.create(icoList);
-		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
+		logger.writeInfo(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
 	
 		
 	/**
-	 * Inject new requests into a non-prod system
+	 * Inject previously extracted FIRST payloads into a non-prod system
 	 */
 	public static void inject() {
 		final String SIGNATURE = "inject()";
@@ -341,12 +340,12 @@ public class Main {
 		com.invixo.injection.reporting.ReportWriter report = new com.invixo.injection.reporting.ReportWriter();
 		report.interpretResult(icoList);
 		String reportName = report.create(icoList);
-		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
+		logger.writeInfo(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
 	
 	
 	/**
-	 * Start a file comparison
+	 * Start file comparison
 	 */
 	public static void compare() {
 		final String SIGNATURE = "compare()";
@@ -358,7 +357,7 @@ public class Main {
 		com.invixo.compare.reporting.ReportWriter report = new com.invixo.compare.reporting.ReportWriter(icoList);
 		report.create(icoList);
 		String reportName = report.create(icoList);
-		logger.writeDebug(LOCATION, SIGNATURE, "Report generated: " + reportName);
+		logger.writeInfo(LOCATION, SIGNATURE, "Report generated: " + reportName);
 	}
 	
 	
@@ -366,7 +365,7 @@ public class Main {
 		final String SIGNATURE = "createIcoOverview()";
 		
 		String fileName = com.invixo.directory.api.Orchestrator.start();
-		logger.writeDebug(LOCATION, SIGNATURE, "Ico overview generated: " + fileName);
+		logger.writeInfo(LOCATION, SIGNATURE, "Ico overview generated: " + fileName);
 	}
 
 	
