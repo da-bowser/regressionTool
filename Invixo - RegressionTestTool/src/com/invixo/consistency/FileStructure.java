@@ -17,7 +17,7 @@ public class FileStructure {
 	private static final String LOCATION = FileStructure.class.getName();
 	
 	// Base/root file location
-	public static final String FILE_BASE_LOCATION					= GlobalParameters.PARAM_VAL_BASE_DIR;
+	private static final String FILE_BASE_LOCATION					= GlobalParameters.PARAM_VAL_BASE_DIR;
 	
 	// Extract: input
 	private static final String DIR_EXTRACT							= FILE_BASE_LOCATION + "\\_Extract";
@@ -27,21 +27,21 @@ public class FileStructure {
 	public static final String DIR_EXTRACT_OUTPUT_PRE					= FILE_BASE_LOCATION + "\\_Extract\\Output\\";
 	public static final String DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS	= "\\Output\\Payloads\\First\\";
 	public static final String DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS		= "\\Output\\Payloads\\Last\\";
-	public static final String DIR_EXTRACT_OUTPUT_POST_DEV_FIRST		= "\\DEV" + DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
-	public static final String DIR_EXTRACT_OUTPUT_POST_DEV_LAST			= "\\DEV" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
-	public static final String DIR_EXTRACT_OUTPUT_POST_TST_FIRST		= "\\TST" + DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
-	public static final String DIR_EXTRACT_OUTPUT_POST_TST_LAST			= "\\TST" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
-	public static final String DIR_EXTRACT_OUTPUT_POST_PRD_FIRST		= "\\PRD" + DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
-	public static final String DIR_EXTRACT_OUTPUT_POST_PRD_LAST			= "\\PRD" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+	private static final String DIR_EXTRACT_OUTPUT_POST_DEV_FIRST		= "\\DEV" + DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+	private static final String DIR_EXTRACT_OUTPUT_POST_DEV_LAST			= "\\DEV" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+	private static final String DIR_EXTRACT_OUTPUT_POST_TST_FIRST		= "\\TST" + DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+	private static final String DIR_EXTRACT_OUTPUT_POST_TST_LAST			= "\\TST" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+	private static final String DIR_EXTRACT_OUTPUT_POST_PRD_FIRST		= "\\PRD" + DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+	private static final String DIR_EXTRACT_OUTPUT_POST_PRD_LAST			= "\\PRD" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 	
 	// Inject: mapping table
-	public static final String DIR_INJECT							= FILE_BASE_LOCATION + "\\_Inject\\";
+	private static final String DIR_INJECT							= FILE_BASE_LOCATION + "\\_Inject\\";
 	
 	// Various
-	public static final String DIR_LOGS								= FILE_BASE_LOCATION + "\\Logs\\";		// Manually set in Logger also.
+	private static final String DIR_LOGS							= FILE_BASE_LOCATION + "\\Logs\\";		// Manually set in Logger also.
+	private static final String DIR_DEBUG							= FILE_BASE_LOCATION + "\\Debug\\";
 	public static final String DIR_REPORTS							= FILE_BASE_LOCATION + "\\Reports\\";
 	public static final String DIR_CONFIG							= FILE_BASE_LOCATION + "\\Config\\";
-	public static final String DIR_DEBUG							= FILE_BASE_LOCATION + "\\Debug\\";
 	
 	// Files
 	public static final String FILE_CONFIG_SYSTEM_MAPPING			= DIR_CONFIG + "systemMapping.txt";

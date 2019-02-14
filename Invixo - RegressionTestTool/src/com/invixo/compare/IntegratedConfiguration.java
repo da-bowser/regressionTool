@@ -51,7 +51,7 @@ public class IntegratedConfiguration {
 	 * @param icoName
 	 * @throws CompareException 
 	 */
-	public IntegratedConfiguration(String sourceIcoPath, String compareIcoPath, String icoName) {
+	IntegratedConfiguration(String sourceIcoPath, String compareIcoPath, String icoName) {
 		final String SIGNATURE = "IntegratedConfiguration(String, String, String";
 		logger.writeDebug(LOCATION, SIGNATURE, "Initialize compare data for ICO compare");
 
@@ -163,7 +163,7 @@ public class IntegratedConfiguration {
 	/**
 	 * Start processing ICO.
 	 */
-	public void start() {
+	void start() {
 		String SIGNATURE = "start()";
 		logger.writeDebug(LOCATION, SIGNATURE, "Processing ICO data of: \"" + this.name + "\"\nExpected compare count: " + this.messageIdMap.size());
 		

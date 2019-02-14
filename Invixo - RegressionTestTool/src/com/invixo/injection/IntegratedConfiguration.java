@@ -33,7 +33,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	private static final String SERVICE_PATH_INJECT 	= PropertyAccessor.getProperty("SERVICE_PATH_INJECT") + GlobalParameters.PARAM_VAL_SENDER_COMPONENT + ":" + GlobalParameters.PARAM_VAL_XI_SENDER_ADAPTER;
 	private static final String ENDPOINT 				= SERVICE_HOST_PORT + SERVICE_PATH_INJECT;
 	
-	public static BufferedWriter mapWriter				= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID
+	static BufferedWriter mapWriter						= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID
 	private int filesToBeProcessedTotal					= 0;
 
 	
@@ -50,7 +50,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
-	public IntegratedConfiguration(String icoFileName) throws GeneralException {
+	IntegratedConfiguration(String icoFileName) throws GeneralException {
 		super(icoFileName);
 		initialize();
 	}
@@ -78,7 +78,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	/**
 	 * Inject FIRST payloads to SAP PO based on single ICO request file
 	 */
-	public void startInjection() {
+	void startInjection() {
 		final String SIGNATURE = "startInjection()";
 		InjectionRequest ir = null;
 		try {
@@ -220,7 +220,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	/**
 	 * Implementation specific object initialization
 	 */
-	protected void initialize() throws GeneralException {
+	private void initialize() throws GeneralException {
 		final String SIGNATURE = "initialize()";
 
 		// Set directory for Payloads (FIRST)

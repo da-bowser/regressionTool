@@ -62,7 +62,7 @@ public class MessageKey {
 	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
-	public MessageKey(IntegratedConfiguration ico, String messageKey) {
+	MessageKey(IntegratedConfiguration ico, String messageKey) {
 		this.ico 				= ico;
 		this.sapMessageKey 		= messageKey;
 		this.sapMessageId 		= extractMessageIdFromKey(messageKey);
@@ -140,7 +140,7 @@ public class MessageKey {
 	 * @throws ExtractorException			Other errors during extraction
 	 * @throws HttpException				Web Service call failed
 	 */
-	public void processMessageKey(String messageKey, boolean getFirstPayload) throws ExtractorException, HttpException {
+	void processMessageKey(String messageKey, boolean getFirstPayload) throws ExtractorException, HttpException {
 		final String SIGNATURE = "processMessageKey(String, boolean)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [" + ((getFirstPayload)?"FIRST":"LAST") + "] processing started...");

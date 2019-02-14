@@ -41,7 +41,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = IntegratedConfiguration.class.getName();
-	public static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
+	static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
 
 
 	
@@ -56,12 +56,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
-	public IntegratedConfiguration(String icoFileName) throws GeneralException {
+	IntegratedConfiguration(String icoFileName) throws GeneralException {
 		super(icoFileName);
 	}
 
 	
-	public IntegratedConfiguration(String icoFileName, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
+	IntegratedConfiguration(String icoFileName, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
 		super(icoFileName, mapfilePath, sourceEnv, targetEnv);
 	}
 	
@@ -83,7 +83,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * Process a single Integrated Configuration object.
 	 * This also includes all MessageKeys related to this object.
 	 */
-	public void startExtraction() {
+	void startExtraction() {
 		final String SIGNATURE = "startExtraction()";
 		try {
 			logger.writeInfo(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO request file: " + this.fileName);
@@ -108,7 +108,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				extractModeNonInit();
 			}
 		} catch (ExtractorException|HttpException e) {
-			this.ex = e;
+			this.setEx(e);
 		} finally {
 			this.endTime = Util.getTime();
 			logger.writeInfo(LOCATION, SIGNATURE, "*********** Finished processing ICO request file");
@@ -354,7 +354,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 */
 	private void correctMessageMappingFile(HashMap<String, String> messageIds) throws ExtractorException {
     	// Check: skip processing as message split is not relevant
-        if (qualityOfService.equals("BE")) {
+        if (this.getQualityOfService().equals("BE")) {
         	return;
         }
         

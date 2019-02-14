@@ -64,26 +64,26 @@ public class IntegratedConfigurationMain {
 	protected int internalObjectId = -1;			// Internal object id (this is based on a simple counter)				
 	
 	// Extracts from ICO request file: SENDER
-	protected String senderParty = null;			// NOT EXTRACTED YET (need to see how it works and where to extract from)
-	protected String senderComponent = null;		// /urn:getMessageList/urn:filter/urn1:senderName
-	protected String senderInterface = null;		// /urn:getMessageList/urn:filter/urn1:senderInterface/urn2:name
-	protected String senderNamespace = null;		// /urn:getMessageList/urn:filter/urn1:senderInterface/urn2:namespace
+	private String senderParty = null;			// NOT EXTRACTED YET (need to see how it works and where to extract from)
+	private String senderComponent = null;		// /urn:getMessageList/urn:filter/urn1:senderName
+	private String senderInterface = null;		// /urn:getMessageList/urn:filter/urn1:senderInterface/urn2:name
+	private String senderNamespace = null;		// /urn:getMessageList/urn:filter/urn1:senderInterface/urn2:namespace
 	
 	// Extracts from ICO request file: RECEIVER
-	protected String receiverParty = null;			// NOT EXTRACTED YET (need to see how it works and where to extract from)
-	protected String receiverComponent = null;		// /urn:getMessageList/urn:filter/urn1:receiverName
-	protected String receiverInterfaceName = null;	// /urn:getMessageList/urn:filter/urn1:interface/urn2:name
-	protected String receiverNamespace = null;		// /urn:getMessageList/urn:filter/urn1:interface/urn2:namespace
+	private String receiverParty = null;			// NOT EXTRACTED YET (need to see how it works and where to extract from)
+	private String receiverComponent = null;		// /urn:getMessageList/urn:filter/urn1:receiverName
+	private String receiverInterfaceName = null;	// /urn:getMessageList/urn:filter/urn1:interface/urn2:name
+	private String receiverNamespace = null;		// /urn:getMessageList/urn:filter/urn1:interface/urn2:namespace
 	
 	// Extracts from ICO request file: VARIOUS
-	protected String qualityOfService = null;		// /urn:getMessageList/urn:filter/urn1:qualityOfService
-	protected String fetchFromTime = null;			// /urn:getMessageList/urn:filter/urn1:fromTime
-	protected String fetchToTime = null;			// /urn:getMessageList/urn:filter/urn1:toTime
-	protected int maxMessages = 0;					// /urn:getMessageList/urn:maxMessages
+	private String qualityOfService = null;		// /urn:getMessageList/urn:filter/urn1:qualityOfService
+	private String fetchFromTime = null;			// /urn:getMessageList/urn:filter/urn1:fromTime
+	private String fetchToTime = null;			// /urn:getMessageList/urn:filter/urn1:toTime
+	private int maxMessages = 0;					// /urn:getMessageList/urn:maxMessages
 	
 	// Others
-	protected Exception ex = null;					// Error details
-	protected long startTime = 0;
+	private Exception ex = null;					// Error details
+	private long startTime = 0;
 	protected long endTime = 0;
 	
 	
@@ -302,7 +302,7 @@ public class IntegratedConfigurationMain {
 	/*====================================================================================
 	 *------------- Instance methods
 	 *====================================================================================*/
-	public void checkDataExtract() throws GeneralException {
+	private void checkDataExtract() throws GeneralException {
 		final String SIGNATURE = "checkDataExtract()";
 		
 		StringWriter sw = new StringWriter();

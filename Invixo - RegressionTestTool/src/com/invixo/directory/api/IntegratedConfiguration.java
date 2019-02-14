@@ -2,7 +2,7 @@ package com.invixo.directory.api;
 
 import java.util.ArrayList;
 
-public class IntegratedConfiguration {
+class IntegratedConfiguration {
 
 	private String senderPartyId = "";
 	private String senderComponentId = "";

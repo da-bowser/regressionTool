@@ -54,7 +54,7 @@ public class ReportWriter {
 	}
 
 
-	public void evaluateGeneralResults() {
+	private void evaluateGeneralResults() {
 		// Set total number of ICO's processed
 		this.countIcoTotal = icoList.size();
 

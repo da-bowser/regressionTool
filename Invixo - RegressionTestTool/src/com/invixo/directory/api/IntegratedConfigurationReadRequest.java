@@ -1,6 +1,6 @@
 package com.invixo.directory.api;
 
-public class IntegratedConfigurationReadRequest {
+class IntegratedConfigurationReadRequest {
 	private String senderPartyId = "";
 	private String senderComponentId = "";
 	private String senderInterfaceName = "";
