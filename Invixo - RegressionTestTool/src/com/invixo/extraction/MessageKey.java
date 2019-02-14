@@ -145,7 +145,7 @@ public class MessageKey {
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [" + ((getFirstPayload)?"FIRST":"LAST") + "] processing started...");
 			
-			// Build request payload
+			// Build request payload (service: getMessageBytesJavaLangStringIntBoolean)
 			int version = getFirstPayload ? 0 : -1;		// 0 = FIRST, -1 = LAST
 			InputStream wsRequest = createNewRequest(messageKey, version);
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service request payload created for Message Key " + messageKey + " with version " + version);
@@ -158,7 +158,7 @@ public class MessageKey {
 			String sapPayloadFileName = storePayload(wsResponse, getFirstPayload);
 			logger.writeDebug(LOCATION, SIGNATURE, "File with SAP PO payload created: " + sapPayloadFileName);			
 		} catch (IOException e) {
-			String msg = "Error reading all bytes from Inpustream\n" + e;
+			String msg = "Error reading all bytes from generated web service request\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			ExtractorException ex = new ExtractorException(msg);
 			this.ex = ex;
