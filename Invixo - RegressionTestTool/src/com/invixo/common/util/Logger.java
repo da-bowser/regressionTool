@@ -40,8 +40,6 @@ public class Logger {
                 // Set log levels
                 instance.logInfo = LOG_LEVEL.INFO.toString().equals(PROP_LOG_LEVEL);
                 instance.logDebug = LOG_LEVEL.DEBUG.toString().equals(PROP_LOG_LEVEL);
-                System.out.println("DEBUG: " + instance.logDebug);
-                System.out.println("INFO: " + instance.logInfo);
                 
                 // Initialize log file
                 if (LoggingTypes.FILE.equals(PROP_LOG_TYPE)) {
