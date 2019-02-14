@@ -42,7 +42,7 @@ public class Logger {
                 instance.logDebug = LOG_LEVEL.DEBUG.toString().equals(PROP_LOG_LEVEL);
                 
                 // Initialize log file
-                if (LoggingTypes.FILE.equals(PROP_LOG_TYPE)) {
+                if (LoggingTypes.FILE.toString().equals(PROP_LOG_TYPE)) {
                 	// TODO FileStructure is not initialized at this point and thus cannot be used... This should be fixed at some point...
                 	String logDir = GlobalParameters.PARAM_VAL_BASE_DIR + "\\Logs\\";
                 	String logFile = logDir + instance.logFileName;
