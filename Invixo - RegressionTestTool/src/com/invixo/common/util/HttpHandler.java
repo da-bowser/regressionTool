@@ -29,10 +29,10 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import com.invixo.common.GeneralException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.main.GlobalParameters;
+
 
 public class HttpHandler {
 	private static Logger logger = Logger.getInstance();
@@ -44,7 +44,10 @@ public class HttpHandler {
 	
 	private static CredentialsProvider credentialProvider = null;
 	private static CloseableHttpClient httpclient = null;
-
+	
+	private static String encodedCredentials = Base64.getEncoder().encodeToString((GlobalParameters.CREDENTIAL_USER + ":" + GlobalParameters.CREDENTIAL_PASS).getBytes());
+	private static String basicAuthHeaderValue = "Basic " + encodedCredentials;
+	
 	
 	static {
 		logger.writeDebug(LOCATION, "static init", "HTTP Host: " 		+ GlobalParameters.PARAM_VAL_HTTP_HOST);
@@ -76,8 +79,9 @@ public class HttpHandler {
 	
 	/**
 	 * Perform HTTP GET
-	 * @param endpoint			HTTP endpoint to call
+	 * @param endpoint			HTTP endpoint to get data from
 	 * @return
+	 * @throws HttpException
 	 */
 	public static byte[] get(String endpoint) throws HttpException {
 		final String SIGNATURE = "get(String)";
@@ -88,8 +92,7 @@ public class HttpHandler {
 			HttpGet httpGet = new HttpGet(endpoint);
 
 			// Add basic auth
-			String encoded = Base64.getEncoder().encodeToString((GlobalParameters.CREDENTIAL_USER + ":" + GlobalParameters.CREDENTIAL_PASS).getBytes());
-			httpGet.addHeader("Authorization", "Basic " + encoded);
+			httpGet.addHeader("Authorization", basicAuthHeaderValue);
 
 			// Do the GET
 			try (final CloseableHttpResponse response = httpclient.execute(httpGet)) {
@@ -102,12 +105,11 @@ public class HttpHandler {
 		} catch (IOException e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
-			String ex = "Technical error executing HTTP Post call.\n" + sw.toString();
+			String ex = "Technical error executing HTTP Get call.\n" + sw.toString();
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new HttpException(ex);
 		}
 	}
-	
 	
 	
 	/**
@@ -117,7 +119,7 @@ public class HttpHandler {
 	 * @param contentType			Content-type of request
 	 * @param requestContent		Content of request
 	 * @return
-	 * @throws GeneralException
+	 * @throws HttpException
 	 */
 	public static byte[] post(String endpoint, ContentType contentType, byte[] requestContent) throws HttpException {
 		final String SIGNATURE = "post(String, ContentType, byte[])";
@@ -138,7 +140,7 @@ public class HttpHandler {
 	 * General purpose HTTP post
 	 * @param httpPost		HTTP post request to be sent
 	 * @return
-	 * @throws GeneralException
+	 * @throws HttpException
 	 */
 	public static byte[] post(HttpPost httpPost) throws HttpException {
 		final String SIGNATURE = "post(HttpPost)";
@@ -198,7 +200,7 @@ public class HttpHandler {
 	 * General purpose HTTP response handler.
 	 * @param CloseableHttpResponse			HTTP response
 	 * @return
-	 * @throws GeneralException
+	 * @throws HttpException
 	 */
 	private static InputStream processHttpResponse(CloseableHttpResponse response) throws HttpException {
 		final String SIGNATURE = "processHttpResponse(CloseableHttpResponse)";
@@ -299,4 +301,5 @@ public class HttpHandler {
 		fbp.addField( "Content-ID", (isHeader) ? CID_HEADER : CID_PAYLOAD);
 		return fbp;
 	}
+	
 }
