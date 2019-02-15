@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<p1:xiObj xmlns:p1="urn:sap-com:xi">
+    <p1:idInfo VID="0c35ea3fba5b11e893890000155df466">
+        <p1:vc vcType="S" swcGuid="b59c5380a02811dd8c5ac375c21d5468" sp="-1" caption="A_SAPPI_PLE , 2.0 of lemu.dk">
+            <p1:clCxt consider="L" />
+        </p1:vc>
+        <p1:key typeID="MAPPING" oid="b1ec3db6ee923c2cb29aaf63a899b189">
+            <p1:elem>oa_TFPPlannerProposal_to_SHP_OBDLV_CHANGE</p1:elem>
+            <p1:elem>http://lemu.dk/TransMgt/A_SAPPI_PLE</p1:elem>
+        </p1:key>
+    </p1:idInfo>
+    <p1:generic>
+        <p1:admInf>
+            <p1:modifBy>jeop</p1:modifBy>
+            <p1:modifAt>2018-09-17 11:21:24.424</p1:modifAt>
+            <modifAtLong>1537176084424</modifAtLong>
+            <p1:owner>app_piman</p1:owner>
+        </p1:admInf>
+        <p1:lnks>
+            <p1:lnkRole role="OUTBOUND_IF" kpos="1">
+                <p1:lnk rMode="A">
+                    <p1:vc vcType="S" swcGuid="db0763f08c2811e09ca0d23e0a113321" sp="-1" caption="I_TRANSVISION , 2.0 of lemu.dk">
+                        <p1:clCxt consider="A" />
+                    </p1:vc>
+                    <p1:key typeID="ifmoper" oid="2bc420a7ec0b3d37ae2b0d0dab6ce39c">
+                        <p1:elem>oa_PlannerProposal</p1:elem>
+                        <p1:elem>http://lemu.dk/TransMgt/I_TRANSVISION</p1:elem>
+                    </p1:key>
+                </p1:lnk>
+            </p1:lnkRole>
+            <p1:lnkRole role="REQUEST_IN_MES" kpos="0">
+                <p1:lnk rMode="A">
+                    <p1:vc vcType="S" swcGuid="0b787690a01e11ddb3fdc375c21d5468" sp="-1" caption="I_SAPERP_PLE , 2.0 of lemu.dk">
+                        <p1:clCxt consider="A" />
+                    </p1:vc>
+                    <p1:key typeID="idoc" oid="cc2234efac713c82a5805ab7168da0ad">
+                        <p1:elem>SHP_OBDLV_CHANGE.SHP_OBDLV_CHANGE01</p1:elem>
+                        <p1:elem>urn:sap-com:document:sap:idoc:messages</p1:elem>
+                    </p1:key>
+                </p1:lnk>
+            </p1:lnkRole>
+            <p1:lnkRole role="REQUEST_OUT_MES" kpos="0">
+                <p1:lnk rMode="A">
+                    <p1:vc vcType="S" swcGuid="db0763f08c2811e09ca0d23e0a113321" sp="-1" caption="I_TRANSVISION , 2.0 of lemu.dk">
+                        <p1:clCxt consider="A" />
+                    </p1:vc>
+                    <p1:key typeID="ifmmessage" oid="72c12faac5ca3dc2b6b02fde064b8965">
+                        <p1:elem>TFPPlannerProposal</p1:elem>
+                        <p1:elem>http://lemu.dk/TransMgt/I_TRANSVISION</p1:elem>
+                    </p1:key>
+                </p1:lnk>
+            </p1:lnkRole>
+            <p1:lnkRole role="REQUEST_TRAFO" kpos="0">
+                <p1:lnk rMode="R">
+                    <p1:key typeID="XI_TRAFO" oid="bcc4be71329c3770a2924937d4457094">
+                        <p1:elem>MAP_TFPPlannerProposal_to_SAPUpdateDeliveryDate</p1:elem>
+                        <p1:elem>http://lemu.dk/TransMgt/A_SAPPI_PLE</p1:elem>
+                    </p1:key>
+                </p1:lnk>
+            </p1:lnkRole>
+            <p1:lnkRole role="INBOUND_IF" kpos="1">
+                <p1:lnk rMode="A">
+                    <p1:vc vcType="S" swcGuid="0b787690a01e11ddb3fdc375c21d5468" sp="-1" caption="I_SAPERP_PLE , 2.0 of lemu.dk">
+                        <p1:clCxt consider="A" />
+                    </p1:vc>
+                    <p1:key typeID="idoc" oid="cc2234efac713c82a5805ab7168da0ad">
+                        <p1:elem>SHP_OBDLV_CHANGE.SHP_OBDLV_CHANGE01</p1:elem>
+                        <p1:elem>urn:sap-com:document:sap:idoc:messages</p1:elem>
+                    </p1:key>
+                </p1:lnk>
+            </p1:lnkRole>
+        </p1:lnks>
+        <p1:textInfo>
+            <p1:textObj id="0c35ea3fba5b11e893890000155df466" type="0" masterL="EN" />
+        </p1:textInfo>
+    </p1:generic>
+    <p1:content>
+        <mp:Mapping xmlns:mp="urn:sap-com:xi:mapping">
+            <mp:Category>OI</mp:Category>
+            <mp:Kind />
+            <mp:XopInclude />
+            <mp:Attachments />
+            <mp:Multiplicity>1:n</mp:Multiplicity>
+            <mp:SourceParameters>
+                <mp:Parameter>
+                    <mp:Position>1</mp:Position>
+                    <mp:Minoccurs>1</mp:Minoccurs>
+                    <mp:Maxoccurs>1</mp:Maxoccurs>
+                </mp:Parameter>
+            </mp:SourceParameters>
+            <mp:TargetParameters>
+                <mp:Parameter>
+                    <mp:Position>1</mp:Position>
+                    <mp:Minoccurs>0</mp:Minoccurs>
+                    <mp:Maxoccurs>unbounded</mp:Maxoccurs>
+                </mp:Parameter>
+            </mp:TargetParameters>
+            <container key="80feb8e2312e11e993110000210ff2e6" />
+        </mp:Mapping>
+    </p1:content>
+</p1:xiObj>

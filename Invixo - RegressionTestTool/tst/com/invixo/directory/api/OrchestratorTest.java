@@ -118,6 +118,69 @@ public class OrchestratorTest {
 	
 	
 	@Test
+	@DisplayName("Test correct receiver mapping data is found")
+	void verifyCorretReceivingMappingData() {
+		try {
+			// Get file from resources
+			String icoReadResponseSingle = "tst/resources/testfiles/com/invixo/directory/api/SingleIcoReadResponse.xml";
+
+			// Convert to input stream
+			File f = new File(icoReadResponseSingle);
+			InputStream responseBytes;
+			responseBytes = new FileInputStream(f);
+
+			// Extract ico information from read response
+			ArrayList<IntegratedConfiguration> icoList = Orchestrator.extractIcoInformationFromReadResponse(responseBytes);
+			
+			for(IntegratedConfiguration ico : icoList) {
+				
+				for(Receiver r : ico.getReceiverList()) {
+					
+					for(ReceiverInterfaceRule rir : r.getReceiverInterfaceRules()) {
+						// Verify the spicific interface has mapping info
+						if (rir.getInterfaceName().equals("Data_In_Async")) {
+							assertEquals("Data_Out_Async_to_Data_In_Async", rir.getInterfaceMappingName());
+							assertEquals("urn:invixo.com:sandbox:regressionTestTool", rir.getInterfaceMappingNamespace());
+							assertEquals("9befd2e14c3611e7cd4ad94cac1f1354", rir.getInterfaceMappingSoftwareComponentVersionId());
+						}
+						
+					}
+				}
+			}
+		
+		} catch (FileNotFoundException | DirectoryApiException e) {
+			fail("It aint cooking chef! " + e);
+		}
+	}
+	
+	
+	@Test
+	@DisplayName("Test multiplicity extract from simple query response")
+	void verifyMultiplicityExtract() {
+		try {
+			// Get file from resources
+			String icoReadResponseSingle = "tst/resources/testfiles/com/invixo/directory/api/RepositorySimpleQueryMultiplicityResponse.xml";
+
+			// Convert to input stream
+			File f = new File(icoReadResponseSingle);
+			InputStream responseBytes;
+			responseBytes = new FileInputStream(f);
+			
+			ReceiverInterfaceRule rir = new ReceiverInterfaceRule();
+			
+			Orchestrator.extractInterfaceMultiplicityFromResponse(responseBytes, rir);
+			
+			// Test
+			assertEquals("1:n", rir.getInterfaceMultiplicity());
+			
+		
+		} catch (FileNotFoundException | DirectoryApiException e) {
+			fail("It aint cooking chef! " + e);
+		}
+	}
+	
+	
+	@Test
 	@DisplayName("Test creation of overview file")
 	void verifyCreationOfOverviewFile() {
 		try {
@@ -140,8 +203,7 @@ public class OrchestratorTest {
 			
 			// Test: exists
 			assertEquals(true, iovf.exists());
-			
-
+		
 		} catch (FileNotFoundException | DirectoryApiException | XMLStreamException e) {
 			fail("It aint cooking chef! " + e);
 		}

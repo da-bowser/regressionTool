@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import javax.xml.stream.XMLEventReader;
@@ -32,6 +34,7 @@ public class Orchestrator {
 	private static final String ICO_OVERVIEW_FILE = FileStructure.DIR_CONFIG + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_IntegratedConfigurationsOverview.xml";
 	private static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_DIR_API");
 	
+	private static String repositorySimpleQueryTemplate = "rep/read/ext?method=PLAIN&TYPE=MAPPING&KEY=###MAPPING_NAME####%7C###MAPPING_NAMESPACE###&VC=SWC&SWCGUID=###MAPPING_SWCGUID###&SP=-1&UC=false&release=7.0";
 	private static ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
 	private static ArrayList<IntegratedConfigurationReadRequest> icoReadRequestList = new ArrayList<IntegratedConfigurationReadRequest>();
 	
@@ -62,8 +65,12 @@ public class Orchestrator {
 			// Read relevant sender and receiver information from read responses
 			Orchestrator.icoList = extractIcoInformationFromReadResponse(new ByteArrayInputStream(responseIcoReadBytes));
 			
+			// Determine if any ico receiver interfaces uses multimapping
+			getIcoMultiplicityInfoFromRepository(Orchestrator.icoList);
+			
 			// Create complete ICO overview file
 			icoOverviewFilePath = createCompleteIcoOverviewFile(Orchestrator.icoList);
+			
 		} catch (HttpException e) {
 			String msg = "Error during web service call " + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -76,6 +83,122 @@ public class Orchestrator {
 
 		// Return file path
 		return icoOverviewFilePath;
+	}
+
+
+	/**
+	 * Calls PO repository simple query to extract receiver interface mapping multiplicity 1:1/1:n.
+	 * @param icoList			List of ICO's to process
+	 * @throws DirectoryApiException
+	 */
+	private static void getIcoMultiplicityInfoFromRepository(ArrayList<IntegratedConfiguration> icoList) throws DirectoryApiException {
+		final String SIGNATURE = "getIcoMultiplicityInfoFromRepository(ArrayList<IntegratedConfiguration>)";
+		// For every receiver interface rule found on a receiver in an ico
+		for (IntegratedConfiguration ico : icoList) {
+			
+			// An ICO can have multiple receivers
+			for (Receiver r : ico.getReceiverList()) {
+			
+				// A Receiver can have multiple receiver interfaces and mappings
+				for (ReceiverInterfaceRule rir : r.getReceiverInterfaceRules()) {
+					if ("".equals(rir.getInterfaceMappingName())) {
+						// Default to single mapping interface if no mapping is found
+						rir.setInterfaceMultiplicity("1:1");
+					} else {
+						// Create a simple query string for every unique receiver interface rule found
+						String repositorySimpeQuery = createRepositorySimpleQuery(repositorySimpleQueryTemplate, rir);
+						
+						try {
+							// Do a http get using the created url
+							byte[] responseBytes = HttpHandler.get(repositorySimpeQuery);
+							
+							// Store response on file system (only relevant for debugging purposes)
+							if (GlobalParameters.DEBUG) {
+								String fileName = FileStructure.getDebugFileName("getIcoMultiplicityInfoFromRepository", false, rir.getInterfaceName() + "_" + rir.getInterfaceMappingName(), ".xml");
+								
+								Util.writeFileToFileSystem(fileName, responseBytes);
+								logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> Repository simple query response message is stored here: " + fileName);
+							}
+							
+							// Extract interface multiplicity from response
+							extractInterfaceMultiplicityFromResponse(new ByteArrayInputStream(responseBytes), rir);
+							
+						} catch (HttpException e) {
+							// Shorten error and throw a new simple query exeption
+							String msg = "Error while trying to get multiplicity info for mapping: " + 
+										 rir.getInterfaceMappingName() + 
+										 "\nValue of \"@MultiMapping\" will be set to \"false\"." + 
+										 "\nTo view the error in its entirety, please enable FILE logging and review.";
+							
+							logger.writeError(LOCATION, SIGNATURE, msg);
+							 
+							// Default to 1:1
+							rir.setInterfaceMultiplicity("1:1");
+							
+							// Set exception
+							rir.setEx(new RepositorySimpleQueryException(msg));
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	/**
+	 * Extract interface mapping information regarding multiplicity (multimapping use) from simple query response.
+	 * @param responseBytes		Simple query response
+	 * @param rir				ReceiverInterfaceRule object
+	 * @throws DirectoryApiException
+	 */
+	public static void extractInterfaceMultiplicityFromResponse(InputStream responseBytes, ReceiverInterfaceRule rir) throws DirectoryApiException {
+		final String SIGNATURE = "extractInterfaceMultiplicityFromResponse(InputStream, ReceiverInterfaceRule)";
+		
+		try {
+	        
+			XMLInputFactory factory = XMLInputFactory.newInstance();
+			XMLEventReader eventReader = factory.createXMLEventReader(responseBytes);
+			
+			while (eventReader.hasNext()) {
+				XMLEvent event = eventReader.nextEvent();
+
+				switch (event.getEventType()) {
+				case XMLStreamConstants.START_ELEMENT:
+					String currentElementName = event.asStartElement().getName().getLocalPart();
+					
+					if ("Multiplicity".equals(currentElementName)) {
+						rir.setInterfaceMultiplicity(eventReader.peek().asCharacters().getData());
+					}
+					break;
+				}
+			}
+			
+			logger.writeDebug(LOCATION, SIGNATURE, "Interface multiplicity found for " + rir.getInterfaceMappingName() + ": " + rir.getInterfaceMultiplicity());
+		} catch (XMLStreamException e) {
+			String msg = "Error extracting interface multiplicity from repository simple query response.\n" + e.getMessage();
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new DirectoryApiException(msg);
+		}
+	}
+
+
+	/**
+	 * Create a unique url to get multiplicity data for a given ReceiverInterfaceRule object.
+	 * @param rsqTemplate		Url template with dummy values
+	 * @param rir				Real interface values to substitute dummy values in template
+	 * @return
+	 */
+	private static String createRepositorySimpleQuery(String rsqTemplate, ReceiverInterfaceRule rir) {
+		// Add host and port, plus template to url
+		String url = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + rsqTemplate;
+		
+		// Replace actual info with dummy attributes in template string
+		url = url.replace("###MAPPING_NAME####", rir.getInterfaceMappingName());
+		url = url.replace("###MAPPING_NAMESPACE###", URLEncoder.encode(rir.getInterfaceMappingNamespace(), StandardCharsets.UTF_8));
+		url = url.replace("###MAPPING_SWCGUID###", rir.getInterfaceMappingSoftwareComponentVersionId());
+		
+		// Return complete url
+		return url;
 	}
 
 
@@ -284,6 +407,16 @@ public class Orchestrator {
 	 * @throws XMLStreamException
 	 */
 	private static void addReciverInformation(XMLStreamWriter xmlWriter, Receiver r, ReceiverInterfaceRule rir) throws XMLStreamException {
+		
+		// Create element: ... | Receiver | Error
+		xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+		 
+		if (rir.getEx() != null) {
+			xmlWriter.writeCharacters(rir.getEx().getMessage());
+		}
+		
+		xmlWriter.writeEndElement(); // Close element: ... | Receiver | Error
+		
 		// Create element: ... | Receiver | Party
 		xmlWriter.writeStartElement(XML_PREFIX, "Party", XML_NS);
 		xmlWriter.writeCharacters(r.getPartyId());
@@ -296,6 +429,7 @@ public class Orchestrator {
 		
 		// Create element: ... | Receiver | Interface
 		xmlWriter.writeStartElement(XML_PREFIX, "Interface", XML_NS);
+		xmlWriter.writeAttribute("MultiMapping", rir.getInterfaceMultiplicity().equals("1:n") ? "true" : "false");
 		xmlWriter.writeCharacters(rir.getInterfaceName());
 		xmlWriter.writeEndElement(); // Close element: ... | Receiver | Interface 
 		
@@ -325,6 +459,7 @@ public class Orchestrator {
 			ReceiverInterfaceRule rir = null;
 			boolean receiverFound = false;
 			boolean receiverInterfaceRuleFound = false;
+			boolean receiverInterfaceRuleMappingFound = false;
 			
 			while (eventReader.hasNext()) {
 				XMLEvent event = eventReader.nextEvent();
@@ -367,6 +502,21 @@ public class Orchestrator {
 						r.setComponentId(eventReader.peek().asCharacters().getData());
 					}
 					
+					
+					/**
+					 * Receiver interface rule mapping information
+					 */
+					else if ("Mapping".equals(currentElementName) && receiverInterfaceRuleFound) {
+						receiverInterfaceRuleMappingFound = true;
+					} else if ("Name".equals(currentElementName) &&  receiverInterfaceRuleMappingFound) {
+						rir.setInterfaceMappingName(eventReader.peek().asCharacters().getData());
+					} else if ("Namespace".equals(currentElementName) &&  receiverInterfaceRuleMappingFound) {
+						rir.setInterfaceMappingNamespace(eventReader.peek().asCharacters().getData());
+					} else if ("SoftwareComponentVersionID".equals(currentElementName) &&  receiverInterfaceRuleMappingFound) {
+						// Remove hyphen in SWCV id
+						rir.setInterfaceMappingSoftwareComponentVersionId(eventReader.peek().asCharacters().getData().replace("-", ""));
+					}
+					
 					/**
 					 * Receiver interface rule information
 					 */
@@ -381,7 +531,6 @@ public class Orchestrator {
 					} else if ("Namespace".equals(currentElementName) && receiverInterfaceRuleFound) { 
 						rir.setInterfaceNamespace(eventReader.peek().asCharacters().getData());
 					}
-					
 					break;
 
 				case XMLStreamConstants.END_ELEMENT:
@@ -395,6 +544,8 @@ public class Orchestrator {
 					} else if ("ReceiverInterfaceRule".equals(currentEndElementName)) {
 						receiverInterfaceRuleFound = false;
 						r.getReceiverInterfaceRules().add(rir);
+					} else if ("Mapping".equals(currentEndElementName)) {
+						receiverInterfaceRuleMappingFound = false;
 					}
 					break;
 				}
