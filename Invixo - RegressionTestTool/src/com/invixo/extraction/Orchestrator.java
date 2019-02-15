@@ -10,8 +10,8 @@ import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
 
 /**
- * This program uses SAP PO Message API.
- * It extracts message payloads from SAP PO database.
+ * This class uses SAP PO Message API.
+ * It orchestrates the process of extracting message payloads (from SAP PO database) from all configured ICOs.
  */
 public class Orchestrator {
 	private static Logger logger = Logger.getInstance();
