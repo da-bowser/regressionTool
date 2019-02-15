@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.Base64;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
@@ -14,6 +15,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.FormBodyPart;
@@ -70,6 +72,42 @@ public class HttpHandler {
 						.setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
 						.build();
 	}
+	
+	
+	/**
+	 * Perform HTTP GET
+	 * @param endpoint			HTTP endpoint to call
+	 * @return
+	 */
+	private static byte[] get(String endpoint) throws HttpException {
+		final String SIGNATURE = "get(String)";
+		try {
+			logger.writeDebug(LOCATION, SIGNATURE, "Endpoint: " + endpoint);
+
+			// Create HTTP Get
+			HttpGet httpGet = new HttpGet(endpoint);
+
+			// Add basic auth
+			String encoded = Base64.getEncoder().encodeToString((GlobalParameters.CREDENTIAL_USER + ":" + GlobalParameters.CREDENTIAL_PASS).getBytes());
+			httpGet.addHeader("Authorization", "Basic " + encoded);
+
+			// Do the GET
+			try (final CloseableHttpResponse response = httpclient.execute(httpGet)) {
+				// Handle HTTP response
+				InputStream positiveResponseContent = processHttpResponse(response);
+
+				// Return
+				return positiveResponseContent.readAllBytes();
+			}
+		} catch (IOException e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			String ex = "Technical error executing HTTP Post call.\n" + sw.toString();
+			logger.writeError(LOCATION, SIGNATURE, ex);
+			throw new HttpException(ex);
+		}
+	}
+	
 	
 	
 	/**
