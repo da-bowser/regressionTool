@@ -250,6 +250,29 @@ public class Orchestrator {
 		xmlWriter.writeCharacters(ico.getSenderInterfaceNamespace());
 		xmlWriter.writeEndElement(); // Close element: ... | Sender | Namespace 
 		
+		String virtualReceiverPartyId = ico.getVirtualReceiverPartyId();
+		String virtualReceiverComponentId = ico.getVirtualReceiverComponentId();
+		
+		// Create element: ... | Sender | SenderUsesVirtualReceiver
+		xmlWriter.writeStartElement(XML_PREFIX, "VirtualReceiver", XML_NS);
+		if (!virtualReceiverPartyId.equals("") || !virtualReceiverComponentId.equals("")) {			
+			xmlWriter.writeAttribute("Used", "true");
+			
+			// Create element: ... | Sender | SenderUsesVirtualReceiver | Party
+			xmlWriter.writeStartElement(XML_PREFIX, "Party", XML_NS);
+			xmlWriter.writeCharacters(ico.getVirtualReceiverPartyId());
+			xmlWriter.writeEndElement(); // Close element: ... | Sender | SenderUsesVirtualReceiver | Party 
+			
+			// Create element: ... | Sender | SenderUsesVirtualReceiver | Component
+			xmlWriter.writeStartElement(XML_PREFIX, "Component", XML_NS);
+			xmlWriter.writeCharacters(ico.getVirtualReceiverComponentId());	
+			xmlWriter.writeEndElement(); // Close element: ... | Sender | SenderUsesVirtualReceiver | Component 
+		} else {
+			xmlWriter.writeAttribute("Used", "false");
+		}
+		
+		xmlWriter.writeEndElement(); // Close element: ... | Sender | SenderUsesVirtualReceiver
+		
 	}
 
 	
