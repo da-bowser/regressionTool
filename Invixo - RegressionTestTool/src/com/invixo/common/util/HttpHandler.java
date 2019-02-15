@@ -79,7 +79,7 @@ public class HttpHandler {
 	 * @param endpoint			HTTP endpoint to call
 	 * @return
 	 */
-	private static byte[] get(String endpoint) throws HttpException {
+	public static byte[] get(String endpoint) throws HttpException {
 		final String SIGNATURE = "get(String)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Endpoint: " + endpoint);
