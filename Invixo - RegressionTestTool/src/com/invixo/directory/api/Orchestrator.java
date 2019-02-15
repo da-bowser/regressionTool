@@ -348,7 +348,7 @@ public class Orchestrator {
 						ico.setSenderInterfaceNamespace(eventReader.peek().asCharacters().getData());
 					} else if ("QualityOfService".equals(currentElementName)) {
 						ico.setQualityOfService(eventReader.peek().asCharacters().getData());
-					} else if ("ReceiverPartyID".equals(currentElementName) & eventReader.peek().isCharacters()) {
+					} else if ("ReceiverPartyID".equals(currentElementName) && eventReader.peek().isCharacters()) {
 						ico.setVirtualReceiverPartyId(eventReader.peek().asCharacters().getData());
 					} else if ("ReceiverComponentID".equals(currentElementName) && eventReader.peek().isCharacters()) {
 						ico.setVirtualReceiverComponentId(eventReader.peek().asCharacters().getData());
