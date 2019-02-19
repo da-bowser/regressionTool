@@ -121,6 +121,7 @@ public class IcoOverviewDeserializer {
 			                String name = attribute.getName().toString();
 			                if ("MultiMapping".equals(name)) {
 			                	currentExtract.setUsingMultiMapping(Boolean.parseBoolean(attribute.getValue()));
+			                	break;
 			                }
 			            }
 			    		

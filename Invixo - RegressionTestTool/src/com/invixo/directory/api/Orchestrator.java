@@ -316,7 +316,7 @@ public class Orchestrator {
 		virtualReceiverComponentId = addPostOrPrefixHandler("prefix", virtualReceiverComponentId, "_virt_");
 		
 		// Create combined ico name
-		String icoName = senderPartyId + ico.getSenderComponentId() + "_" + ico.getSenderInterfaceName() + virtualReceiverPartyId + virtualReceiverComponentId + "_to_" + receiverPartyId + r.getComponentId() + "_" + rir.getInterfaceName();
+		String icoName = senderPartyId + ico.getSenderComponentId() + "-" + ico.getSenderInterfaceName() + virtualReceiverPartyId + virtualReceiverComponentId + "_to_" + receiverPartyId + r.getComponentId() + "-" + rir.getInterfaceName();
 		
 		// Return name
 		return icoName;
