@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inv:IntegratedConfigurationList xmlns:inv="urn:invixo.com.directory.api">
+	<inv:IntegratedConfiguration>
+		<inv:Active>true</inv:Active>
+		<inv:Name>RTT_Sender_Data_Out_Async_to_RTT_Receiver_Data_In_Async</inv:Name>
+		<inv:QualityOfService>EO</inv:QualityOfService>
+		<inv:FromTime/>
+		<inv:ToTime/>
+		<inv:MaxMessages>3</inv:MaxMessages>
+		<inv:Sender>
+			<inv:Party/>
+			<inv:Component>RTT_SenderPRD</inv:Component>
+			<inv:Interface>Data_Out_Async</inv:Interface>
+			<inv:Namespace>urn:invixo.com:sandbox:regressionTestTool</inv:Namespace>
+			<inv:VirtualReceiver Used="false"/>
+		</inv:Sender>
+		<inv:Receiver>
+			<inv:Error/>
+			<inv:Party/>
+			<inv:Component>RTT_ReceiverPRD</inv:Component>
+			<inv:Interface MultiMapping="false">Data_In_Async</inv:Interface>
+			<inv:Namespace>urn:invixo.com:sandbox:regressionTestTool</inv:Namespace>
+		</inv:Receiver>
+	</inv:IntegratedConfiguration>
+</inv:IntegratedConfigurationList>

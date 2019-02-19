@@ -25,6 +25,7 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 
 import com.invixo.common.GeneralException;
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
@@ -56,13 +57,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
-	IntegratedConfiguration(String icoFileName) throws GeneralException {
-		super(icoFileName);
+	IntegratedConfiguration(IcoOverviewInstance icoInstance) throws GeneralException {
+		super(icoInstance);
 	}
 
 	
-	IntegratedConfiguration(String icoFileName, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
-		super(icoFileName, mapfilePath, sourceEnv, targetEnv);
+	IntegratedConfiguration(IcoOverviewInstance icoInstance, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
+		super(icoInstance, mapfilePath, sourceEnv, targetEnv);
 	}
 	
 	
@@ -86,7 +87,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	void startExtraction() {
 		final String SIGNATURE = "startExtraction()";
 		try {
-			logger.writeInfo(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO request file: " + this.fileName);
+			logger.writeInfo(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO: " + this.getName());
 			
 			// Housekeeping: Delete old ICO extract data
 			if (GlobalParameters.PARAM_VAL_ALLOW_SAME_ENV) {
@@ -232,7 +233,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessagesWithSuccessors) called");
 
 		// Extract message info from Web Service response
-		MessageInfo msgInfo = extractMessageInfo(responseBytes, this.getReceiverInterfaceName());
+		MessageInfo msgInfo = extractMessageInfo(responseBytes, this.getReceiverInterface());
 		
 		// Correct Message Mapping Id's in file. This is a special situation. 
 		// EXPLANATION: If an extract is made (after an injection) for an ICO performing message split, then 
@@ -312,7 +313,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessageList) called");
 			
 		// Extract MessageKeys from web Service response
-		MessageInfo msgInfo = extractMessageInfo(responseBytes, this.getReceiverInterfaceName());
+		MessageInfo msgInfo = extractMessageInfo(responseBytes, this.getReceiverInterface());
 		
 		// Set MessageKeys from web Service response
 		this.responseMessageKeys = msgInfo.getObjectKeys();
@@ -554,9 +555,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			xmlWriter.writeEndElement();
 			
 			// Create element: Envelope | Body | getMessageList | filter | fromTime
-			if (ico.getFetchFromTime() != null) {
+			if (ico.getFromTime() != null) {
 				xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "fromTime", XML_NS_URN1_NS);
-				xmlWriter.writeCharacters(ico.getFetchFromTime());
+				xmlWriter.writeCharacters(ico.getFromTime());
 				xmlWriter.writeEndElement();	
 			}
 			
@@ -565,7 +566,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 
 			// Create element: Envelope | Body | getMessageList | filter | interface | name
 			xmlWriter.writeStartElement(XML_NS_URN2_PREFIX, "name", XML_NS_URN2_NS);
-			xmlWriter.writeCharacters(ico.getReceiverInterfaceName());
+			xmlWriter.writeCharacters(ico.getReceiverInterface());
 			xmlWriter.writeEndElement();
 			
 			// Create element: Envelope | Body | getMessageList | filter | interface | namespace
@@ -634,9 +635,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			xmlWriter.writeEndElement();
 			
 			// Create element: Envelope | Body | getMessageList | filter | toTime
-			if (ico.getFetchToTime() != null) {
+			if (ico.getToTime() != null) {
 	 			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "toTime", XML_NS_URN1_NS);
-				xmlWriter.writeCharacters(ico.getFetchToTime());
+				xmlWriter.writeCharacters(ico.getToTime());
 				xmlWriter.writeEndElement();
 			}
 			

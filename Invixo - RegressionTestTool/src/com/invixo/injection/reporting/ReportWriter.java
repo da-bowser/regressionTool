@@ -104,11 +104,6 @@ public class ReportWriter {
 				// Create element: InjectReport | IntegratedConfiguration | Name
 				xmlWriter.writeStartElement(XML_PREFIX, "Name", XML_NS);
 				xmlWriter.writeCharacters(ico.getName());
-				xmlWriter.writeEndElement();	
-
-				// Create element: InjectReport | IntegratedConfiguration | File
-				xmlWriter.writeStartElement(XML_PREFIX, "File", XML_NS);
-				xmlWriter.writeCharacters(ico.getFileName());
 				xmlWriter.writeEndElement();
 				
 				// Add header details

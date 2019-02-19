@@ -31,7 +31,7 @@ public class Orchestrator {
 	private static final String LOCATION = Orchestrator.class.getName();	
 	private static final String XML_PREFIX 	= "inv";
 	private static final String XML_NS 		= "urn:invixo.com.directory.api";
-	private static final String ICO_OVERVIEW_FILE = FileStructure.DIR_CONFIG + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_IntegratedConfigurationsOverview.xml";
+	private static final String ICO_OVERVIEW_FILE = FileStructure.ICO_OVERVIEW_FILE;
 	private static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_DIR_API");
 	
 	private static String repositorySimpleQueryTemplate = "rep/read/ext?method=PLAIN&TYPE=MAPPING&KEY=###MAPPING_NAME####%7C###MAPPING_NAMESPACE###&VC=SWC&SWCGUID=###MAPPING_SWCGUID###&SP=-1&UC=false&release=7.0";
@@ -324,7 +324,7 @@ public class Orchestrator {
 
 	
 	/**
-	 * Add pre- or postfix to a value to make it fit into ico compined name.
+	 * Add pre- or postfix to a value to make it fit into ICO combined name.
 	 * @param type		Prefix/postfix
 	 * @param input		Text input to process
 	 * @param text		Pre- or postfix text to use
@@ -333,9 +333,11 @@ public class Orchestrator {
 	private static String addPostOrPrefixHandler(String type, String input, String text) {
 		if (input.equals("")) { 
 			// No value, no pre- or postfix needed
+			
 		} else if(type.equals("postfix")) {
 			// Add text as a postfix
 			input = input + text;
+			
 		} else {
 			// Add text as prefix
 			input = text + input;
@@ -347,7 +349,7 @@ public class Orchestrator {
 
 
 	/**
-	 * Add "Sender" information to ico overview.
+	 * Add "Sender" information to ICO overview.
 	 * @param xmlWriter
 	 * @param ico
 	 * @throws XMLStreamException
@@ -395,19 +397,17 @@ public class Orchestrator {
 		}
 		
 		xmlWriter.writeEndElement(); // Close element: ... | Sender | SenderUsesVirtualReceiver
-		
 	}
 
 	
 	/**
-	 * Add "Receiver" information to ico overview.
+	 * Add "Receiver" information to ICO overview.
 	 * @param xmlWriter
 	 * @param r
 	 * @param rir
 	 * @throws XMLStreamException
 	 */
 	private static void addReciverInformation(XMLStreamWriter xmlWriter, Receiver r, ReceiverInterfaceRule rir) throws XMLStreamException {
-		
 		// Create element: ... | Receiver | Error
 		xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
 		 
@@ -441,7 +441,7 @@ public class Orchestrator {
 
 
 	/**
-	 * Extract all ico data (sender, receiver, qos, etc..) from ico "IntegratedConfigurationReadRequest" response.
+	 * Extract all ICO data (sender, receiver, qos, etc..) from ico "IntegratedConfigurationReadRequest" response.
 	 * @param responseBytes
 	 * @return
 	 * @throws DirectoryApiException
@@ -450,7 +450,6 @@ public class Orchestrator {
 		final String SIGNATURE = "extractIcoInformationFromReadResponse(InputStream)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Extract ico info from read response: start");
 		try {
-	        
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(responseBytes);
 			ArrayList<IntegratedConfiguration> icoList = new ArrayList<IntegratedConfiguration>();
@@ -552,14 +551,12 @@ public class Orchestrator {
 			}
 			
 			logger.writeDebug(LOCATION, SIGNATURE, "Extract done, ico's found in read response: " + icoList.size());
-			
 			return icoList;
 		} catch (XMLStreamException e) {
 			String msg = "Error extracting message info from Web Service response.\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new DirectoryApiException(msg);
-		}
-		
+		}	
 	}
 
 	

@@ -1,18 +1,10 @@
 package com.invixo.common;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
-
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.XMLEvent;
-import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
@@ -26,94 +18,84 @@ public class IntegratedConfigurationMain {
 	 *====================================================================================*/
 	private static Logger logger 			= Logger.getInstance();
 	private static final String LOCATION 	= IntegratedConfigurationMain.class.getName();	
-	
-	// XML Elements: Sender details
-	private static final String ELEMENT_SITF_SCOMPONENT	= "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderName";
-	private static final String ELEMENT_SITF_ROOT		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}senderInterface";
-	private static final String ELEMENT_SITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";
-	private static final String ELEMENT_SITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";
-	
-	// XML Elements: Receiver details
-	private static final String ELEMENT_RITF_COMPONENT	= "{urn:com.sap.aii.mdt.server.adapterframework.ws}receiverName";
-	private static final String ELEMENT_RITF_ROOT		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}interface";
-	private static final String ELEMENT_RITF_NAME		= "{urn:com.sap.aii.mdt.api.data}name";
-	private static final String ELEMENT_RITF_NS			= "{urn:com.sap.aii.mdt.api.data}namespace";
-	
-	// XML Elements: Other
-	private static final String ELEMENT_TIME_FROM		= "{urn:com.sap.aii.mdt.server.adapterframework.ws}toTime";
-	private static final String ELEMENT_TIME_TO			= "{urn:com.sap.aii.mdt.server.adapterframework.ws}fromTime";
-	private static final String ELEMENT_QOS				= "{urn:com.sap.aii.mdt.server.adapterframework.ws}qualityOfService";
-	private static final String ELEMENT_MAX_MSG			= "{urn:AdapterMessageMonitoringVi}maxMessages";
 
-	
 	private static final boolean OVERRULE_MSG_SIZE 		= Boolean.parseBoolean(PropertyAccessor.getProperty("OVERRULE_MSG_SIZE"));
 	private static final int MAX_MSG_SIZE_OVERRULED 	= Integer.parseInt(PropertyAccessor.getProperty("MESSAGE_SIZE_OVERRULED"));
 	
 	private static final String SOURCE_ENV_ICO_REQUESTS	= GlobalParameters.PARAM_VAL_ICO_REQUEST_FILES_ENV;
 	private static final String TARGET_ENV 				= GlobalParameters.PARAM_VAL_TARGET_ENV;
 	private static HashMap<String, String> SYSTEM_MAP	= null;
-	private static int counter							= 1;
+	private static int counter							= 1;		// Number of ICOs processed in total
 	
 	
 	
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
-	protected String name = null;					// Name of ICO
-	protected String fileName = null;				// Complete path to ICO request file
-	protected int internalObjectId = -1;			// Internal object id (this is based on a simple counter)				
+	private String name = null;
+	private boolean active = false;
+	private String qualityOfService = null;
+	private String fromTime = null;
+	private String toTime = null;
+	private int maxMessages = 0;
+
+	private boolean isUsingMultiMapping = false;
 	
-	// Extracts from ICO request file: SENDER
-	private String senderParty = null;			// NOT EXTRACTED YET (need to see how it works and where to extract from)
-	private String senderComponent = null;		// /urn:getMessageList/urn:filter/urn1:senderName
-	private String senderInterface = null;		// /urn:getMessageList/urn:filter/urn1:senderInterface/urn2:name
-	private String senderNamespace = null;		// /urn:getMessageList/urn:filter/urn1:senderInterface/urn2:namespace
+	private String senderParty = null;
+	private String senderComponent = null;
+	private String senderInterface = null;
+	private String senderNamespace = null;
+
+	private String receiverParty = null;
+	private String receiverComponent = null;
+	private String receiverInterface = null;
+	private String receiverNamespace = null;
 	
-	// Extracts from ICO request file: RECEIVER
-	private String receiverParty = null;			// NOT EXTRACTED YET (need to see how it works and where to extract from)
-	private String receiverComponent = null;		// /urn:getMessageList/urn:filter/urn1:receiverName
-	private String receiverInterfaceName = null;	// /urn:getMessageList/urn:filter/urn1:interface/urn2:name
-	private String receiverNamespace = null;		// /urn:getMessageList/urn:filter/urn1:interface/urn2:namespace
-	
-	// Extracts from ICO request file: VARIOUS
-	private String qualityOfService = null;		// /urn:getMessageList/urn:filter/urn1:qualityOfService
-	private String fetchFromTime = null;			// /urn:getMessageList/urn:filter/urn1:fromTime
-	private String fetchToTime = null;			// /urn:getMessageList/urn:filter/urn1:toTime
-	private int maxMessages = 0;					// /urn:getMessageList/urn:maxMessages
-	
-	// Others
-	private Exception ex = null;					// Error details
-	private long startTime = 0;
-	protected long endTime = 0;
+	protected int internalObjectId = -1;				// Internal object id
+	private Exception ex = null;						// Error details, if any
+	private long startTime = 0;							// Processing time, start
+	protected long endTime = 0;							// Processing time, end
 	
 	
 	
 	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
-	public IntegratedConfigurationMain(String icoFileName) throws GeneralException {
-		this(icoFileName, FileStructure.FILE_CONFIG_SYSTEM_MAPPING, SOURCE_ENV_ICO_REQUESTS, TARGET_ENV);
+	public IntegratedConfigurationMain(IcoOverviewInstance icoOverviewInstance) throws GeneralException {
+		this(icoOverviewInstance, FileStructure.FILE_CONFIG_SYSTEM_MAPPING, SOURCE_ENV_ICO_REQUESTS, TARGET_ENV);
 	}
 	
 
-	public IntegratedConfigurationMain(String icoFileName, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
+	public IntegratedConfigurationMain(IcoOverviewInstance icoOverviewInstance, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
 		// Set start time
 		this.startTime = Util.getTime();
 		
-		// Set internal object id
+		// Set internal object id (used for logging purposes)
 		this.internalObjectId = counter;
 		counter++;
 		
-		// Init others
-		this.fileName = icoFileName;
-		this.name = Util.getFileName(icoFileName, false);
-		SYSTEM_MAP = initializeSystemMap(mapfilePath, sourceEnv, targetEnv);
-
-		// Extract data from ICO request file
-		extractInfoFromIcoRequest();
+		// Validate input data from ICO overview instance
+		this.checkIcoExtract(icoOverviewInstance);
 		
-		// Check extracted info
-		checkDataExtract();
+		// Initialize SAP PO Business Component mapping
+		SYSTEM_MAP = initializeSystemMap(mapfilePath, sourceEnv, targetEnv);		
+		
+		// Set basic data based on ICO overview instance
+		this.setName(icoOverviewInstance.getName());
+		this.setActive(icoOverviewInstance.isActive());
+		this.setQualityOfService(icoOverviewInstance.getQualityOfService());
+		this.setFromTime(icoOverviewInstance.getFromTime());
+		this.setToTime(icoOverviewInstance.getToTime());
+		this.setMaxMessages(icoOverviewInstance.getMaxMessages());
+		this.setUsingMultiMapping(icoOverviewInstance.isUsingMultiMapping());
+		this.setSenderParty(icoOverviewInstance.getSenderParty());
+		this.setSenderComponent(icoOverviewInstance.getSenderComponent());
+		this.setSenderInterface(icoOverviewInstance.getSenderInterface());
+		this.setSenderNamespace(icoOverviewInstance.getSenderNamespace());
+		this.setReceiverParty(icoOverviewInstance.getReceiverParty());
+		this.setReceiverComponent(icoOverviewInstance.getReceiverComponent());
+		this.setReceiverInterface(icoOverviewInstance.getReceiverInterface());
+		this.setReceiverNamespace(icoOverviewInstance.getReceiverNamespace());
 	}
 	
 	
@@ -122,130 +104,245 @@ public class IntegratedConfigurationMain {
 	 *------------- Getters and Setters
 	 *====================================================================================*/
 	public String getName() {
-		return this.name;
+		return name;
 	}
-	public String getFileName() {
-		return this.fileName;
-	}	
+
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+
+	public boolean isActive() {
+		return active;
+	}
+
+
+	public void setActive(boolean active) throws GeneralException {
+		final String SIGNATURE = "setActive(boolean)";
+		if (active) {
+			this.active = active;			
+		} else {
+			String ex = "Internal program error. An inactive ICO was sent for processing. This is not expected and should be filtered before reaching this point.";
+			logger.writeError(LOCATION, SIGNATURE, ex);
+			throw new GeneralException(ex);
+		}
+	}
+
+
+	public String getQualityOfService() {
+		return qualityOfService;
+	}
+
+
+	public void setQualityOfService(String qualityOfService) {
+		this.qualityOfService = qualityOfService;
+	}
+
+
+	public String getFromTime() {
+		return fromTime;
+	}
+
+
+	public void setFromTime(String fromTime) {
+		final String SIGNATURE = "setFromTime(String)";
+		if (GlobalParameters.PARAM_VAL_FROM_TIME == null) {
+			// Use data from ICO overview
+			this.fromTime = fromTime;
+		} else {
+			// Use value from program parameter
+			this.fromTime = GlobalParameters.PARAM_VAL_FROM_TIME;
+			logger.writeInfo(LOCATION, SIGNATURE, "'FromTime' is being overruled due to program parameter set. Value used for all: " + GlobalParameters.PARAM_VAL_FROM_TIME);
+		}
+	}
+
+
+	public String getToTime() {
+		return toTime;
+	}
+
+
+	public void setToTime(String toTime) {
+		final String SIGNATURE = "setToTime(String)";
+		if (GlobalParameters.PARAM_VAL_TO_TIME == null) {
+			// Use data from ICO overview
+			this.toTime = toTime;
+		} else {
+			// Use value from program parameter
+			this.toTime = GlobalParameters.PARAM_VAL_TO_TIME;
+			logger.writeInfo(LOCATION, SIGNATURE, "'ToTime' is being overruled due to program parameter set. Value used for all: " + GlobalParameters.PARAM_VAL_TO_TIME);
+		}
+	}
+
+
+	public int getMaxMessages() {
+		return maxMessages;
+	}
+
+
+	public void setMaxMessages(int maxMessages) throws GeneralException {
+		final String SIGNATURE = "setMaxMessages(int)";
+		if (OVERRULE_MSG_SIZE) {
+			// Overruling enabled: use technical property
+			if (MAX_MSG_SIZE_OVERRULED < 1) {
+				String ex = "Max message size enabled for overruling, but value '" + MAX_MSG_SIZE_OVERRULED + "' is not supported. Value must be >= 1.";
+				logger.writeError(LOCATION, SIGNATURE, ex);
+				throw new GeneralException(ex);
+			} else {
+				this.maxMessages = MAX_MSG_SIZE_OVERRULED;
+				logger.writeInfo(LOCATION, SIGNATURE, "Max message size is being overruled due to technical parameter set. Value used for all: " + MAX_MSG_SIZE_OVERRULED);				
+			}
+		} else {
+			// Overruling disabled: use value from ICO overview instance
+			this.maxMessages = maxMessages;			
+		}
+	}
+
+
+	public boolean isUsingMultiMapping() {
+		return isUsingMultiMapping;
+	}
+
+
+	public void setUsingMultiMapping(boolean isUsingMultiMapping) {
+		this.isUsingMultiMapping = isUsingMultiMapping;
+	}
+
+
 	public String getSenderParty() {
 		return senderParty;
 	}
+
+
 	public void setSenderParty(String senderParty) {
 		this.senderParty = senderParty;
 	}
+
+
 	public String getSenderComponent() {
 		return senderComponent;
 	}
+
+
 	public void setSenderComponent(String senderComponent) throws GeneralException {
-		final String SIGNATURE = "setSenderComponent";
+		final String SIGNATURE = "setSenderComponent(String)";
 		String mappedSys = mapSystem(senderComponent);
 		if (mappedSys == null) {
-			String ex = "Sender System '" + senderComponent + "' not found in mapping table.";
+			String ex = "Sender System '" + senderComponent + "' not found in System Mapping table.";
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new GeneralException(ex);
 		} else {
-			this.senderComponent = mappedSys;	
+			this.senderComponent = mappedSys;			
 		}
 	}
+
+
 	public String getSenderInterface() {
 		return senderInterface;
 	}
+
+
 	public void setSenderInterface(String senderInterface) {
 		this.senderInterface = senderInterface;
 	}
+
+
 	public String getSenderNamespace() {
 		return senderNamespace;
 	}
+
+
 	public void setSenderNamespace(String senderNamespace) {
 		this.senderNamespace = senderNamespace;
 	}
+
+
 	public String getReceiverParty() {
 		return receiverParty;
 	}
+
+
 	public void setReceiverParty(String receiverParty) {
 		this.receiverParty = receiverParty;
 	}
+
+
 	public String getReceiverComponent() {
 		return receiverComponent;
 	}
+
+
 	public void setReceiverComponent(String receiverComponent) throws GeneralException {
-		final String SIGNATURE = "setReceiverComponent";
+		final String SIGNATURE = "setReceiverComponent(String)";
 		String mappedSys = mapSystem(receiverComponent);
 		if (mappedSys == null) {
-			String ex = "Receiver System '" + receiverComponent + "' not found in mapping table.";
+			String ex = "Receiver System '" + receiverComponent + "' not found in System Mapping table.";
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new GeneralException(ex);
 		} else {
 			this.receiverComponent = mappedSys;			
 		}
 	}
-	public String getReceiverInterfaceName() {
-		return receiverInterfaceName;
+
+
+	public String getReceiverInterface() {
+		return receiverInterface;
 	}
-	public void setReceiverInterfaceName(String receiverInterfaceName) {
-		this.receiverInterfaceName = receiverInterfaceName;
+
+
+	public void setReceiverInterface(String receiverInterface) {
+		this.receiverInterface = receiverInterface;
 	}
+
+
 	public String getReceiverNamespace() {
 		return receiverNamespace;
 	}
+
+
 	public void setReceiverNamespace(String receiverNamespace) {
 		this.receiverNamespace = receiverNamespace;
 	}
-	public String getQualityOfService() {
-		return qualityOfService;
+
+
+	public int getInternalObjectId() {
+		return internalObjectId;
 	}
-	public void setQualityOfService(String qualityOfService) {
-		this.qualityOfService = qualityOfService;
+
+
+	public void setInternalObjectId(int internalObjectId) {
+		this.internalObjectId = internalObjectId;
 	}
-	public String getFetchFromTime() {
-		if (GlobalParameters.PARAM_VAL_FROM_TIME == null) {
-			// Not part of program parameter
-			// Return whatever (if any) value provided in file request
-			return fetchFromTime;
-		} else {
-			// Overrule value in file request (if any) with the program parameter
-			return GlobalParameters.PARAM_VAL_FROM_TIME;
-		}
-	}
-	public void setFetchFromTime(String fetchFromTime) {
-		this.fetchFromTime = fetchFromTime;
-	}
-	public String getFetchToTime() {
-		if (GlobalParameters.PARAM_VAL_TO_TIME == null) {
-			// Not part of program parameter
-			// Return whatever (if any) value provided in file request
-			return fetchToTime;	
-		} else {
-			// Overrule value in file request (if any) with the program parameter
-			return GlobalParameters.PARAM_VAL_TO_TIME;
-		}
-	}
-	public void setFetchToTime(String fetchToTime) {
-		this.fetchToTime = fetchToTime;
-	}
-	public int getMaxMessages() {
-		return maxMessages;
-	}
-	public void setMaxMessages(int maxMessages) {
-		final String SIGNATURE = "setMaxMessages(int)";
-		if (OVERRULE_MSG_SIZE) {
-			this.maxMessages = MAX_MSG_SIZE_OVERRULED;
-			logger.writeDebug(LOCATION, SIGNATURE, "Max message size is being overruled due to technical parameter set. Value used for all: " + MAX_MSG_SIZE_OVERRULED);
-		} else {
-			this.maxMessages = maxMessages;			
-		}
-	}
+
+
 	public Exception getEx() {
-		return this.ex;
+		return ex;
 	}
+
+
 	public void setEx(Exception ex) {
 		this.ex = ex;
 	}
+
+
 	public long getStartTime() {
 		return startTime;
 	}
+
+
+	public void setStartTime(long startTime) {
+		this.startTime = startTime;
+	}
+
+
 	public long getEndTime() {
 		return endTime;
+	}
+
+
+	public void setEndTime(long endTime) {
+		this.endTime = endTime;
 	}
 	
 	
@@ -297,170 +394,63 @@ public class IntegratedConfigurationMain {
 		}
 	}
 
-	
-	
+
+
 	/*====================================================================================
 	 *------------- Instance methods
 	 *====================================================================================*/
-	private void checkDataExtract() throws GeneralException {
-		final String SIGNATURE = "checkDataExtract()";
+	private void checkIcoExtract(IcoOverviewInstance icoOverviewInstance) throws GeneralException {
+		final String SIGNATURE = "checkIcoExtract(IcoOverviewInstance)";
 		
 		StringWriter sw = new StringWriter();
-		if (this.getSenderComponent() == null) {
-			sw.write("'/urn:getMessageList/urn:filter/urn1:senderName' not present in ICO request file. This is mandatory.\n");
+		if (icoOverviewInstance.getName() == null || "".equals(icoOverviewInstance.getName())) {
+			sw.write("'/inv:IntegratedConfigurationList/inv:IntegratedConfiguration/inv:Name' is not set. This is unexpected at this point.\n");
 		}
 		
-		if (this.getSenderInterface() == null) {
-			sw.write("'/urn:getMessageList/urn:filter/urn1:senderInterface/urn2:name' not present in ICO request file. This is mandatory.\n");
+		if (!icoOverviewInstance.isActive()) {
+			sw.write("'/inv:IntegratedConfigurationList/inv:IntegratedConfiguration/inv:Active' is set to false. This is unexpected at this point.\n");
 		}
 		
-		if (this.getSenderNamespace() == null) {
-			sw.write("'/urn:getMessageList/urn:filter/urn1:senderInterface/urn2:namespace' not present in ICO request file. This is mandatory.\n");
+		if (icoOverviewInstance.getQualityOfService() == null || "".equals(icoOverviewInstance.getQualityOfService())) {
+			sw.write("'/inv:IntegratedConfigurationList/inv:IntegratedConfiguration/inv:QualityOfService' not present. This is mandatory.\n");
 		}
 		
-		if (this.getReceiverComponent() == null) {
-			sw.write("'/urn:getMessageList/urn:filter/urn1:receiverName' not present in ICO request file. This is mandatory.\n");
+		if (icoOverviewInstance.getSenderComponent() == null || "".equals(icoOverviewInstance.getSenderComponent())) {
+			sw.write("'/inv:IntegratedConfigurationList/inv:IntegratedConfiguration/inv:Sender/inv:Component' not present. This is mandatory.\n");
+		}
+
+		if (icoOverviewInstance.getSenderInterface() == null || "".equals(icoOverviewInstance.getSenderInterface())) {
+			sw.write("'/inv:IntegratedConfigurationList/inv:IntegratedConfiguration/inv:Sender/inv:Interface' not present. This is mandatory.\n");
 		}
 		
-		if (this.getReceiverInterfaceName() == null) {
-			sw.write("'/urn:getMessageList/urn:filter/urn1:interface/urn2:name' not present in ICO request file. This is mandatory.\n");
+		if (icoOverviewInstance.getSenderNamespace() == null || "".equals(icoOverviewInstance.getSenderNamespace())) {
+			sw.write("'/inv:IntegratedConfigurationList/inv:IntegratedConfiguration/inv:Sender/inv:Interface' not present. This is mandatory.\n");
+		}
+
+		if (icoOverviewInstance.getReceiverComponent() == null || "".equals(icoOverviewInstance.getReceiverComponent())) {
+			sw.write("'/inv:IntegratedConfigurationList/inv:IntegratedConfiguration/inv:Receiver/inv:Component' not present. This is mandatory.\n");
+		}
+
+		if (icoOverviewInstance.getReceiverInterface() == null || "".equals(icoOverviewInstance.getReceiverInterface())) {
+			sw.write("'/inv:IntegratedConfigurationList/inv:IntegratedConfiguration/inv:Receiver/inv:Interface' not present. This is mandatory.\n");
 		}
 		
-		if (this.getReceiverNamespace() == null) {
-			sw.write("'/urn:getMessageList/urn:filter/urn1:interface/urn2:namespace' not present in ICO request file. This is mandatory.\n");
+		if (icoOverviewInstance.getReceiverNamespace() == null || "".equals(icoOverviewInstance.getReceiverNamespace())) {
+			sw.write("'/inv:IntegratedConfigurationList/inv:IntegratedConfiguration/inv:Receiver/inv:Interface' not present. This is mandatory.\n");
 		}
 		
-		if (this.getQualityOfService() == null) {
-			sw.write("'/urn:getMessageList/urn:filter/urn1:qualityOfService' not present in ICO request file. This is mandatory.\n");
-		}
-		
-		if (this.getMaxMessages() == 0) {
-			sw.write("'/urn:getMessageList/urn:maxMessages' must be set to a value greather than 0 in ICO request file. This is mandatory.\n");
+		if (icoOverviewInstance.getMaxMessages() < 1) {
+			sw.write("'/inv:IntegratedConfigurationList/inv:IntegratedConfiguration/inv:MaxMessages' must be set to a value greather than 0. This is mandatory.\n");
 		}
 		
 		// Throw exception in case errors was found
 		if (!sw.toString().equals("")) {
-			String msg = "Input validation error.\n" + sw.toString();
+			String msg = "Data validation error for ICO overview instance.\n" + sw.toString();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new GeneralException(msg);
 		}
 	}
-	
-	
-	/**
-	 * Extract various basic info from an Integrated Configuration request file. The extracted info is required when 
-	 * extracting and injecting to SAP PO.
-	 * @throws GeneralException
-	 */
-	private void extractInfoFromIcoRequest() throws GeneralException {
-		final String SIGNATURE = "extractInfoFromIcoRequest()";
-		try {
-			// Get ICO file content
-			byte[] fileContent = Util.readFile(this.getFileName());
-			
-			// Prepare
-			XMLInputFactory factory = XMLInputFactory.newInstance();
-			StreamSource ss = new StreamSource(new ByteArrayInputStream(fileContent));
-			XMLEventReader eventReader = factory.createXMLEventReader(ss);
-			
-			// Parse XML file and extract data
-			boolean fetchSenderData = false;
-			boolean fetchReceiverData = false;
-			while (eventReader.hasNext()) {
-			    XMLEvent event = eventReader.nextEvent();
-			    
-			    switch(event.getEventType()) {
-			    case XMLStreamConstants.START_ELEMENT:
-			    	String currentStartElementName = event.asStartElement().getName().toString();
-			    	
-					// Quality of Service
-					if (ELEMENT_QOS.equals(currentStartElementName)) {
-						if (eventReader.peek().isCharacters()) {
-							this.setQualityOfService(eventReader.peek().asCharacters().getData());	
-						}
-					
-					// Max message count (only relevant for extraction)
-					} else if (ELEMENT_MAX_MSG.equals(currentStartElementName)) {
-						if (eventReader.peek().isCharacters()) {
-							this.setMaxMessages(Integer.parseInt(eventReader.peek().asCharacters().getData()));	
-						}
-			    	
-			    	// Time, From
-					} else if (ELEMENT_TIME_FROM.equals(currentStartElementName)) {
-						if (eventReader.peek().isCharacters()) {
-							this.setFetchFromTime(eventReader.peek().asCharacters().getData());	
-						}
-			    		
-			    	// Time, To
-					} else if (ELEMENT_TIME_TO.equals(currentStartElementName)) {
-						if (eventReader.peek().isCharacters()) {
-							this.setFetchToTime(eventReader.peek().asCharacters().getData());	
-						}
-						
-			    	// Sender Component
-			    	} else if (ELEMENT_SITF_SCOMPONENT.equals(currentStartElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			this.setSenderComponent(eventReader.peek().asCharacters().getData());
-			    		}
-			    		
-			    	// Contained for Sender Interface and Sender Namespace
-			    	} else if (ELEMENT_SITF_ROOT.equals(currentStartElementName)) {
-			    			fetchSenderData = true;
-			    		
-			    	// Sender Interface Name
-			    	} else if (fetchSenderData && ELEMENT_SITF_NAME.equals(currentStartElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			this.setSenderInterface(eventReader.peek().asCharacters().getData());
-			    		}
-			    		
-			    	// Sender Interface Namespace
-			    	} else if (fetchSenderData && ELEMENT_SITF_NS.equals(currentStartElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			this.setSenderNamespace(eventReader.peek().asCharacters().getData());	
-			    		}
-			    		
-			    	// Receiver Component
-			    	} else if (ELEMENT_RITF_COMPONENT.equals(currentStartElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			this.setReceiverComponent(eventReader.peek().asCharacters().getData());
-			    		}
-			    		
-			    	// Contained for Receiver Interface and Receiver Namespace
-			    	} else if (ELEMENT_RITF_ROOT.equals(currentStartElementName)) {
-			    			fetchReceiverData = true;
-			    		
-			    	// Receiver Interface Name
-			    	} else if (fetchReceiverData && ELEMENT_RITF_NAME.equals(currentStartElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			this.setReceiverInterfaceName(eventReader.peek().asCharacters().getData());
-			    		}
-			    		
-			    	// Render Interface Namespace
-			    	} else if (ELEMENT_RITF_NS.equals(currentStartElementName)) {
-			    		if (eventReader.peek().isCharacters()) {
-			    			this.setReceiverNamespace(eventReader.peek().asCharacters().getData());	
-			    		}
-			    	}	    	
-			    	break;
-			    	
-			    case XMLStreamConstants.END_ELEMENT:
-			    	String currentEndElementName = event.asEndElement().getName().toString();
-			    	
-			    	if (ELEMENT_SITF_ROOT.equals(currentEndElementName)) {
-			    		fetchSenderData = false;
-			    	} else if (ELEMENT_RITF_ROOT.equals(currentEndElementName)) {
-			    		fetchReceiverData = false;
-			    	}
-			    	break;
-			    }
-			}
-		} catch (XMLStreamException e) {
-			String msg = "Error extracting info from ICO request file: " + getFileName() + "\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new GeneralException(msg);
-		} 
-	}
-	
+		
 	
 	private static String mapSystem(String key) {
 		String value = SYSTEM_MAP.get(key);

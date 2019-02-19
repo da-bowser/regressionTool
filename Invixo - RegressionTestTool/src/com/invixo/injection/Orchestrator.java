@@ -1,13 +1,12 @@
 package com.invixo.injection;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 import com.invixo.common.GeneralException;
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure;
+
 
 /**
  * This Class uses SAP PO Message API.
@@ -20,29 +19,22 @@ public class Orchestrator {
 	private static int numberOfIcosToBeProcessed = 0;
 	
 	
-	public static void main(String[] args) {
-		start();
-	}
-
-	
 	/**
 	 * Main entry point for injecting all payload files related to all Integrated Configurations
 	 */
-	public static ArrayList<IntegratedConfiguration> start() {
+	public static ArrayList<IntegratedConfiguration> start(ArrayList<IcoOverviewInstance> icoOverviewList) {
+		final String SIGNATURE = "start(ArrayList<IcoOverviewInstance>)";
 		try {
-			final String SIGNATURE = "start()";
 			logger.writeInfo(LOCATION, SIGNATURE, "Start processing all ICO's...");
 			
-			// Get list of all ICO request files to be processed
-			File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_EXTRACT_INPUT);
-			numberOfIcosToBeProcessed = files.length;
-			logger.writeInfo(LOCATION, SIGNATURE, "Number of ICO request files to be processed: " + numberOfIcosToBeProcessed);
+			// Set total number of ICOs to be processed (for logging purposes)
+			numberOfIcosToBeProcessed = icoOverviewList.size();
 			
 			// Process each ICO request file
 			int counter = 0;
-			for (File file : files) {
+			for (IcoOverviewInstance ico : icoOverviewList) {
 				counter++;
-				processSingleIco(file, counter);
+				processSingleIco(ico, counter);
 			}
 			
 			logger.writeInfo(LOCATION, SIGNATURE, "Finished processing all ICO's...");
@@ -61,14 +53,14 @@ public class Orchestrator {
 	}
 	
 	
-	private static void processSingleIco(File file, int counter) {
-		final String SIGNATURE = "processSingleIco(File, int)";
+	private static void processSingleIco(IcoOverviewInstance icoOverviewInstance, int counter) {
+		final String SIGNATURE = "processSingleIco(IcoOverviewInstance, int)";
 		IntegratedConfiguration ico = null;
 		try {
-			logger.writeInfo(LOCATION, SIGNATURE, "*********** (" + counter + " / " + numberOfIcosToBeProcessed + ") Start processing ICO request file: " + file);
+			logger.writeInfo(LOCATION, SIGNATURE, "*********** (" + counter + " / " + numberOfIcosToBeProcessed + ") Start processing ICO: " + icoOverviewInstance.getName());
 			
 			// Prepare
-			ico = new IntegratedConfiguration(file.getAbsolutePath());
+			ico = new IntegratedConfiguration(icoOverviewInstance);
 			icoList.add(ico);
 			
 			// Process

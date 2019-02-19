@@ -238,11 +238,6 @@ public class ReportWriter {
 			xmlWriter.writeCharacters(ico.getName());
 			xmlWriter.writeEndElement();
 
-			// Create element: ExtractReport | IntegratedConfiguration | File
-			xmlWriter.writeStartElement(XML_PREFIX, "File", XML_NS);
-			xmlWriter.writeCharacters(ico.getFileName());
-			xmlWriter.writeEndElement();
-
 			// Add structure: ExtractReport | IntegratedConfiguration | Details
 			addHeaderDetails(xmlWriter, ico);
 
@@ -331,12 +326,12 @@ public class ReportWriter {
 
 		// Create element: ExtractReport | Header | ExtractFromTime
 		xmlWriter.writeStartElement(XML_PREFIX, "ExtractFromTime", XML_NS);
-		xmlWriter.writeCharacters(ico.getFetchFromTime());
+		xmlWriter.writeCharacters(ico.getFromTime());
 		xmlWriter.writeEndElement();
 
 		// Create element: ExtractReport | Header | ExtractToTime
 		xmlWriter.writeStartElement(XML_PREFIX, "ExtractToTime", XML_NS);
-		xmlWriter.writeCharacters(ico.getFetchToTime());
+		xmlWriter.writeCharacters(ico.getToTime());
 		xmlWriter.writeEndElement();
 
 		// Create element: InjectReport | IntegratedConfiguration | QoS
@@ -356,7 +351,7 @@ public class ReportWriter {
 
 		// Create element: ExtractReport | IntegratedConfiguration | ReceiverInterface
 		xmlWriter.writeStartElement(XML_PREFIX, "ReceiverInterface", XML_NS);
-		xmlWriter.writeCharacters(ico.getReceiverInterfaceName());
+		xmlWriter.writeCharacters(ico.getReceiverInterface());
 		xmlWriter.writeEndElement();
 
 		// Create element: ExtractReport | IntegratedConfiguration | ReceiverNamespace

@@ -1,10 +1,9 @@
 package com.invixo.compare;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.List;
+
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.compare.IntegratedConfiguration;
 import com.invixo.main.GlobalParameters;
@@ -17,15 +16,12 @@ public class Orchestrator {
 	private static int icoProccesError = 0;	
 	private static double totalExecutionTime = 0;
 	
-	public static ArrayList<IntegratedConfiguration> start() {
-		final String SIGNATURE = "start()";
+	public static ArrayList<IntegratedConfiguration> start(ArrayList<IcoOverviewInstance> icoOverviewList) {
+		final String SIGNATURE = "start(ArrayList<IcoOverviewInstance>)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Start compare");
 		
-		// Get list of ICO's to handle
-		List<Path> sourceIcoFiles = Util.generateListOfPaths(FileStructure.DIR_EXTRACT_INPUT, "FILE");
-
 		// Start processing files for compare
-		icoList = processCompareLibs(sourceIcoFiles);
+		icoList = processCompareLibs(icoOverviewList);
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Compare completed");
 		
@@ -33,20 +29,19 @@ public class Orchestrator {
 	}
 
 	
-	private static ArrayList<IntegratedConfiguration> processCompareLibs(List<Path> sourceIcoFiles) {
-		final String SIGNATURE = "processCompareLibs(List)";
-		logger.writeDebug(LOCATION, SIGNATURE, "ICO's found and ready to process: " + sourceIcoFiles.size());
+	private static ArrayList<IntegratedConfiguration> processCompareLibs(ArrayList<IcoOverviewInstance> icoOverviewList) {
+		final String SIGNATURE = "processCompareLibs(ArrayList<IcoOverviewInstance>)";
+		logger.writeDebug(LOCATION, SIGNATURE, "ICO's found and ready to process: " + icoOverviewList.size());
 
 		// Process found ICO's
-		for (int i = 0; i < sourceIcoFiles.size(); i++) {
+		for (int i = 0; i < icoOverviewList.size(); i++) {
 			logger.writeDebug(LOCATION, SIGNATURE, "[ICO: " + (i+1) + " ] processing");
-			Path currentSourcePath = sourceIcoFiles.get(i);
-			String icoName = Util.getFileName(currentSourcePath.toString(), false);
-			String sourceIcoComparePath = buildEnvironmentComparePath(currentSourcePath, GlobalParameters.PARAM_VAL_SOURCE_ENV, icoName);
-			String targetIcoComparePath = buildEnvironmentComparePath(currentSourcePath, GlobalParameters.PARAM_VAL_TARGET_ENV, icoName);
+			String currentIcoName = icoOverviewList.get(i).getName();
+			String sourceIcoComparePath = buildEnvironmentComparePath(GlobalParameters.PARAM_VAL_SOURCE_ENV, currentIcoName);
+			String targetIcoComparePath = buildEnvironmentComparePath(GlobalParameters.PARAM_VAL_TARGET_ENV, currentIcoName);
 
 			// Create instance of CompareHandler containing all relevant data for a given ICO compare
-			IntegratedConfiguration ico = new IntegratedConfiguration(sourceIcoComparePath, targetIcoComparePath, icoName);
+			IntegratedConfiguration ico = new IntegratedConfiguration(sourceIcoComparePath, targetIcoComparePath, currentIcoName);
 			
 			// Add ico to list for later reporting
 			icoList.add(ico);
@@ -71,7 +66,7 @@ public class Orchestrator {
 	}
 
 	
-	private static String buildEnvironmentComparePath(Path currentSourcePath, String environment, String icoName) {
+	private static String buildEnvironmentComparePath(String environment, String icoName) {
 		String comparePath;
 		comparePath = FileStructure.DIR_EXTRACT_OUTPUT_PRE + icoName + "\\" + environment + FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 		return comparePath;

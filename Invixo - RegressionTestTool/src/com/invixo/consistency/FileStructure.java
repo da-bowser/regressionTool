@@ -3,11 +3,12 @@ package com.invixo.consistency;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.nio.file.Path;
-import java.util.List;
+import java.util.ArrayList;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.main.GlobalParameters;
@@ -21,18 +22,17 @@ public class FileStructure {
 	
 	// Extract: input
 	private static final String DIR_EXTRACT							= FILE_BASE_LOCATION + "\\_Extract";
-	public static final String DIR_EXTRACT_INPUT					= DIR_EXTRACT + "\\Input\\Integrated Configurations\\";
 	
 	// Extract: output
 	public static final String DIR_EXTRACT_OUTPUT_PRE					= FILE_BASE_LOCATION + "\\_Extract\\Output\\";
 	public static final String DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS	= "\\Output\\Payloads\\First\\";
 	public static final String DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS		= "\\Output\\Payloads\\Last\\";
 	private static final String DIR_EXTRACT_OUTPUT_POST_DEV_FIRST		= "\\DEV" + DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
-	private static final String DIR_EXTRACT_OUTPUT_POST_DEV_LAST			= "\\DEV" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+	private static final String DIR_EXTRACT_OUTPUT_POST_DEV_LAST		= "\\DEV" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 	private static final String DIR_EXTRACT_OUTPUT_POST_TST_FIRST		= "\\TST" + DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
-	private static final String DIR_EXTRACT_OUTPUT_POST_TST_LAST			= "\\TST" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+	private static final String DIR_EXTRACT_OUTPUT_POST_TST_LAST		= "\\TST" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 	private static final String DIR_EXTRACT_OUTPUT_POST_PRD_FIRST		= "\\PRD" + DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
-	private static final String DIR_EXTRACT_OUTPUT_POST_PRD_LAST			= "\\PRD" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+	private static final String DIR_EXTRACT_OUTPUT_POST_PRD_LAST		= "\\PRD" + DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
 	
 	// Inject: mapping table
 	private static final String DIR_INJECT							= FILE_BASE_LOCATION + "\\_Inject\\";
@@ -48,6 +48,7 @@ public class FileStructure {
 	public static final String FILE_CONFIG_COMPARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
 	public static final String FILE_MSG_ID_MAPPING					= DIR_INJECT + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_to_" + GlobalParameters.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
 	public static final String PAYLOAD_FILE_EXTENSION 				= ".payload";	
+	public static final String ICO_OVERVIEW_FILE 					= DIR_CONFIG + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_IntegratedConfigurationsOverview.xml";
 	
 	static {
 		final String SIGNATURE = "static";
@@ -58,15 +59,15 @@ public class FileStructure {
 	/**
 	 * Start File Structure check.
 	 */
-	public static void startCheck() {
-		String SIGNATURE = "startCheck()";
+	public static void startCheck(ArrayList<IcoOverviewInstance> icoList) {
+		String SIGNATURE = "startCheck(ArrayList<IcoOverviewInstance>)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Start file structure check");
 
 		// Ensure project folder structure is present
-		checkFolderStructure();
+		checkFolderStructure(icoList);
 		
 		// Ensure critical run files exists
-		checkBaseFiles();
+		checkBaseFiles(icoList);
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "File structure check completed!");
 	}
@@ -75,10 +76,9 @@ public class FileStructure {
 	/**
 	 * Ensure project folder structure is healthy.
 	 */
-	private static void checkFolderStructure() {
+	private static void checkFolderStructure(ArrayList<IcoOverviewInstance> icoList) {
 		Util.createDirIfNotExists(FILE_BASE_LOCATION);
 		Util.createDirIfNotExists(DIR_EXTRACT);
-		Util.createDirIfNotExists(DIR_EXTRACT_INPUT);
 		Util.createDirIfNotExists(DIR_EXTRACT_OUTPUT_PRE);
 		Util.createDirIfNotExists(DIR_INJECT);
 		Util.createDirIfNotExists(DIR_LOGS);
@@ -87,15 +87,11 @@ public class FileStructure {
 		Util.createDirIfNotExists(DIR_DEBUG);
 		
 		// Generate dynamic output folders based on ICO request files
-		List<Path> icoFiles = Util.generateListOfPaths(DIR_EXTRACT_INPUT, "FILE");
-		for (Path path : icoFiles) {
+		for (IcoOverviewInstance ico : icoList) {
 			// Build path
-			String icoDynamicPath = DIR_EXTRACT_OUTPUT_PRE + Util.getFileName(path.toAbsolutePath().toString(), false);
+			String icoDynamicPath = DIR_EXTRACT_OUTPUT_PRE + ico.getName();
 			
-			// Create ICO directory
-			Util.createDirIfNotExists(icoDynamicPath);
-			
-			// Create output folders for DEV, TST, PROD
+			// Create output folders for DEV, TST, PRD
 			Util.createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_DEV_FIRST);
 			Util.createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_DEV_LAST);
 			Util.createDirIfNotExists(icoDynamicPath + DIR_EXTRACT_OUTPUT_POST_TST_FIRST);
@@ -106,12 +102,10 @@ public class FileStructure {
 	}
 
 	
-	private static void checkBaseFiles() {
+	private static void checkBaseFiles(ArrayList<IcoOverviewInstance> icoList) {
 		String SIGNATURE = "checkBaseFiles()";
-		
 		File systemMappingFile = new File(FILE_CONFIG_SYSTEM_MAPPING);
-		//File compareExceptionsFile = new File(FILE_CONFIG_COPMARE_EXEPTIONS);
-		
+
 		// Make sure system mapping file exists
 		if (systemMappingFile.exists()) {
 			logger.writeDebug(LOCATION, SIGNATURE, FILE_CONFIG_COMPARE_EXEPTIONS + " exists!");
@@ -123,16 +117,14 @@ public class FileStructure {
 		// Always create the ICO exception file with current ICO request files when a new run i started / overwrite if exists
 		if (GlobalParameters.PARAM_VAL_OPERATION.equals(GlobalParameters.Operation.extract.toString())) {
 			logger.writeDebug(LOCATION, SIGNATURE, GlobalParameters.PARAM_VAL_OPERATION + " scenario found, create a new " + FILE_CONFIG_SYSTEM_MAPPING + " to make sure all ICO's are represented for later compare run");
-			generateInitialIcoExeptionContent();
+			generateInitialIcoExeptionContent(icoList);
 		}
 	}
 
 	
-	private static void generateInitialIcoExeptionContent() {
+	private static void generateInitialIcoExeptionContent(ArrayList<IcoOverviewInstance> icoList) {
 		final String	XML_PREFIX = "inv";
 		final String	XML_NS = "urn:invixo.com.consistency";
-		List<Path> icoFiles = Util.generateListOfPaths(DIR_EXTRACT_INPUT, "FILE");
-
 		try {
 			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
 			XMLStreamWriter xmlWriter = xMLOutputFactory.createXMLStreamWriter(new FileOutputStream(FILE_CONFIG_COMPARE_EXEPTIONS), GlobalParameters.ENCODING);
@@ -145,9 +137,9 @@ public class FileStructure {
 			xmlWriter.writeNamespace(XML_PREFIX, XML_NS);
 			
 			// Loop ICO's found
-			for (Path path : icoFiles) {
+			for (IcoOverviewInstance ico : icoList) {
 				// Get name of current ICO
-				String icoName = Util.getFileName(path.toAbsolutePath().toString(), false);
+				String icoName = ico.getName();
 				
 				// Create element: Configuration | IntegratedConfiguration
 				xmlWriter.writeStartElement(XML_PREFIX, "IntegratedConfiguration", XML_NS);

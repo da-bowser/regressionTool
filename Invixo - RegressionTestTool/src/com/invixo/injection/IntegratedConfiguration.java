@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import org.apache.http.client.methods.HttpPost;
 
 import com.invixo.common.GeneralException;
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
@@ -38,7 +39,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 
 	
 	
-	
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
@@ -50,14 +50,14 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
-	IntegratedConfiguration(String icoFileName) throws GeneralException {
-		super(icoFileName);
+	IntegratedConfiguration(IcoOverviewInstance icoInstance) throws GeneralException {
+		super(icoInstance);
 		initialize();
 	}
 	
 	
-	public IntegratedConfiguration(String icoFileName, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
-		super(icoFileName, mapfilePath, sourceEnv, targetEnv);
+	public IntegratedConfiguration(IcoOverviewInstance icoInstance, String mapfilePath, String sourceEnv, String targetEnv) throws GeneralException {
+		super(icoInstance, mapfilePath, sourceEnv, targetEnv);
 		initialize();
 	}
 	
@@ -187,7 +187,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			// Write entry to mapping file
 			addMappingEntryToFile(Util.getFileName(payloadFile, false), ir.getMessageId(), this.getName());
 		} catch (IOException e) {
-			String msg = "Error injecting new request to SAP PO for ICO file " + super.fileName + " and payload file " + payloadFile + ".\n" + e.getMessage();
+			String msg = "Error injecting new request to SAP PO for ICO " + super.getName() + " and payload file " + payloadFile + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new InjectionPayloadException(msg);
 		} finally {
@@ -224,7 +224,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String SIGNATURE = "initialize()";
 
 		// Set directory for Payloads (FIRST)
-		this.sourcePayloadDirectory = FileStructure.DIR_EXTRACT_OUTPUT_PRE + super.name + "\\" + GlobalParameters.PARAM_VAL_SOURCE_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+		this.sourcePayloadDirectory = FileStructure.DIR_EXTRACT_OUTPUT_PRE + super.getName() + "\\" + GlobalParameters.PARAM_VAL_SOURCE_ENV + FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
 		logger.writeDebug(LOCATION, SIGNATURE, "Source directory containing FIRST messages: " + this.sourcePayloadDirectory);
 	}
 	

@@ -1,13 +1,12 @@
 package com.invixo.extraction;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import com.invixo.common.GeneralException;
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.Util;
-import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
+
 
 /**
  * This class uses SAP PO Message API.
@@ -20,31 +19,27 @@ public class Orchestrator {
 	
 
 	/**
-	 * This method extracts data from SAP PO based on request ICO files on file system.
+	 * This method extracts data from SAP PO based on list of active ICOs in ICO Overview XML file 
 	 */
-	public static ArrayList<IntegratedConfiguration> start() {
-		final String SIGNATURE = "start()";
-
-		// Get list of all request files to be processed
-		File[] files = Util.getListOfFilesInDirectory(FileStructure.DIR_EXTRACT_INPUT);
-		logger.writeDebug(LOCATION, SIGNATURE, "Number of ICO request files to be processed: " + files.length);
-		logger.writeDebug(LOCATION, SIGNATURE, "Extract Mode Initial: " + GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT);
-			
+	public static ArrayList<IntegratedConfiguration> start(ArrayList<IcoOverviewInstance> icoOverviewList) {
+		final String SIGNATURE = "start(ArrayList<IcoOverviewInstance>)";
+		logger.writeInfo(LOCATION, SIGNATURE, "Extract Mode Initial: " + GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT);
+				
 		// Process each ICO request file
-		for (File file : files) {
-			processSingleIco(file);
+		for (IcoOverviewInstance ico : icoOverviewList) {
+			processSingleIco(ico);
 		}
-
+		
 		logger.writeDebug(LOCATION, SIGNATURE, "Finished processing all ICO's");
 		return icoExtractList;
 	}
 	
 	
-	private static void processSingleIco(File file) {
-		final String SIGNATURE = "processSingleIco(File)";
+	private static void processSingleIco(IcoOverviewInstance icoInstance) {
+		final String SIGNATURE = "processSingleIco(IcoOverviewInstance)";
 		try {
 			// Prepare
-			IntegratedConfiguration ico = new IntegratedConfiguration(file.getAbsolutePath());
+			IntegratedConfiguration ico = new IntegratedConfiguration(icoInstance);
 			icoExtractList.add(ico);
 
 			// Process

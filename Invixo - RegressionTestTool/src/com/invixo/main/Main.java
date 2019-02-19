@@ -1,6 +1,9 @@
 package com.invixo.main;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.invixo.common.IcoOverviewDeserializer;
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
@@ -104,7 +109,7 @@ public class Main {
 				// Process
 				inject(); 
 			} else if (GlobalParameters.Operation.compare.toString().equals(GlobalParameters.PARAM_VAL_OPERATION)) {
-				// Process				
+				// Process
 				compare();
 			} else {
 				// Post parameter handling: get user/pass from credential file
@@ -311,11 +316,14 @@ public class Main {
 	public static void extract() {
 		final String SIGNATURE = "extract()";
 		
+		// Get list of all *active* ICOs (to be processed) 
+		ArrayList<IcoOverviewInstance> icoOverviewList = deserializeIcoOverview(FileStructure.ICO_OVERVIEW_FILE);
+		
 		// Clean up file structure and ensure its consistency
-		FileStructure.startCheck();
+		FileStructure.startCheck(icoOverviewList);
 		
 		// Start extracting
-		ArrayList<com.invixo.extraction.IntegratedConfiguration> icoList = com.invixo.extraction.Orchestrator.start();
+		ArrayList<com.invixo.extraction.IntegratedConfiguration> icoList = com.invixo.extraction.Orchestrator.start(icoOverviewList);
 		
 		// Write report
 		com.invixo.extraction.reporting.ReportWriter report = new com.invixo.extraction.reporting.ReportWriter(icoList);
@@ -330,11 +338,14 @@ public class Main {
 	public static void inject() {
 		final String SIGNATURE = "inject()";
 		
+		// Get list of all *active* ICOs (to be processed) 
+		ArrayList<IcoOverviewInstance> icoOverviewList = deserializeIcoOverview(FileStructure.ICO_OVERVIEW_FILE);
+		
 		// Clean up file structure and ensure its consistency
-		FileStructure.startCheck();
+		FileStructure.startCheck(icoOverviewList);
 		
 		// Start injecting
-		ArrayList<com.invixo.injection.IntegratedConfiguration> icoList = com.invixo.injection.Orchestrator.start();
+		ArrayList<com.invixo.injection.IntegratedConfiguration> icoList = com.invixo.injection.Orchestrator.start(icoOverviewList);
 		
 		// Write report
 		com.invixo.injection.reporting.ReportWriter report = new com.invixo.injection.reporting.ReportWriter();
@@ -350,8 +361,11 @@ public class Main {
 	public static void compare() {
 		final String SIGNATURE = "compare()";
 		
+		// Get list of all *active* ICOs (to be processed) 
+		ArrayList<IcoOverviewInstance> icoOverviewList = deserializeIcoOverview(FileStructure.ICO_OVERVIEW_FILE);
+		
 		// Start comparing
-		ArrayList<com.invixo.compare.IntegratedConfiguration> icoList = com.invixo.compare.Orchestrator.start();
+		ArrayList<com.invixo.compare.IntegratedConfiguration> icoList = com.invixo.compare.Orchestrator.start(icoOverviewList);
 		
 		// Write report
 		com.invixo.compare.reporting.ReportWriter report = new com.invixo.compare.reporting.ReportWriter(icoList);
@@ -386,5 +400,26 @@ public class Main {
 	        }
 	    }
 	    return false;
+	}
+	
+	
+	/**
+	 * Deserializes ICO Overview XML file into a list of Java objects.
+	 * @param icoOverviewPath			Path to ICO overview file
+	 * @return
+	 */
+	public static ArrayList<IcoOverviewInstance> deserializeIcoOverview(String icoOverviewPath) {
+		final String SIGNATURE = "deserializeIcoOverview(String)";
+		try {
+			logger.writeDebug(LOCATION, SIGNATURE, "Deserialize ICO overview file: " + icoOverviewPath);
+			InputStream icoOverviewStream = new FileInputStream(icoOverviewPath);
+			ArrayList<IcoOverviewInstance> icoOverview = IcoOverviewDeserializer.deserialize(icoOverviewStream);
+			logger.writeInfo(LOCATION, SIGNATURE, "Number of active ICOs found: " + icoOverview.size());
+			return icoOverview;
+		} catch (FileNotFoundException e) {
+			String ex = "ICO Overview file not found. Ensure it is generated and located here: " + icoOverviewPath;
+			logger.writeError(LOCATION, SIGNATURE, ex);
+			throw new RuntimeException(ex);
+		}
 	}
 }

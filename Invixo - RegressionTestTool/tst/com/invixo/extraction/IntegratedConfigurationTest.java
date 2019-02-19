@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.invixo.common.IcoOverviewDeserializer;
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.main.GlobalParameters;
 
 class IntegratedConfigurationTest {
@@ -40,18 +43,18 @@ class IntegratedConfigurationTest {
 	@DisplayName("Verify extraction works in initial mode")
 	void verifyOrchestratorExecutesWithoutErrors() {
 		try {
-			// Get path: ICO request file
-			String icoRequest = "../../../resources/extraction/input/integratedconfigurations/RegressionTestTool - RTT_Sender, Data_Out_Async.xml";
-			URL urlicoRequest = this.getClass().getResource(icoRequest);
-			String pathIcoRequest = Paths.get(urlicoRequest.toURI()).toString();
-			
+			// Get stream to ICO overview file
+			String icoOverviewPath = "../../../resources/testfiles/com/invixo/extraction/TST_IntegratedConfigurationsOverview.xml";
+			InputStream overviewStream = this.getClass().getResourceAsStream(icoOverviewPath);
+			ArrayList<IcoOverviewInstance> icoOverviewList =  IcoOverviewDeserializer.deserialize(overviewStream);
+						
 			// Get path: System Component mapping file
 			String systemMapping = "../../../resources/config/systemMapping.txt";
 			URL urlSystemMapping = this.getClass().getResource(systemMapping);
 			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
 			
 			// Create GetMessageList request
-			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest, pathSystemMapping, "PRD", "TST");
+			IntegratedConfiguration ico = new IntegratedConfiguration(icoOverviewList.get(0), pathSystemMapping, "PRD", "TST");
 			byte[] request = IntegratedConfiguration.createGetMessageListRequest(ico);
 			
 			// Check

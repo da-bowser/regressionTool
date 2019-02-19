@@ -6,11 +6,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.invixo.common.IcoOverviewDeserializer;
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.main.GlobalParameters;
 
 class MessageKeyTest {
@@ -55,10 +58,10 @@ class MessageKeyTest {
 	@DisplayName("Test creation of request for service GetMessageBytesJavaLangStringIntBoolean (FIRST)")
 	void createWsRequestFirst() {
 		try {
-			// Get path: ICO request file
-			String icoRequest = "../../../resources/extraction/input/integratedconfigurations/RegressionTestTool - RTT_Sender, Data_Out_Async.xml";
-			URL urlicoRequest = this.getClass().getResource(icoRequest);
-			String pathIcoRequest = Paths.get(urlicoRequest.toURI()).toString();
+			// Get stream to ICO overview file
+			String icoOverviewPath = "../../../resources/testfiles/com/invixo/extraction/TST_IntegratedConfigurationsOverview.xml";
+			InputStream overviewStream = this.getClass().getResourceAsStream(icoOverviewPath);
+			ArrayList<IcoOverviewInstance> icoOverviewList =  IcoOverviewDeserializer.deserialize(overviewStream);
 			
 			// Get path: System Component mapping file
 			String systemMapping = "../../../resources/config/systemMapping.txt";
@@ -66,7 +69,7 @@ class MessageKeyTest {
 			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
 			
 			// Create GetMessageList request
-			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest, pathSystemMapping, "PRD", "TST");
+			IntegratedConfiguration ico = new IntegratedConfiguration(icoOverviewList.get(0), pathSystemMapping, "PRD", "TST");
 			
 			// Create message key
 			String messageKey = "a3386b2a-1383-11e9-a723-000000554e16\\OUTBOUND\\5590550\\EO\\0";
@@ -88,10 +91,10 @@ class MessageKeyTest {
 	@DisplayName("Test creation of request for service GetMessageBytesJavaLangStringIntBoolean (LAST)")
 	void createWsRequestLast() {
 		try {
-			// Get path: ICO request file
-			String icoRequest = "../../../resources/extraction/input/integratedconfigurations/RegressionTestTool - RTT_Sender, Data_Out_Async.xml";
-			URL urlicoRequest = this.getClass().getResource(icoRequest);
-			String pathIcoRequest = Paths.get(urlicoRequest.toURI()).toString();
+			// Get stream to ICO overview file
+			String icoOverviewPath = "../../../resources/testfiles/com/invixo/extraction/TST_IntegratedConfigurationsOverview.xml";
+			InputStream overviewStream = this.getClass().getResourceAsStream(icoOverviewPath);
+			ArrayList<IcoOverviewInstance> icoOverviewList =  IcoOverviewDeserializer.deserialize(overviewStream);
 			
 			// Get path: System Component mapping file
 			String systemMapping = "../../../resources/config/systemMapping.txt";
@@ -99,7 +102,7 @@ class MessageKeyTest {
 			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
 			
 			// Create GetMessageList request
-			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest, pathSystemMapping, "PRD", "TST");
+			IntegratedConfiguration ico = new IntegratedConfiguration(icoOverviewList.get(0), pathSystemMapping, "PRD", "TST");
 			
 			// Create message key
 			String messageKey = "a3386b2a-1383-11e9-a723-000000554e16\\OUTBOUND\\5590550\\EO\\0";
@@ -121,10 +124,10 @@ class MessageKeyTest {
 	@DisplayName("Test processing a single message key")
 	void processSingleMessageKeyWithNoErrors() {
 		try {
-			// Get path: ICO request file
-			String icoRequest = "../../../resources/extraction/input/integratedconfigurations/RegressionTestTool - RTT_Sender, Data_Out_Async.xml";
-			URL urlicoRequest = this.getClass().getResource(icoRequest);
-			String pathIcoRequest = Paths.get(urlicoRequest.toURI()).toString();
+			// Get stream to ICO overview file
+			String icoOverviewPath = "../../../resources/testfiles/com/invixo/extraction/TST_IntegratedConfigurationsOverview.xml";
+			InputStream overviewStream = this.getClass().getResourceAsStream(icoOverviewPath);
+			ArrayList<IcoOverviewInstance> icoOverviewList =  IcoOverviewDeserializer.deserialize(overviewStream);
 			
 			// Get path: System Component mapping file
 			String systemMapping = "../../../resources/config/systemMapping.txt";
@@ -132,7 +135,7 @@ class MessageKeyTest {
 			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
 			
 			// Create GetMessageList request
-			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest, pathSystemMapping, "PRD", "TST");
+			IntegratedConfiguration ico = new IntegratedConfiguration(icoOverviewList.get(0), pathSystemMapping, "PRD", "TST");
 			
 			// Create message key
 			String messageKey = "6bf95597-293e-11e9-bf0f-000000554e16\\OUTBOUND\\5590550\\EO\\0\\";

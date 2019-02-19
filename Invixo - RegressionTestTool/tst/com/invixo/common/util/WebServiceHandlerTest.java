@@ -5,11 +5,13 @@ import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -17,6 +19,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.invixo.common.IcoOverviewDeserializer;
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.injection.InjectionRequest;
 import com.invixo.injection.IntegratedConfiguration;
 import com.invixo.injection.RequestGeneratorUtil;
@@ -128,18 +132,18 @@ class WebServiceHandlerTest {
 			// Get payload
 			byte[] payload = getFilecontent("multipartPayload.xml");
 			
-			// Build SAP XI Header - PREPARE # Get path: ICO request file
-			String icoRequest = resourceBasePath + "RegressionTestTool - RTT_Sender, Data_Out_Async.xml";
-			URL urlicoRequest = this.getClass().getResource(icoRequest);
-			String pathIcoRequest = Paths.get(urlicoRequest.toURI()).toString();
-			
 			// Build SAP XI Header - PREPARE # Get path: System Component mapping file
 			String systemMapping = resourceBasePath + "systemMapping.txt";
 			URL urlSystemMapping = this.getClass().getResource(systemMapping);
 			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
 			
+			// BUILD SAP XI Header: PREPARE # Get ICO list from ICO Overview file
+			String icoOverviewPath = resourceBasePath + "TST_IntegratedConfigurationsOverview.xml";
+			InputStream overviewStream = this.getClass().getResourceAsStream(icoOverviewPath);
+			ArrayList<IcoOverviewInstance> icoOverviewList =  IcoOverviewDeserializer.deserialize(overviewStream);
+			
 			// Build SAP XI Header - PREPARE # Create GetMessageList request
-			IntegratedConfiguration ico = new IntegratedConfiguration(pathIcoRequest, pathSystemMapping, "PRD", "TST");
+			IntegratedConfiguration ico = new IntegratedConfiguration(icoOverviewList.get(0), pathSystemMapping, "PRD", "TST");
 
 			// Build SAP XI Header
 			InjectionRequest ir = new InjectionRequest();
