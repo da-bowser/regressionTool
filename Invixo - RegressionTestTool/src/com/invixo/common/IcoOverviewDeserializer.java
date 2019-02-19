@@ -2,12 +2,14 @@ package com.invixo.common;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
+import javax.xml.stream.events.Attribute;
 import javax.xml.transform.stream.StreamSource;
 
 import com.invixo.common.util.Logger;
@@ -21,6 +23,8 @@ public class IcoOverviewDeserializer {
 	/**
 	 * Deserialize ICO overview XML file into Java object.
 	 * Only active ICOs are collected.
+	 * @param icoOverviewFile			ICO Overview inputstream
+	 * @return
 	 */
 	public static ArrayList<IcoOverviewInstance> deserialize(InputStream icoOverviewFile) {
 		final String SIGNATURE = "deserialize(InputStream)";
@@ -61,7 +65,7 @@ public class IcoOverviewDeserializer {
 					} else if ("QualityOfService".equals(currentStartElementName) && eventReader.peek().isCharacters()) {
 						currentExtract.setQualityOfService(eventReader.peek().asCharacters().getData());	
 						
-					// Max message count (only relevant for extraction)
+					// Max message count
 					} else if ("MaxMessages".equals(currentStartElementName) && eventReader.peek().isCharacters()) {
 						currentExtract.setMaxMessages(Integer.parseInt(eventReader.peek().asCharacters().getData()));	
 			    	
@@ -98,23 +102,34 @@ public class IcoOverviewDeserializer {
 					    fetchReceiverData = true;
 
 					// Receiver Party
-			    	} else if (fetchReceiverData && "Party".equals(currentStartElementName) && eventReader.peek().isCharacters()) {
+			    	} else if (fetchReceiverData && "Party".equals(currentStartElementName) && eventReader.peek().isCharacters()) {		    		
 				    	currentExtract.setReceiverParty(eventReader.peek().asCharacters().getData());
-					    	
+
 			    	// Receiver Component
 			    	} else if (fetchReceiverData && "Component".equals(currentStartElementName) && eventReader.peek().isCharacters()) {
 			    		currentExtract.setReceiverComponent(eventReader.peek().asCharacters().getData());
-			    		
+
 			    	// Receiver Interface
 			    	} else if (fetchReceiverData && "Interface".equals(currentStartElementName) && eventReader.peek().isCharacters()) {
 			    		currentExtract.setReceiverInterface(eventReader.peek().asCharacters().getData());
+			    		
+			    		// Get attribute values
+			    		Iterator<Attribute> iterator = event.asStartElement().getAttributes();
+			            while (iterator.hasNext())
+			            {
+			                Attribute attribute = iterator.next();
+			                String name = attribute.getName().toString();
+			                if ("MultiMapping".equals(name)) {
+			                	currentExtract.setUsingMultiMapping(Boolean.parseBoolean(attribute.getValue()));
+			                }
+			            }
 			    		
 			    	// Receiver Interface Namespace
 			    	} else if (fetchReceiverData && "Namespace".equals(currentStartElementName) && eventReader.peek().isCharacters()) {
 			    		currentExtract.setReceiverNamespace(eventReader.peek().asCharacters().getData());	
 			    	}
 			    	break;
-			    	
+			    				    	
 			    case XMLStreamConstants.END_ELEMENT:
 			    	String currentEndElementName = event.asEndElement().getName().getLocalPart().toString();
 			    	

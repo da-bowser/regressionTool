@@ -18,7 +18,7 @@
 			<inv:Error/>
 			<inv:Party/>
 			<inv:Component>RTT_ReceiverPRD</inv:Component>
-			<inv:Interface MultiMapping="false">Data_In_Async</inv:Interface>
+			<inv:Interface MultiMapping="true">Data_In_Async</inv:Interface>
 			<inv:Namespace>urn:invixo.com:sandbox:regressionTestTool</inv:Namespace>
 		</inv:Receiver>
 	</inv:IntegratedConfiguration>
