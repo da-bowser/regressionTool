@@ -205,15 +205,20 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 */
 	private void addMappingEntryToFile(String sourceMsgId, String targetMsgId, String icoName) throws IOException {
 		final String SIGNATURE = "addMappingEntryToFile(String, String, String)";
-		final String separator = GlobalParameters.FILE_DELIMITER;
 		
-		// Create mapping line
-		String mapEntry = System.currentTimeMillis() + separator + sourceMsgId + separator + targetMsgId + separator + icoName + "\n";
+		String mapEntry = createMappingEntryLine(sourceMsgId, targetMsgId, icoName);
 		
 		// Write line to map
 		mapWriter.write(mapEntry);
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Map file update with new entry: " + mapEntry);
+	}
+
+
+	public static String createMappingEntryLine(String sourceMsgId, String targetMsgId, String icoName) {
+		final String separator = GlobalParameters.FILE_DELIMITER;
+		String mapEntry = System.currentTimeMillis() + separator + sourceMsgId + separator + targetMsgId + separator + icoName + "\n";
+		return mapEntry;
 	}
 		
 	

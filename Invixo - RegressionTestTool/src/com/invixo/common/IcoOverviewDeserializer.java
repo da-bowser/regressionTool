@@ -141,7 +141,9 @@ public class IcoOverviewDeserializer {
 			    		fetchReceiverData = false;
 			    	
 			    	} else if ("IntegratedConfiguration".equals(currentEndElementName)) {
-			    		if (isActive) {
+			    		if (isActive && (currentExtract.isUsingMultiMapping() && currentExtract.getQualityOfService().equals("EO"))) {
+			    			logger.writeInfo(LOCATION, SIGNATURE, "Combination of multimapping and QoS EO is not supported!" + "\nICO skipped: " + currentExtract.getName());
+						} else if (isActive) {
 			    			// ICO is active/enabled for processing, so add it
 				    		icoExtracts.add(currentExtract);
 				    		isActive = false;

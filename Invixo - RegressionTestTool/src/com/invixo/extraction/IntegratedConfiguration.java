@@ -4,14 +4,18 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
@@ -222,8 +226,41 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	private void processNonInitInBatch(Map<String, String> messageIdMap) throws ExtractorException, HttpException {
 		final String SIGNATURE = "processNonInitInBatch(Map<String, String>)";
 		
+		for(Entry<String, String> entry : messageIdMap.entrySet()) {
+			MessageInfo msgInfo = getMessageInfoFromSucessors(entry.getValue());
+			
+			// Special handling for multimapping interfaces(multiplicity 1:n)
+			if (this.isUsingMultiMapping()) {
+				logger.writeDebug(LOCATION, SIGNATURE, "Special handling for MultiMapping scenario");
+				this.responseMessageKeys = handleScenarioMultiMapping(msgInfo.getObjectKeys(), entry.getValue());
+			}
+			
+			// Special processing for split interfaces (multiplicity 1:1)
+			if (msgInfo.getSplitMessageIds().size() > 0 && !this.isUsingMultiMapping()) {
+				logger.writeDebug(LOCATION, SIGNATURE, "Special handling for split scenario");
+				this.responseMessageKeys = handleScenarioSplit(msgInfo);
+			}
+					
+			// Process extracted message keys
+			processMessageKeysMultiple(this.responseMessageKeys, this.internalObjectId);	
+		}
+	}
+
+
+	/**
+	 * Call Web Service GetMessagesWithSuccessors for a messageId and extract MessageInfo.
+	 * @param messageId
+	 * @return
+	 * @throws HttpException
+	 * @throws ExtractorException
+	 */
+	private MessageInfo getMessageInfoFromSucessors(String messageId) throws HttpException, ExtractorException {
+		final String SIGNATURE = "getMessageInfoFromSucessors(String)";
+		ArrayList<String> messageIdList = new ArrayList<String>();
+		messageIdList.add(messageId);
+		
 		// Create request for GetMessagesWithSuccessors
-		byte[] requestBytes = XmlUtil.createGetMessagesWithSuccessorsRequest(messageIdMap.values());
+		byte[] requestBytes = XmlUtil.createGetMessagesWithSuccessorsRequest(messageIdList);
 		logger.writeDebug(LOCATION, SIGNATURE, "GetMessagesWithSuccessors request created");
 		
 		// Write request to file system if debug for this is enabled (property)
@@ -240,6 +277,70 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		// Extract message info from Web Service response
 		MessageInfo msgInfo = extractMessageInfo(responseBytes, this.getReceiverInterface());
 		
+		return msgInfo;
+	}
+
+
+	private HashSet<String> handleScenarioMultiMapping(HashSet<String> objectKeys, String injectMessageId) throws HttpException, ExtractorException {
+		final String SIGNATURE = "handleScenarioMultiMapping(HashSet<String>, Collection<String>";
+
+		try {
+			// Read file
+			Path mapFilePath = new File(FileStructure.FILE_MSG_ID_MAPPING).toPath();
+			List<String> lines = Files.readAllLines(mapFilePath);
+			
+			// Filter/remove all lines not containing string
+			lines.removeIf(line -> !line.contains(injectMessageId));
+			
+			String[] lineTokens = lines.get(0).split(GlobalParameters.FILE_DELIMITER);
+				
+			String sourceFirstMessageId = lineTokens[1];
+			
+			MessageInfo extractKeys = getMessageInfoFromSucessors(sourceFirstMessageId);
+			
+			// Build new map entries
+			for (String targetMessagKey : objectKeys) {
+				String targetSequence = targetMessagKey.substring(targetMessagKey.indexOf("EOIO"), targetMessagKey.length());
+				
+				for (String sourceMessageKey : extractKeys.getObjectKeys() ) {
+					String sourceSequence = sourceMessageKey.substring(sourceMessageKey.indexOf("EOIO"), sourceMessageKey.length());
+					
+					if (targetSequence.equals(sourceSequence)) {
+						String sourceMsgId = Util.extractMessageIdFromKey(sourceMessageKey);
+						String targetMsgId = Util.extractMessageIdFromKey(targetMessagKey);
+						String mapEntryLine = com.invixo.injection.IntegratedConfiguration.createMappingEntryLine(sourceMsgId, targetMsgId, this.getName());
+						logger.writeDebug(LOCATION, SIGNATURE, mapEntryLine);
+						Files.write(Paths.get(FileStructure.FILE_MSG_ID_MAPPING), mapEntryLine.getBytes(), StandardOpenOption.APPEND);
+						break;
+					}
+				}
+			}
+			
+			// Read all lines from map file except inject id
+			lines = Files.readAllLines(mapFilePath);
+			lines.removeIf(line -> line.contains(injectMessageId));
+			
+			// Clear map file
+			Files.newBufferedWriter(Paths.get(FileStructure.FILE_MSG_ID_MAPPING), StandardOpenOption.TRUNCATE_EXISTING);
+			
+			// Recreate map file
+			for (String line : lines) {
+				Files.write(Paths.get(FileStructure.FILE_MSG_ID_MAPPING), (line + "\n").getBytes(), StandardOpenOption.APPEND);
+			}
+			
+			// Return original object keys to be extracted
+			return objectKeys;
+		} catch (IOException e) {
+			String msg = "Error recreating Message Id Mapping file." + "\n" + e.getMessage();
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new ExtractorException(msg);
+		}
+	}
+
+
+	private HashSet<String> handleScenarioSplit(MessageInfo msgInfo) throws ExtractorException {
+		final String SIGNATURE = "handleScenarioSplit(MessageInfo)";
+		
 		// Correct Message Mapping Id's in file. This is a special situation. 
 		// EXPLANATION: If an extract is made (after an injection) for an ICO performing message split, then 
 		// the Message Id Mapping file must be corrected for existing entries made during injection.
@@ -253,11 +354,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		// Set list of Message Keys to be extracted. This list is consist of all MessageKeys extracted from WS response matching 
 		// the ICO receiver interface at hand. Should any of the MessageKeys be a parent Message, then the key is replaced with 
 		// the Message ID from the split message.
-		this.responseMessageKeys = buildListOfMessageIdsToBeExtracted(msgInfo.getObjectKeys(), msgInfo.getSplitMessageIds());
-		logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys to be extracted: " + this.responseMessageKeys.size());
+		HashSet<String> responseMessageKeys = buildListOfMessageIdsToBeExtracted(msgInfo.getObjectKeys(), msgInfo.getSplitMessageIds());
+		logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys to be extracted: " + responseMessageKeys.size());
 		
-		// Process extracted message keys
-		processMessageKeysMultiple(this.responseMessageKeys, this.internalObjectId);		
+		return responseMessageKeys;
 	}
 
 

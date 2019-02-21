@@ -25,11 +25,11 @@ public class XmlUtil {
 	
 	/**
 	 * Create request message for GetMessagesWithSuccessors
-	 * @param messageIdMap			List of Message IDs to get message details from. Map(key, value) = Map(original extract message id, inject message id)
+	 * @param messageIds			List of Message IDs to get message details from. Map(key, value) = Map(original extract message id, inject message id)
 	 * @return
 	 */
-	public static byte[] createGetMessagesWithSuccessorsRequest(Collection<String> messageIdSet) {
-		final String SIGNATURE = "createGetMessagesWithSuccessorsRequest(IntegratedConfiguration, Collection<String>)";
+	public static byte[] createGetMessagesWithSuccessorsRequest(Collection<String> messageIds) {
+		final String SIGNATURE = "createGetMessagesWithSuccessorsRequest(Collection<String>)";
 		try {
 			final String XML_NS_URN_PREFIX	= "urn";
 			final String XML_NS_URN_NS		= "urn:AdapterMessageMonitoringVi";
@@ -59,7 +59,7 @@ public class XmlUtil {
 			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "messageIds", XML_NS_URN_NS);
 
 			// Add (inject) message id's to XML
-	        for (String messageId : messageIdSet) {
+	        for (String messageId : messageIds) {
 				// Create element: Envelope | Body | getMessagesWithSuccessors | messageIds | String
 				xmlWriter.writeStartElement(XML_NS_LANG_PREFIX, "String", XML_NS_LANG_NS);				
 				xmlWriter.writeCharacters(messageId);
