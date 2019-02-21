@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -36,7 +37,7 @@ public class ReportWriter {
 	private int	countIcoOk = 0;						// Total number of ICOs processed successfully
 	private boolean	fetchPayloadFirst = Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT);
 	private boolean	fetchPayloadLast = true;
-
+	
 	// MessageKey general
 	private int	countMsgKeyTotal				= 0;	// Total message keys processed
 	private int	countMsgKeyTechErr				= 0;	// Total, with technical error
@@ -45,7 +46,8 @@ public class ReportWriter {
 	private int	countMsgVersionFirstNopayload	= 0;	// Total, missing FIRST
 	private int	countMsgVersionLastNopayload	= 0;	// Total, missing LAST
 	private int	countMsgPayloadsCreated			= 0;	// Total FIRST and LAST created payloads
-
+	private int countMsgPayloadsCreatedFirst 	= 0;	// Total FIRST payloads created
+	private int countMsgPayloadsCreatedLast 	= 0;	// Total LAST payloads created	
 
 	public ReportWriter(ArrayList<IntegratedConfiguration> icoList) {
 		this.icoList = icoList;
@@ -76,19 +78,17 @@ public class ReportWriter {
 	private void evaluateMessageKeys(IntegratedConfiguration ico) {
 		// Set total number of MessageKeys processed
 		this.countMsgKeyTotal += ico.getMessageKeys().size();
-
+		HashSet<String> messageKeysFirst = new HashSet<String>();
+		HashSet<String> messageKeysLast = new HashSet<String>();
+		
 		// Determine number of successfully and erroneous MessageKeys
 		for (MessageKey key : ico.getMessageKeys()) {
 			Payload firstPayload = key.getPayloadsFirst();
 			Payload lastPayload = key.getPayloadsLast();
 			
-			// Adjust global counter for number of payloads created on file system in total
-			if (MessageKey.PAYLOAD_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
-				countMsgPayloadsCreated++;
-			}			
-			if (MessageKey.PAYLOAD_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-				countMsgPayloadsCreated++;
-			}
+			// Add to messageKeys
+			messageKeysFirst.add(firstPayload.getSapMessageKey());
+			messageKeysLast.add(lastPayload.getSapMessageKey());
 			
 			// Set other counters
 			if (key.getEx() == null) {
@@ -148,6 +148,11 @@ public class ReportWriter {
 				this.countMsgKeyTechErr++;
 			}
 		}
+				
+		// Set global counters for total payloads created
+		countMsgPayloadsCreatedFirst += messageKeysFirst.size();
+		countMsgPayloadsCreatedLast += messageKeysLast.size();
+		countMsgPayloadsCreated += messageKeysFirst.size() + messageKeysLast.size();
 	}
 
 
@@ -415,19 +420,17 @@ public class ReportWriter {
 		int keysNoFirstPayload = 0;
 		int keysNoLastPayload = 0;
 		int keysPayloadsCreated = 0;
+		HashSet<String> messageKeysFirst = new HashSet<String>();
+		HashSet<String> messageKeysLast = new HashSet<String>();
 		
 		for (MessageKey key : ico.getMessageKeys()) {
 			Payload firstPayload = key.getPayloadsFirst();
 			Payload lastPayload = key.getPayloadsLast();
 			
-			// Adjust counter for number of payloads created on file system in total
-			if (MessageKey.PAYLOAD_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
-				keysPayloadsCreated++;
-			}			
-			if (MessageKey.PAYLOAD_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-				keysPayloadsCreated++;
-			}
-			
+			// Add to messageKeys
+			messageKeysFirst.add(firstPayload.getSapMessageKey());
+			messageKeysLast.add(lastPayload.getSapMessageKey());
+						
 			// Set other counters
 			if (key.getEx() == null) {
 				
@@ -495,7 +498,10 @@ public class ReportWriter {
 			} else {
 				keysError++;
 			}
-		}		
+		}	
+		
+		// Set local counter
+		keysPayloadsCreated = messageKeysFirst.size() + messageKeysLast.size();
 		
 		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview
 		xmlWriter.writeStartElement(XML_PREFIX, "Overview", XML_NS);
@@ -538,7 +544,17 @@ public class ReportWriter {
 		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | PayloadsFilesCreatedTotal
 		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotal", XML_NS);
 		xmlWriter.writeCharacters("" + keysPayloadsCreated);
-		xmlWriter.writeEndElement();	
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | PayloadsFilesCreatedTotalFirst
+		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotalFirst", XML_NS);
+		xmlWriter.writeCharacters("" + messageKeysFirst.size());
+		xmlWriter.writeEndElement();
+				
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | PayloadsFilesCreatedTotalLast
+		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotalLast", XML_NS);
+		xmlWriter.writeCharacters("" + messageKeysLast.size());
+		xmlWriter.writeEndElement();
 				
 		// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview
 		xmlWriter.writeEndElement();
@@ -582,7 +598,17 @@ public class ReportWriter {
 		// Create element: ExtractReport | MessageKeysOverview | PayloadsFilesCreatedTotal
 		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotal", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgPayloadsCreated);
-		xmlWriter.writeEndElement();	
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | MessageKeysOverview | PayloadsFilesCreatedTotalFirst
+		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotalFirst", XML_NS);
+		xmlWriter.writeCharacters("" + this.countMsgPayloadsCreatedFirst);
+		xmlWriter.writeEndElement();
+				
+		// Create element: ExtractReport | MessageKeysOverview | PayloadsFilesCreatedTotalLast
+		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotalLast", XML_NS);
+		xmlWriter.writeCharacters("" + this.countMsgPayloadsCreatedLast);
+		xmlWriter.writeEndElement();
 				
 		// Close element: ExtractReport | MessageKeysOverview
 		xmlWriter.writeEndElement();

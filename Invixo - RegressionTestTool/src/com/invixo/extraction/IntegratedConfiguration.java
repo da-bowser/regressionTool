@@ -50,7 +50,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *------------- Instance variables
 	 *====================================================================================*/
 	private HashSet<String> responseMessageKeys = new HashSet<String>();			// MessageKey IDs returned by Web Service GetMessageList
-	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();	// List of FIRST MessageKeys created/processed
+	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();		// List of FIRST MessageKeys created/processed
 	private ArrayList<String> multiMapMessageKeys = new ArrayList<String>();		// List of MessageKeys processed for MultiMapping interfaces
 	
 	

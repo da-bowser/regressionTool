@@ -66,6 +66,10 @@ public class MessageKey {
 		this.setSapMessageKey(messageKey);
 		this.setSapMessageId(messageKey);
 		
+		if (this.ico.isUsingMultiMapping()) {
+			this.multiMapMessageKeys = new ArrayList<String>();
+		}
+		
 		payloadsFirst.setPath(	FileStructure.DIR_EXTRACT_OUTPUT_PRE 
 								+ this.ico.getName() 
 								+ "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV 
@@ -174,8 +178,8 @@ public class MessageKey {
 				this.payloadsFirst.setFileName(this.payloadsFirst.getSapMessageId());
 				targetFilePath = this.payloadsFirst.getPath() + this.payloadsFirst.getFileName();
 			} else {
-				this.payloadsLast.setFileName(this.payloadsFirst.getSapMessageId());
 				this.payloadsLast.setSapMessageKey(messageKey);
+				this.payloadsLast.setFileName(this.payloadsLast.getSapMessageId());
 				targetFilePath = this.payloadsLast.getPath() + this.payloadsLast.getFileName();
 			}
 			
