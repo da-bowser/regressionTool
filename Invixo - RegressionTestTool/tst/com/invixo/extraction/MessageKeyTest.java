@@ -42,24 +42,6 @@ class MessageKeyTest {
 	
 	
 	@Test
-	@DisplayName("Test extraction of Message ID from MessageKey")
-	void checkExtractionOfMessageIdFromMessageKey() {
-		try {
-			// Prepare
-			String messageKey = "a3386b2a-1383-11e9-a723-000000554e16\\OUTBOUND\\5590550\\EO\\0";
-			
-			// Extract Message ID from MessageKey
-			String msgId = MessageKey.extractMessageIdFromKey(messageKey);
-			
-			// Check
-			assertEquals("a3386b2a-1383-11e9-a723-000000554e16", msgId);
-		} catch (Exception e) {
-			fail("It aint cooking chef! " + e);
-		}
-	}
-
-	
-	@Test
 	@DisplayName("Test creation of request for service GetMessageBytesJavaLangStringIntBoolean (FIRST)")
 	void createWsRequestFirst() {
 		try {
@@ -147,7 +129,7 @@ class MessageKeyTest {
 			MessageKey msgKey = new MessageKey(ico, messageKey);
 			
 			// Process message key
-			msgKey.processMessageKey(msgKey.getSapMessageKey(), true);
+			msgKey.extractAllPayloads(msgKey.getSapMessageKey());
 		} catch (Exception e) {
 			fail("It aint cooking chef! " + e);
 		}

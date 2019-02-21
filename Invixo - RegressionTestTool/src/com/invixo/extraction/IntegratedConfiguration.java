@@ -72,19 +72,14 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/*====================================================================================
 	 *------------- Getters and Setters
 	 *====================================================================================*/
-	public ArrayList<MessageKey> getMessageKeysFirst() {
-		return this.messageKeysFirst;
-	}
-	
-	public ArrayList<MessageKey> getMessageKeysLast() {
-		return this.messageKeysLast;
-	}
-
-	
 	public ArrayList<String> getMultiMapMessageKeys() {
 		return multiMapMessageKeys;
 	}
 
+	public ArrayList<MessageKey> getMessageKeys() {
+		return messageKeys;
+	}
+	
 	
 	
 	/*====================================================================================
@@ -353,6 +348,30 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			counter++;
 		}
 	}
+	
+	
+	/**
+	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
+	 * This involves calling service GetMessageBytesJavaLangStringIntBoolean to fetch actual payload and storing 
+	 * this on file system.
+	 * This method can/will generate FIRST/LAST payloads.
+	 * @param key
+	 */
+	void processMessageKeySingle(String key) {
+		try {
+			// Create a new MessageKey object
+			MessageKey msgKey = new MessageKey(this, key);
+			
+			// Attach a reference to newly created MessageKey object to this ICO
+			this.messageKeys.add(msgKey);
+			
+			// Process messageKey
+			msgKey.extractAllPayloads(key);
+		} catch (ExtractorException e) {
+			// Do nothing, exception already logged
+			// Exceptions at this point are used to terminate further processing of current messageKey
+		}
+	}
 
 
 	/**
@@ -474,102 +493,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			throw new ExtractorException(msg);
 		}
 	}
-	
-
-	/**
-	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
-	 * This involves calling service GetMessageBytesJavaLangStringIntBoolean to fetch actual payload and storing 
-	 * this on file system.
-	 * This method can/will generate FIRST payload.
-	 * @param key
-	 * @throws ExtractorException 
-	 */
-	private void processMessageKeySingleFirst(String key) throws ExtractorException {
-		final String SIGNATURE = "processMessageKeySingleFirst(String)";
-		MessageKey msgKey = null;
-		try {
-			// Create a new MessageKey object
-			msgKey = new MessageKey(this, key);
-			
-			// Attach a reference to newly created MessageKey object to this ICO
-			this.messageKeysFirst.add(msgKey);
-			
-			// Process according to multiplicity
-			if (this.isUsingMultiMapping()) {
-				// Fetch payload: FIRST for multimapping interface (1:n multiplicity)
-				String parentMessageKey = msgKey.processMessageKeyMultiMapping(msgKey.getSapMessageId());
-				
-				// Save key to make sure it is only used once, as one FIRST messageKey can create multiple LAST
-				getMultiMapMessageKeys().add(parentMessageKey);
-			} else {
-				// Fetch payload: FIRST for non-multimapping interface (1:1 multiplicity)	
-				msgKey.processMessageKey(key);
-			}
-		} catch (ExtractorException|HttpException e) {
-			if (msgKey != null) {
-				msgKey.setEx(e);
-			}
-			String msg = "Error processing FIRST key: " + key + "\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new ExtractorException(msg);
-		}
-	}
-
-	
-	/**
-	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
-	 * This involves calling service GetMessageBytesJavaLangStringIntBoolean to fetch actual payload and storing 
-	 * this on file system.
-	 * This method can/will generate FIRST/LAST payloads.
-	 * @param key
-	 */
-	private void processMessageKeySingle(String key) {
-		try {
-			// Create a new MessageKey object
-			MessageKey msgKey = new MessageKey(this, key);
-			
-			// Attach a reference to newly created MessageKey object to this ICO
-			this.messageKeys.add(msgKey);
-			
-			// Process messageKey
-			msgKey.processMessageKey(key);
-		} catch (ExtractorException e) {
-			// Do nothing, exception already logged
-			// Exceptions at this point are used to terminate further processing of current messageKey
-		}
-	}
-	
-	
-	/**
-	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
-	 * This involves calling service GetMessageBytesJavaLangStringIntBoolean to fetch actual payload and storing 
-	 * this on file system.
-	 * This method can/will generate LAST payload.
-	 * @param key
-	 * @throws ExtractorException 
-	 */
-	private void processMessageKeySingleLast(String key) throws ExtractorException {
-		final String SIGNATURE = "processMessageKeySingleLast(String)";
-		MessageKey msgKey = null;
-		try {
-			// Create a new MessageKey object
-			msgKey = new MessageKey(this, key, false);
-			
-			// Attach a reference to newly created MessageKey object to this ICO
-			this.messageKeysLast.add(msgKey);
-			
-			// Fetch payload: LAST
-			msgKey.processMessageKey(key);
-		} catch (ExtractorException|HttpException e) {
-			if (msgKey != null) {
-				msgKey.setEx(e);
-			}
-			String msg = "Error processing LAST key: " + key + "\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new ExtractorException(msg);
-		}
-	}
-	
+		
 	
 	
 	/*====================================================================================

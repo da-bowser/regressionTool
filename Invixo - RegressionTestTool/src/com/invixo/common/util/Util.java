@@ -203,4 +203,16 @@ public class Util {
 		}
 	}
 
+	
+	/**
+	 * Extract SAP Message Id from Message Key.
+	 * Example: a3386b2a-1383-11e9-a723-000000554e16\OUTBOUND\5590550\EO\0
+	 * @param key
+	 * @return
+	 */
+	public static String extractMessageIdFromKey(String key) {
+		String messageId = key.substring(0, key.indexOf("\\"));
+		return messageId;
+	}
+	
 }
