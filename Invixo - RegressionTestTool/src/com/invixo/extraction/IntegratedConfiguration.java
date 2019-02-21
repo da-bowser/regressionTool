@@ -49,8 +49,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
-	private HashSet<String> responseMessageKeys = new HashSet<String>();		// MessageKey IDs returned by Web Service GetMessageList
-	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();	// List of MessageKeys created/processed
+	private HashSet<String> responseMessageKeys = new HashSet<String>();			// MessageKey IDs returned by Web Service GetMessageList
+	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();	// List of FIRST MessageKeys created/processed
+	private ArrayList<String> multiMapMessageKeys = new ArrayList<String>();		// List of MessageKeys processed for MultiMapping interfaces
 	
 	
 	
@@ -71,11 +72,20 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/*====================================================================================
 	 *------------- Getters and Setters
 	 *====================================================================================*/
-	public ArrayList<MessageKey> getMessageKeys() {
-		return this.messageKeys;
+	public ArrayList<MessageKey> getMessageKeysFirst() {
+		return this.messageKeysFirst;
+	}
+	
+	public ArrayList<MessageKey> getMessageKeysLast() {
+		return this.messageKeysLast;
 	}
 
-		
+	
+	public ArrayList<String> getMultiMapMessageKeys() {
+		return multiMapMessageKeys;
+	}
+
+	
 	
 	/*====================================================================================
 	 *------------- Instance methods
@@ -218,7 +228,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		final String SIGNATURE = "processNonInitInBatch(Map<String, String>)";
 		
 		// Create request for GetMessagesWithSuccessors
-		byte[] requestBytes = createGetMessagesWithSuccessors(this, messageIdMap);
+		byte[] requestBytes = XmlUtil.createGetMessagesWithSuccessorsRequest(messageIdMap.values());
 		logger.writeDebug(LOCATION, SIGNATURE, "GetMessagesWithSuccessors request created");
 		
 		// Write request to file system if debug for this is enabled (property)
@@ -470,32 +480,96 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
 	 * This involves calling service GetMessageBytesJavaLangStringIntBoolean to fetch actual payload and storing 
 	 * this on file system.
-	 * This method can/will generate both FIRST and LAST payload if requested.
+	 * This method can/will generate FIRST payload.
 	 * @param key
+	 * @throws ExtractorException 
 	 */
-	private void processMessageKeySingle(String key) {
+	private void processMessageKeySingleFirst(String key) throws ExtractorException {
+		final String SIGNATURE = "processMessageKeySingleFirst(String)";
 		MessageKey msgKey = null;
 		try {
 			// Create a new MessageKey object
 			msgKey = new MessageKey(this, key);
 			
 			// Attach a reference to newly created MessageKey object to this ICO
-			this.messageKeys.add(msgKey);
+			this.messageKeysFirst.add(msgKey);
 			
-			// Fetch payload: FIRST
-			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
-				msgKey.processMessageKey(key, true);
+			// Process according to multiplicity
+			if (this.isUsingMultiMapping()) {
+				// Fetch payload: FIRST for multimapping interface (1:n multiplicity)
+				String parentMessageKey = msgKey.processMessageKeyMultiMapping(msgKey.getSapMessageId());
+				
+				// Save key to make sure it is only used once, as one FIRST messageKey can create multiple LAST
+				getMultiMapMessageKeys().add(parentMessageKey);
+			} else {
+				// Fetch payload: FIRST for non-multimapping interface (1:1 multiplicity)	
+				msgKey.processMessageKey(key);
 			}
-			
-			// Fetch payload: LAST
-			msgKey.processMessageKey(key, false);			
 		} catch (ExtractorException|HttpException e) {
 			if (msgKey != null) {
 				msgKey.setEx(e);
 			}
+			String msg = "Error processing FIRST key: " + key + "\n" + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new ExtractorException(msg);
 		}
 	}
 
+	
+	/**
+	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
+	 * This involves calling service GetMessageBytesJavaLangStringIntBoolean to fetch actual payload and storing 
+	 * this on file system.
+	 * This method can/will generate FIRST/LAST payloads.
+	 * @param key
+	 */
+	private void processMessageKeySingle(String key) {
+		try {
+			// Create a new MessageKey object
+			MessageKey msgKey = new MessageKey(this, key);
+			
+			// Attach a reference to newly created MessageKey object to this ICO
+			this.messageKeys.add(msgKey);
+			
+			// Process messageKey
+			msgKey.processMessageKey(key);
+		} catch (ExtractorException e) {
+			// Do nothing, exception already logged
+			// Exceptions at this point are used to terminate further processing of current messageKey
+		}
+	}
+	
+	
+	/**
+	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
+	 * This involves calling service GetMessageBytesJavaLangStringIntBoolean to fetch actual payload and storing 
+	 * this on file system.
+	 * This method can/will generate LAST payload.
+	 * @param key
+	 * @throws ExtractorException 
+	 */
+	private void processMessageKeySingleLast(String key) throws ExtractorException {
+		final String SIGNATURE = "processMessageKeySingleLast(String)";
+		MessageKey msgKey = null;
+		try {
+			// Create a new MessageKey object
+			msgKey = new MessageKey(this, key, false);
+			
+			// Attach a reference to newly created MessageKey object to this ICO
+			this.messageKeysLast.add(msgKey);
+			
+			// Fetch payload: LAST
+			msgKey.processMessageKey(key);
+		} catch (ExtractorException|HttpException e) {
+			if (msgKey != null) {
+				msgKey.setEx(e);
+			}
+			String msg = "Error processing LAST key: " + key + "\n" + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new ExtractorException(msg);
+		}
+	}
+	
 	
 	
 	/*====================================================================================
@@ -667,79 +741,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			return stringWriter.toString().getBytes();
 		} catch (XMLStreamException e) {
 			String msg = "Error creating SOAP request for GetMessageList. " + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
-		}
-	}
-
-
-	/**
-	 * Create request message for GetMessagesWithSuccessors
-	 * @param ico					Integration Configuration
-	 * @param messageIdMap			List of Message IDs to get message details from. Map(key, value) = Map(original extract message id, inject message id)
-	 * @return
-	 */
-	private static byte[] createGetMessagesWithSuccessors(IntegratedConfiguration ico, Map<String, String> messageIdMap) {
-		final String SIGNATURE = "createGetMessagesWithSuccessors(IntegratedConfiguration, Map<String, String>)";
-		try {
-			final String XML_NS_URN_PREFIX	= "urn";
-			final String XML_NS_URN_NS		= "urn:AdapterMessageMonitoringVi";
-			final String XML_NS_LANG_PREFIX	= "lang";
-			final String XML_NS_LANG_NS		= "java/lang";
-			
-			StringWriter stringWriter = new StringWriter();
-			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
-			XMLStreamWriter xmlWriter = xMLOutputFactory.createXMLStreamWriter(stringWriter);
-
-			// Add xml version and encoding to output
-			xmlWriter.writeStartDocument(GlobalParameters.ENCODING, "1.0");
-
-			// Create element: Envelope
-			xmlWriter.writeStartElement(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_ROOT, XmlUtil.SOAP_ENV_NS);
-			xmlWriter.writeNamespace(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_NS);
-			xmlWriter.writeNamespace(XML_NS_URN_PREFIX, XML_NS_URN_NS);
-			xmlWriter.writeNamespace(XML_NS_LANG_PREFIX, XML_NS_LANG_NS);
-
-			// Create element: Envelope | Body
-			xmlWriter.writeStartElement(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_BODY, XmlUtil.SOAP_ENV_NS);
-
-			// Create element: Envelope | Body | getMessagesWithSuccessors
-			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "getMessagesWithSuccessors", XML_NS_URN_NS);
-
-			// Create element: Envelope | Body | getMessagesWithSuccessors | messageIds
-			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "messageIds", XML_NS_URN_NS);
-
-			// Add (inject) message id's to XML
-	        for (Map.Entry<String, String> entry : messageIdMap.entrySet()) {
-				String injectMessageId = entry.getValue();
-				
-				// Create element: Envelope | Body | getMessagesWithSuccessors | messageIds | String
-				xmlWriter.writeStartElement(XML_NS_LANG_PREFIX, "String", XML_NS_LANG_NS);				
-				xmlWriter.writeCharacters(injectMessageId);
-		        xmlWriter.writeEndElement();
-	        }			
-	        
-	        // Close element: Envelope | Body | getMessagesWithSuccessors | messageIds
-	        xmlWriter.writeEndElement();
-	        
-			// Create element: Envelope | Body | getMessagesWithSuccessors | archive
-			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "archive", XML_NS_URN_NS);
-			xmlWriter.writeCharacters("false");
-			xmlWriter.writeEndElement();
-			
-			// Close tags
-	        xmlWriter.writeEndElement(); // Envelope | Body | getMessagesWithSuccessors
-			xmlWriter.writeEndElement(); // Envelope | Body
-			xmlWriter.writeEndElement(); // Envelope
-
-			// Finalize writing
-			xmlWriter.flush();
-			xmlWriter.close();
-			stringWriter.flush();
-			
-			return stringWriter.toString().getBytes();
-		} catch (XMLStreamException e) {
-			String msg = "Error creating SOAP request for GetMessagesWithSuccessors. " + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
 		}

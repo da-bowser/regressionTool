@@ -272,38 +272,59 @@ public class ReportWriter {
 			}
 			xmlWriter.writeEndElement();
 			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayloadMissing
-			xmlWriter.writeStartElement(XML_PREFIX, "FirstPayloadMissing", XML_NS);
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload
+			xmlWriter.writeStartElement(XML_PREFIX, "FirstPayload", XML_NS);
+			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload | PayloadStatus
+			xmlWriter.writeStartElement(XML_PREFIX, "PayloadStatus", XML_NS);
 			xmlWriter.writeCharacters(key.getXiMessageInResponseFirst());
 			xmlWriter.writeEndElement();	
-			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayloadMissing
-			xmlWriter.writeStartElement(XML_PREFIX, "LastPayloadMissing", XML_NS);
-			xmlWriter.writeCharacters(key.getXiMessageInResponseLast());
-			xmlWriter.writeEndElement();		
 
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | Key
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload | Key
 			xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);
 			xmlWriter.writeCharacters(key.getSapMessageKey());
 			xmlWriter.writeEndElement();
 
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | PathToPayloadFirst
-			xmlWriter.writeStartElement(XML_PREFIX, "PathToPayloadFirst", XML_NS);
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload | Path
+			xmlWriter.writeStartElement(XML_PREFIX, "Path", XML_NS);
 			xmlWriter.writeCharacters(key.getTargetPathFirst());
 			xmlWriter.writeEndElement();
 
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | PathToPayloadLast
-			xmlWriter.writeStartElement(XML_PREFIX, "PathToPayloadLast", XML_NS);
-			xmlWriter.writeCharacters(key.getTargetPathLast());
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload | FileName
+			xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);
+			xmlWriter.writeCharacters(key.getFileName());
+			xmlWriter.writeEndElement();
+			
+			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload
+			xmlWriter.writeEndElement();	
+			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload
+			xmlWriter.writeStartElement(XML_PREFIX, "LastPayload", XML_NS);
+			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload | PayloadStatus
+			xmlWriter.writeStartElement(XML_PREFIX, "PayloadStatus", XML_NS);
+			xmlWriter.writeCharacters(key.getXiMessageInResponseLast());
+			xmlWriter.writeEndElement();	
+
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload | Key
+			xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);
+			xmlWriter.writeCharacters(key.getSapMessageKey());
 			xmlWriter.writeEndElement();
 
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FileName
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload | Path
+			xmlWriter.writeStartElement(XML_PREFIX, "Path", XML_NS);
+			xmlWriter.writeCharacters(key.getTargetPathFirst());
+			xmlWriter.writeEndElement();
+
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload | FileName
 			xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);
-			if (	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseFirst())
-				|| 	MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast()) ) {
+			if (MessageKey.PAYLOAD_FOUND.equals(key.getXiMessageInResponseLast())) {
 				xmlWriter.writeCharacters(key.getFileName());
 			}
 			xmlWriter.writeEndElement();
+			
+			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload
+			xmlWriter.writeEndElement();	
 
 			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | List
 			xmlWriter.writeEndElement();
