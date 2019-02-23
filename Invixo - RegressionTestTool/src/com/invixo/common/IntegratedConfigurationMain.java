@@ -56,6 +56,9 @@ public class IntegratedConfigurationMain {
 	private long startTime = 0;							// Processing time, start
 	protected long endTime = 0;							// Processing time, end
 	
+	private String filePathFirstPayloads = null;
+	private String filePathLastPayloads = null;
+	
 	
 	
 	/*====================================================================================
@@ -96,6 +99,24 @@ public class IntegratedConfigurationMain {
 		this.setReceiverComponent(icoOverviewInstance.getReceiverComponent());
 		this.setReceiverInterface(icoOverviewInstance.getReceiverInterface());
 		this.setReceiverNamespace(icoOverviewInstance.getReceiverNamespace());
+		
+		// Set file path: FIRST payloads
+		this.filePathFirstPayloads 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE 
+									+ this.name 
+									+ "\\" 
+									+ GlobalParameters.PARAM_VAL_TARGET_ENV 
+									+ FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
+		
+		// Set file path: LAST payloads
+		this.filePathLastPayloads 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE 
+									+ this.name 
+									+ "\\" 
+									+ GlobalParameters.PARAM_VAL_TARGET_ENV 
+									+ FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS;
+		
+		// Generate target directories
+		Util.createDirIfNotExists(this.filePathFirstPayloads);
+		Util.createDirIfNotExists(this.filePathLastPayloads);
 	}
 	
 	
@@ -343,6 +364,16 @@ public class IntegratedConfigurationMain {
 
 	public void setEndTime(long endTime) {
 		this.endTime = endTime;
+	}
+	
+	
+	public String getFilePathFirstPayloads() {
+		return this.filePathFirstPayloads;
+	}
+	
+	
+	public String getFilePathLastPayloads() {
+		return this.filePathLastPayloads;
 	}
 	
 	

@@ -29,6 +29,7 @@ import javax.xml.stream.events.XMLEvent;
 import com.invixo.common.GeneralException;
 import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.IntegratedConfigurationMain;
+import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
@@ -46,7 +47,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	private static final String LOCATION = IntegratedConfiguration.class.getName();
 	static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
 
-
 	
 	/*====================================================================================
 	 *------------- Instance variables
@@ -54,7 +54,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	private HashSet<String> responseMessageKeys = new HashSet<String>();			// MessageKey IDs returned by Web Service GetMessageList
 	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();		// List of FIRST MessageKeys created/processed
 	private ArrayList<String> multiMapMessageKeys = new ArrayList<String>();		// List of MessageKeys processed for MultiMapping interfaces
-	
+
 	
 	
 	/*====================================================================================
@@ -400,6 +400,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	private void extractModeInit() throws ExtractorException, HttpException {
 		final String SIGNATURE = "extractModeInit()";
 		
+		// Reset (delete) state
+		StateHandler.reset();
+		
 		// Create request for GetMessageList
 		byte[] requestBytes = createGetMessageListRequest(this);
 		logger.writeDebug(LOCATION, SIGNATURE, "GetMessageList request created");
@@ -450,8 +453,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	
 	/**
 	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
-	 * This involves calling service GetMessageBytesJavaLangStringIntBoolean to fetch actual payload and storing 
-	 * this on file system.
+	 * It extracts payloads and stores the state in case of successfully finding payloads.
 	 * This method can/will generate FIRST/LAST payloads.
 	 * @param key
 	 */
@@ -463,8 +465,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Attach a reference to newly created MessageKey object to this ICO
 			this.messageKeys.add(msgKey);
 			
-			// Process messageKey
+			// Extract FIRST and/or LAST payloads
 			msgKey.extractAllPayloads(key);
+			
+			// Store state
+			msgKey.storeState(msgKey.getPayloadFirst(), msgKey.getPayloadLast());
 		} catch (ExtractorException e) {
 			// Do nothing, exception already logged
 			// Exceptions at this point are used to terminate further processing of current messageKey

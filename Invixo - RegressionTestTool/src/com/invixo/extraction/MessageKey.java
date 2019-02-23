@@ -6,14 +6,8 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 
-import javax.activation.DataSource;
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -26,6 +20,10 @@ import javax.xml.transform.stream.StreamSource;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.common.GeneralException;
+import com.invixo.common.Payload;
+import com.invixo.common.PayloadException;
+import com.invixo.common.StateHandler;
 import com.invixo.common.util.HttpException;
 import com.invixo.common.util.HttpHandler;
 import com.invixo.common.util.XmlUtil;
@@ -38,8 +36,6 @@ public class MessageKey {
 	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = MessageKey.class.getName();	
-	public static final String PAYLOAD_FOUND = "Found";
-	public static final String PAYLOAD_NOT_FOUND = "Not found";
 	
 	static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
 
@@ -51,8 +47,8 @@ public class MessageKey {
 	private String sapMessageKey = null;			// SAP Message Key from Web Service response of GetMessageList
 	private String sapMessageId = null;				// SAP Message Id 
 	private IntegratedConfiguration ico	= null;		// Integrated Configuration
-	private Payload payloadsFirst = new Payload(); 	// FIRST payload
-	private Payload payloadsLast = new Payload();	// LAST payload
+	private Payload payloadFirst = new Payload(); 	// FIRST payload
+	private Payload payloadLast = new Payload();	// LAST payload
 	private ArrayList<String> multiMapMessageKeys;	// List of Parent Message Keys in the case of Multimapping scenario
 	private Exception ex = null;					// Error details
 	
@@ -69,16 +65,6 @@ public class MessageKey {
 		if (this.ico.isUsingMultiMapping()) {
 			this.multiMapMessageKeys = new ArrayList<String>();
 		}
-		
-		payloadsFirst.setPath(	FileStructure.DIR_EXTRACT_OUTPUT_PRE 
-								+ this.ico.getName() 
-								+ "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV 
-								+ FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS);
-		
-		payloadsLast.setPath(	FileStructure.DIR_EXTRACT_OUTPUT_PRE 
-								+ this.ico.getName() 
-								+ "\\" + GlobalParameters.PARAM_VAL_TARGET_ENV 
-								+ FileStructure.DIR_EXTRACT_OUTPUT_POST_LAST_ENVLESS);
 	}
 
 
@@ -114,12 +100,12 @@ public class MessageKey {
 		return multiMapMessageKeys;
 	}
 	
-	public Payload getPayloadsFirst() {
-		return payloadsFirst;
+	public Payload getPayloadFirst() {
+		return payloadFirst;
 	}
 
-	public Payload getPayloadsLast() {
-		return payloadsLast;
+	public Payload getPayloadLast() {
+		return payloadLast;
 	}
 
 	
@@ -132,17 +118,38 @@ public class MessageKey {
 	 * Main entry point
 	 * Extract FIRST and/or LAST payload.
 	 * @param messageKey
-	 * @throws ExtractorException			Other errors during extraction
-	 * @throws HttpException				Web Service call failed
+	 * @throws ExtractorException
 	 */
 	void extractAllPayloads(String messageKey) throws ExtractorException {
 		// Extract FIRST payload
 		if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
-			this.extractFirstPayload(messageKey);
+			this.payloadFirst = this.extractFirstPayload(messageKey);
 		}
-		
+			
 		// Extract LAST payload
-		this.extractLastPayload(messageKey); 
+		this.payloadLast = this.extractLastPayload(messageKey);
+	}
+	
+	
+	void storeState(Payload first, Payload last) throws ExtractorException {
+		final String SIGNATURE = "storeState(Payload, Payload)";
+		try {
+			// Persist message: FIRST
+			first.persistMessage(this.ico.getFilePathFirstPayloads());
+			
+			// Persist message: LAST
+			last.persistMessage(this.ico.getFilePathLastPayloads());
+			
+			// Update PayloadStateOverview
+			String newEntry = StateHandler.createEntry(this.ico.getName(), first, last);
+			StateHandler.writeEntry(newEntry);
+		} catch (GeneralException|PayloadException e) {
+			String msg = "Error saving state for MessageKey!\n" + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			ExtractorException ex = new ExtractorException(msg);
+			this.ex = ex;
+			throw ex;
+		}
 	}
 	
 	
@@ -150,14 +157,15 @@ public class MessageKey {
 	 * Extract FIRST or LAST payload for ICOs with a mapping multiplicitiy of 1:1.
 	 * Call Web Service for fetching SAP PO message data (SOAP envelope). 
 	 * A normal web service response will contain an XML payload containing base64 encoded SAP XI multipart message.
-	 * This method is responsible for extracting the actual payload data from the multipart message and storing the payload on file system.
+	 * This method is responsible for creating a Payload object.
 	 * @param messageKey
 	 * @param isFirst
 	 * @return
 	 * @throws ExtractorException			Other errors during extraction
 	 * @throws HttpException				Web Service call failed
+	 * @throws PayloadException				Error setting state on Payload
 	 */
-	private void extractPayload(String messageKey, boolean isFirst) throws ExtractorException, HttpException {
+	private Payload extractPayload(String messageKey, boolean isFirst) throws ExtractorException, HttpException, PayloadException {
 		final String SIGNATURE = "extractPayload(String, boolean)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [" + (isFirst?"FIRST":"LAST") + "] processing started...");
@@ -170,78 +178,33 @@ public class MessageKey {
 			// Call Web Service fetching the payload
 			byte[] wsResponse = HttpHandler.post(IntegratedConfiguration.ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, wsRequest.readAllBytes());
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service called");
-						
-			// Update payload
-			String targetFilePath = null;
-			if (isFirst) {
-				this.payloadsFirst.setSapMessageKey(messageKey);
-				this.payloadsFirst.setFileName(this.payloadsFirst.getSapMessageId());
-				targetFilePath = this.payloadsFirst.getPath() + this.payloadsFirst.getFileName();
-			} else {
-				this.payloadsLast.setSapMessageKey(messageKey);
-				this.payloadsLast.setFileName(this.payloadsLast.getSapMessageId());
-				targetFilePath = this.payloadsLast.getPath() + this.payloadsLast.getFileName();
-			}
+
+			// Extract base64 encoded message from Web Service response
+			String base64EncodedMessage = this.extractEncodedPayload(wsResponse);
+
+			// Create Payload object
+			Payload payload = new Payload();
+			payload.setSapMessageKey(messageKey);
 			
-			// Extract the actual SAP PO payload from the Web Service response message and store it on file system
-			storePayload(wsResponse, isFirst, targetFilePath);
-			logger.writeDebug(LOCATION, SIGNATURE, "File with SAP PO payload created: " + targetFilePath);
+			// Check if payload was found
+			if ("".equals(base64EncodedMessage)) {
+				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains no XI message.");
+				payload.setPayloadFoundStatus(Payload.STATUS.NOT_FOUND);
+			} else {
+				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains XI message.");
+				payload.setPayloadFoundStatus(Payload.STATUS.FOUND);
+				payload.setMultipartBase64Bytes(base64EncodedMessage);
+			}
+						
+			return payload;
 		} catch (IOException e) {
 			String msg = "Error reading all bytes from generated web service request\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			ExtractorException ex = new ExtractorException(msg);
 			this.ex = ex;
 			throw ex;
-		} catch (NoMsgFoundException e) {
-			// Do not handle exception (an instance property has already been set indicating this).
 		} finally {
 			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [" + (isFirst?"FIRST":"LAST") + "] processing finished...");
-		}
-	}
-
-	
-
-	
-	/**
-	 * Reads a multipart message originated from the Web Service response of service: GetMessageBytesJavaLangStringIntBoolean.
-	 * This multipart message is interpreted and the SAP PO main payload extracted and stored on file system.
-	 * @param content
-	 * @param isFirst
-	 * @param targetFilePath
-	 * @return
-	 * @throws NoMsgFoundException
-	 * @throws ExtractorException
-	 */
-	private void storePayload(byte[] content, boolean isFirst, String targetFilePath) throws NoMsgFoundException, ExtractorException {
-		final String SIGNATURE = "storePayload(byte[], boolean)";
-		try {
-			// Write GetMessageBytesJavaLangStringIntBoolean response to file system if debug for this is enabled (property)
-			if (GlobalParameters.DEBUG) {
-				String file = FileStructure.getDebugFileName("GetMessageBytesJavaLangStringIntBoolean", false, this.sapMessageId + (isFirst?"_FIRST":"_LAST") , "xml");
-				Util.writeFileToFileSystem(file, content);
-				logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessageBytesJavaLangStringIntBoolean response message is stored here: " + file);
-			}
-			
-			// Get multipart message from XML payload contained in Web Service response XML file
-			MimeMultipart mmp = getMultipartMessageFromResponse(content, isFirst);
-			logger.writeDebug(LOCATION, SIGNATURE, "Multipart message generated");
-			
-			// Get main payload (classic SAP PO main payload) from multipart message
-			BodyPart bp = mmp.getBodyPart(1);				// bodyPart(0) = SAP PO internal envelope (no payload), bodyPart(1) = Payload
-			logger.writeDebug(LOCATION, SIGNATURE, "Payload fetched from multipart message");
-			
-			// Create target directory where the payload file is placed
-			Util.createDirIfNotExists(isFirst ? this.payloadsFirst.getPath() : this.payloadsLast.getPath());
-			logger.writeDebug(LOCATION, SIGNATURE, "Target directory generated");
-			
-			// Store body on file system for later injection or comparison
-			Util.writeFileToFileSystem(targetFilePath, bp.getInputStream().readAllBytes());
-			logger.writeDebug(LOCATION, SIGNATURE, "Payload file written to file system");
-		} catch (ArrayIndexOutOfBoundsException|MessagingException|IOException e) {
-			String msg = "Error extracting payload from multipart message and storing it on file system\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			ExtractorException ex = new ExtractorException(msg);
-			throw ex;
 		}
 	}
 	
@@ -311,48 +274,6 @@ public class MessageKey {
 	}
 		
 	
-	/**
-	 * Extract the MimeMultipart message from web service response (getMessageBytesJavaLangStringIntBoolean)
-	 * @param responseBytes
-	 * @param isFirst
-	 * @return
-	 * @throws NoMsgFoundException
-	 * @throws ExtractorException
-	 */
-	private MimeMultipart getMultipartMessageFromResponse(byte[] responseBytes, boolean isFirst) throws NoMsgFoundException, ExtractorException {
-		final String SIGNATURE = "getMultipartMessageFromResponse(byte[], boolean)";
-		try {
-			// Extract base64 payload
-			String encodedPayload = this.extractEncodedPayload(responseBytes);
-
-			// Check if payload was found
-			if ("".equals(encodedPayload)) {
-				String msg = "Web Service response contains no payload.";
-				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains no XI message.");
-				this.setMessageStatus(isFirst, PAYLOAD_NOT_FOUND);
-				throw new NoMsgFoundException(msg);
-			} else {
-				this.setMessageStatus(isFirst, PAYLOAD_FOUND);
-				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains XI message.");
-			}
-			
-			// Decode base64
-			byte[] decodedPayload = Base64.getMimeDecoder().decode(encodedPayload.getBytes());
-
-			// Create multipart message from decoded base64
-			DataSource ds = new ByteArrayDataSource(decodedPayload, "multipart/related");
-			MimeMultipart mmp = new MimeMultipart(ds);
-			
-			// Return
-			return mmp;			
-		} catch (MessagingException e) {
-			String msg = "Error extracting multipart message.\n" + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new ExtractorException(msg);
-		}
-	}
-	
-	
 	private String extractEncodedPayload(byte[] fileContent) throws ExtractorException {
 		final String SIGNATURE = "extractEncodedPayload(byte[])";
 		boolean fetchData = false;
@@ -394,17 +315,17 @@ public class MessageKey {
 	
 	/**
 	 * Extract original FIRST message from PO of a MultiMapping interface (1:n multiplicity).
-	 * @param messageId
+	 * @param payload
 	 * @return
 	 * @throws ExtractorException
 	 */
-	String processMessageKeyMultiMapping(String messageId) throws ExtractorException {
-		final String SIGNATURE = "processMessageKeyMultiMapping(String)";
+	Payload processMessageKeyMultiMapping(Payload payload) throws ExtractorException, PayloadException {
+		final String SIGNATURE = "processMessageKeyMultiMapping(Payload)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [FIRST] MultiMapping processing start");
 			
 			// Add messageId to collection before creating request
-			List<String> msgIdList = Arrays.asList(messageId);
+			List<String> msgIdList = Arrays.asList(payload.getSapMessageId());
 			
 			// Create "GetMessagesWithSuccessors" request
 			byte[] getMessagesWithSuccessorsRequestBytes = XmlUtil.createGetMessagesWithSuccessorsRequest(msgIdList);
@@ -443,15 +364,15 @@ public class MessageKey {
 			
 			// Prevent processing an storing the same messageKey several times and ensure payloadFilesCreated consistency
 			if (ico.getMultiMapMessageKeys().contains(messageKey)) {
-				// MessageKey already processed and FIRST message stored on file system
-				this.setMessageStatus(true, PAYLOAD_FOUND);
+				// MessageKey already processed and FIRST message is found
+				// Do nothing
 			} else {
 				// Fetch FIRST payload using the original FIRST messageKey
-				this.extractPayload(messageKey, true);
+				payload =  this.extractPayload(messageKey, true);
 			}
 			
-			// Return messageKey processed
-			return messageKey;
+			// Return;
+			return payload;
 		} catch (HttpException e) {
 			String msg = "Error during web service call\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -540,28 +461,32 @@ public class MessageKey {
 	
 
 	/**
-	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
-	 * This involves calling service GetMessageBytesJavaLangStringIntBoolean to fetch actual payload and storing 
-	 * this on file system.
-	 * This method generates the FIRST payload.
+	 * Extract FIRST payload.
 	 * @param key
+	 * @return
+	 * @throws PayloadException
 	 * @throws ExtractorException 
 	 */
-	private void extractFirstPayload(String key) throws ExtractorException {
+	private Payload extractFirstPayload(String key) throws ExtractorException {
 		final String SIGNATURE = "extractFirstPayload(String)";
 		try {
+			Payload payload = new Payload();
+			payload.setSapMessageKey(key);
+			
 			// Process according to multiplicity
 			if (this.ico.isUsingMultiMapping()) {
 				// Fetch payload: FIRST for multimapping interface (1:n multiplicity)
-				String parentMessageKey = this.processMessageKeyMultiMapping(this.getSapMessageId());
+				payload = this.processMessageKeyMultiMapping(payload);
 				
 				// Save key to make sure it is only used once, as one FIRST messageKey can create multiple LAST
-				this.getMultiMapMessageKeys().add(parentMessageKey);
+				this.getMultiMapMessageKeys().add(payload.getSapMessageId());
 			} else {
 				// Fetch payload: FIRST for non-multimapping interface (1:1 multiplicity)	
-				this.extractPayload(key, true);
+				payload = this.extractPayload(key, true);
 			}
-		} catch (ExtractorException|HttpException e) {
+			
+			return payload;
+		} catch (PayloadException|ExtractorException|HttpException e) {
 			this.setEx(e);
 			String msg = "Error processing FIRST key: " + key + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -573,14 +498,16 @@ public class MessageKey {
 	/**
 	 * Extract LAST payload.
 	 * @param key
+	 * @returns
 	 * @throws ExtractorException 
 	 */
-	private void extractLastPayload(String key) throws ExtractorException {
+	private Payload extractLastPayload(String key) throws ExtractorException {
 		final String SIGNATURE = "extractLastPayload(String)";
 		try {
 			// Fetch payload: LAST
-			extractPayload(key, false);
-		} catch (ExtractorException|HttpException e) {
+			Payload payload = extractPayload(key, false);
+			return payload;
+		} catch (PayloadException|ExtractorException|HttpException e) {
 			this.setEx(e);
 			String msg = "Error processing LAST key: " + key + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -589,12 +516,12 @@ public class MessageKey {
 	}
 	
 	
-	private void setMessageStatus(boolean isFirst, String status) {
-		if (isFirst) {
-			this.payloadsFirst.setPayloadFoundStatus(status);
-		} else {
-			this.payloadsLast.setPayloadFoundStatus(status);
-		}
-	}
+//	private void setMessageStatus(boolean isFirst, String status) {
+//		if (isFirst) {
+//			this.payloadsFirst.setPayloadFoundStatus(status);
+//		} else {
+//			this.payloadsLast.setPayloadFoundStatus(status);
+//		}
+//	}
 
 }

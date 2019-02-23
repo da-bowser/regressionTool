@@ -47,7 +47,8 @@ public class FileStructure {
 	public static final String FILE_CONFIG_SYSTEM_MAPPING			= DIR_CONFIG + "systemMapping.txt";
 	public static final String FILE_CONFIG_COMPARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
 	public static final String FILE_MSG_ID_MAPPING					= DIR_INJECT + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_to_" + GlobalParameters.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
-	public static final String PAYLOAD_FILE_EXTENSION 				= ".payload";	
+	public static final String FILE_STATE							= DIR_INJECT + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_to_" + GlobalParameters.PARAM_VAL_TARGET_ENV + "_msgId_mapNEW.txt";
+	public static final String PAYLOAD_FILE_EXTENSION 				= ".multipart";	
 	public static final String ICO_OVERVIEW_FILE 					= DIR_CONFIG + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_IntegratedConfigurationsOverview.xml";
 	
 	static {
@@ -103,7 +104,7 @@ public class FileStructure {
 
 	
 	private static void checkBaseFiles(ArrayList<IcoOverviewInstance> icoList) {
-		String SIGNATURE = "checkBaseFiles()";
+		String SIGNATURE = "checkBaseFiles(ArrayList<IcoOverviewInstance>)";
 		File systemMappingFile = new File(FILE_CONFIG_SYSTEM_MAPPING);
 
 		// Make sure system mapping file exists
