@@ -141,7 +141,7 @@ public class MessageKey {
 			last.persistMessage(this.ico.getFilePathLastPayloads());
 			
 			// Update PayloadStateOverview
-			String newEntry = StateHandler.createEntry(this.ico.getName(), first, last);
+			String newEntry = StateHandler.createExtractEntry(this.ico.getName(), first, last);
 			StateHandler.writeEntry(newEntry);
 		} catch (GeneralException|PayloadException e) {
 			String msg = "Error saving state for MessageKey!\n" + e;
