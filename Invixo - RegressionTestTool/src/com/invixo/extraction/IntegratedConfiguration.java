@@ -1,9 +1,7 @@
 package com.invixo.extraction;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,24 +16,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import javax.xml.stream.events.XMLEvent;
-
 import com.invixo.common.GeneralException;
 import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.IntegratedConfigurationMain;
 import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.HttpException;
-import com.invixo.common.util.HttpHandler;
-import com.invixo.common.util.XmlUtil;
 import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
 
@@ -45,7 +32,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = IntegratedConfiguration.class.getName();
-	static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
 
 	
 	/*====================================================================================
@@ -225,7 +211,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		final String SIGNATURE = "processNonInitInBatch(Map<String, String>)";
 		
 		for(Entry<String, String> entry : messageIdMap.entrySet()) {
-			MessageInfo msgInfo = getMessageInfoFromSucessors(entry.getValue());
+			// Lookup MessageInfo for Parent
+			MessageInfo msgInfo = WebServiceUtil.lookupParentMessageInfo(entry.getValue(), this.getName(), this.getReceiverInterface());
 			
 			// Special handling for multimapping interfaces(multiplicity 1:n)
 			if (this.isUsingMultiMapping()) {
@@ -245,40 +232,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 
 
-	/**
-	 * Call Web Service GetMessagesWithSuccessors for a messageId and extract MessageInfo.
-	 * @param messageId
-	 * @return
-	 * @throws HttpException
-	 * @throws ExtractorException
-	 */
-	private MessageInfo getMessageInfoFromSucessors(String messageId) throws HttpException, ExtractorException {
-		final String SIGNATURE = "getMessageInfoFromSucessors(String)";
-		ArrayList<String> messageIdList = new ArrayList<String>();
-		messageIdList.add(messageId);
-		
-		// Create request for GetMessagesWithSuccessors
-		byte[] requestBytes = XmlUtil.createGetMessagesWithSuccessorsRequest(messageIdList);
-		logger.writeDebug(LOCATION, SIGNATURE, "GetMessagesWithSuccessors request created");
-		
-		// Write request to file system if debug for this is enabled (property)
-		if (GlobalParameters.DEBUG) {
-			String file = FileStructure.getDebugFileName("GetMessagesWithSuccessors", true, this.getName(), "xml");
-			Util.writeFileToFileSystem(file, requestBytes);
-			logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessagesWithSuccessors request message to be sent to SAP PO is stored here: " + file);
-		}
-					
-		// Call web service (GetMessagesWithSuccessors)
-		byte[] responseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
-		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessagesWithSuccessors) called");
-
-		// Extract message info from Web Service response
-		MessageInfo msgInfo = extractMessageInfo(responseBytes, this.getReceiverInterface());
-		
-		return msgInfo;
-	}
-
-
 	private HashSet<String> handleScenarioMultiMapping(HashSet<String> objectKeys, String injectMessageId) throws HttpException, ExtractorException {
 		final String SIGNATURE = "handleScenarioMultiMapping(HashSet<String>, Collection<String>";
 
@@ -290,11 +243,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Filter/remove all lines not containing string
 			lines.removeIf(line -> !line.contains(injectMessageId));
 			
-			String[] lineTokens = lines.get(0).split(GlobalParameters.FILE_DELIMITER);
-				
-			String sourceFirstMessageId = lineTokens[1];
+			// Get Message ID from source (FIRST) extract
+			String[] lineParts = lines.get(0).split(GlobalParameters.FILE_DELIMITER);	
+			String sourceFirstMessageId = lineParts[1];
 			
-			MessageInfo extractKeys = getMessageInfoFromSucessors(sourceFirstMessageId);
+			// Lookup MessageInfo for Message ID
+			MessageInfo extractKeys = WebServiceUtil.lookupParentMessageInfo(sourceFirstMessageId, this.getName(), this.getReceiverInterface());
 			
 			// Build new map entries
 			for (String targetMessagKey : objectKeys) {
@@ -403,23 +357,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		// Reset (delete) state
 		StateHandler.reset();
 		
-		// Create request for GetMessageList
-		byte[] requestBytes = createGetMessageListRequest(this);
-		logger.writeDebug(LOCATION, SIGNATURE, "GetMessageList request created");
-		
-		// Write request to file system if debug for this is enabled (property)
-		if (GlobalParameters.DEBUG) {
-			String file = FileStructure.getDebugFileName("GetMessageList", true, this.getName(), "xml");
-			Util.writeFileToFileSystem(file, requestBytes);
-			logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessageList request message to be sent to SAP PO is stored here: " + file);
-		}
-					
-		// Call web service (GetMessageList)
-		byte[] responseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
-		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessageList) called");
-			
-		// Extract MessageKeys from web Service response
-		MessageInfo msgInfo = extractMessageInfo(responseBytes, this.getReceiverInterface());
+		// Lookup Messages in SAP PO and extract MessageInfo from response
+		MessageInfo msgInfo = WebServiceUtil.lookupMessages(this);
 		
 		// Set MessageKeys from web Service response
 		this.responseMessageKeys = msgInfo.getObjectKeys();
@@ -429,7 +368,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		processMessageKeysMultiple(this.responseMessageKeys, this.internalObjectId);
 	}
 
-
+	
 	/**
 	 * Extract payloads for a list of SAP Message Keys and store these on the file system.
 	 * @param messageKeys					List of SAP Message Keys to be processed.
@@ -515,261 +454,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 
 			logger.writeDebug(LOCATION, SIGNATURE, "Changed file will be written to: " + FileStructure.FILE_MSG_ID_MAPPING);
 			Util.writeFileToFileSystem(FileStructure.FILE_MSG_ID_MAPPING, content.getBytes());
-		}
-	}
-
-	
-	/**
-	 * Extract message info from Web Service response (extraction is generic and used across multiple services responses)
-	 * @param responseBytes					XML to extract data from 
-	 * @param receiverInterfaceName			Only extract message info from integrated configurations having this receiver interface name
-	 * @return
-	 * @throws ExtractorException
-	 */
-	static MessageInfo extractMessageInfo(byte[] responseBytes, String receiverInterfaceName) throws ExtractorException {
-		final String SIGNATURE = "extractMessageInfo(byte[], String)";
-		try {
-	        MessageInfo msgInfo = new MessageInfo();
-	        String messageId = null;
-	        String parentId = null;
-	        String messageKey = null;
-	        boolean receiverInterfaceElementFound = false;
-	        boolean matchingReceiverInterfaceNameFound = false;
-	        
-			XMLInputFactory factory = XMLInputFactory.newInstance();
-			XMLEventReader eventReader = factory.createXMLEventReader(new ByteArrayInputStream(responseBytes));
-
-			while (eventReader.hasNext()) {
-				XMLEvent event = eventReader.nextEvent();
-
-				switch (event.getEventType()) {
-				case XMLStreamConstants.START_ELEMENT:
-					String currentElementName = event.asStartElement().getName().getLocalPart();
-
-					if ("parentID".equals(currentElementName)) {
-						parentId = eventReader.peek().asCharacters().getData();
-						
-					} else if ("messageID".equals(currentElementName)) {
-						messageId = eventReader.peek().asCharacters().getData();
-						
-					} else if ("messageKey".equals(currentElementName)) {
-						messageKey = eventReader.peek().asCharacters().getData();
-												
-			    	} else if ("receiverInterface".equals(currentElementName)) {
-			    		// We found the correct element
-			    		receiverInterfaceElementFound = true;
-			    		
-			    	} else if("name".equals(currentElementName) && eventReader.peek().isCharacters() && receiverInterfaceElementFound) {
-			    		String name = eventReader.peek().asCharacters().getData();
-
-			    		// REASON: In case of message split we get all interfaces in the response payload
-			    		// we only want the ones matching the receiverInterfaceName of the current ICO being processed
-			    		if (name.equals(receiverInterfaceName) && receiverInterfaceElementFound) {
-			    			// We found a match we want to add to our "splitMessageIds" map
-			    			matchingReceiverInterfaceNameFound = true;
-			    			
-			    			// We are no longer interested in more data before next iteration
-							receiverInterfaceElementFound = false;
-						}
-			    	}
-					break;
-					
-				case XMLStreamConstants.END_ELEMENT:
-					String currentEndElementName = event.asEndElement().getName().getLocalPart();
-					
-					if ("AdapterFrameworkData".equals(currentEndElementName) && matchingReceiverInterfaceNameFound) {
-						if (parentId != null) {
-							msgInfo.getSplitMessageIds().put(parentId, messageId);	
-						}
-						msgInfo.getObjectKeys().add(messageKey);
-						matchingReceiverInterfaceNameFound = false;
-						parentId = null;
-					}
-					break;
-				}
-			}
-			
-			return msgInfo;
-		} catch (XMLStreamException e) {
-			String msg = "Error extracting message info from Web Service response.\n" + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new ExtractorException(msg);
-		}
-	}
-		
-	
-	
-	/*====================================================================================
-	 *------------- Class methods
-	 *====================================================================================*/
-	/**
-	 * Create request message for GetMessageList
-	 * @param ico
-	 * @return
-	 */
-	static byte[] createGetMessageListRequest(IntegratedConfiguration ico) {
-		final String SIGNATURE = "createGetMessageListRequest(IntegratedConfiguration)";
-		try {
-			final String XML_NS_URN_PREFIX	= "urn";
-			final String XML_NS_URN_NS		= "urn:AdapterMessageMonitoringVi";
-			final String XML_NS_URN1_PREFIX	= "urn1";
-			final String XML_NS_URN1_NS		= "urn:com.sap.aii.mdt.server.adapterframework.ws";
-			final String XML_NS_URN2_PREFIX	= "urn2";
-			final String XML_NS_URN2_NS		= "urn:com.sap.aii.mdt.api.data";
-			
-			StringWriter stringWriter = new StringWriter();
-			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
-			XMLStreamWriter xmlWriter = xMLOutputFactory.createXMLStreamWriter(stringWriter);
-
-			// Add xml version and encoding to output
-			xmlWriter.writeStartDocument(GlobalParameters.ENCODING, "1.0");
-
-			// Create element: Envelope
-			xmlWriter.writeStartElement(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_ROOT, XmlUtil.SOAP_ENV_NS);
-			xmlWriter.writeNamespace(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_NS);
-			xmlWriter.writeNamespace(XML_NS_URN_PREFIX, XML_NS_URN_NS);
-			xmlWriter.writeNamespace(XML_NS_URN1_PREFIX, XML_NS_URN1_NS);
-			xmlWriter.writeNamespace(XML_NS_URN2_PREFIX, XML_NS_URN2_NS);
-			xmlWriter.writeNamespace("lang", "java/lang");
-
-			// Create element: Envelope | Body
-			xmlWriter.writeStartElement(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_BODY, XmlUtil.SOAP_ENV_NS);
-
-			// Create element: Envelope | Body | getMessageList
-			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "getMessageList", XML_NS_URN_NS);
-
-			// Create element: Envelope | Body | getMessageList | filter
-			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "filter", XML_NS_URN_NS);
-			
-			// Create element: Envelope | Body | getMessageList | filter | archive
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "archive", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters("false");
-			xmlWriter.writeEndElement();
-
-			// Create element: Envelope | Body | getMessageList | filter | dateType
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "dateType", XML_NS_URN1_NS);
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | direction
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "direction", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters("OUTBOUND");
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | fromTime
-			if (ico.getFromTime() != null) {
-				xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "fromTime", XML_NS_URN1_NS);
-				xmlWriter.writeCharacters(ico.getFromTime());
-				xmlWriter.writeEndElement();	
-			}
-			
-			// Create element: Envelope | Body | getMessageList | filter | interface
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "interface", XML_NS_URN1_NS);
-
-			// Create element: Envelope | Body | getMessageList | filter | interface | name
-			xmlWriter.writeStartElement(XML_NS_URN2_PREFIX, "name", XML_NS_URN2_NS);
-			xmlWriter.writeCharacters(ico.getReceiverInterface());
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | interface | namespace
-			xmlWriter.writeStartElement(XML_NS_URN2_PREFIX, "namespace", XML_NS_URN2_NS);
-			xmlWriter.writeCharacters(ico.getReceiverNamespace());
-			xmlWriter.writeEndElement();
-			
-			// Close element: Envelope | Body | getMessageList | filter | interface
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | nodeId
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "nodeId", XML_NS_URN1_NS);
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | onlyFaultyMessages
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "onlyFaultyMessages", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters("false");
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | qualityOfService
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "qualityOfService", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters(ico.getQualityOfService());
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | receiverName
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "receiverName", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters(ico.getReceiverComponent());
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | retries
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "retries", XML_NS_URN1_NS);
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | retryInterval
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "retryInterval", XML_NS_URN1_NS);
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | senderInterface
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "senderInterface", XML_NS_URN1_NS);
-
-			// Create element: Envelope | Body | getMessageList | filter | senderInterface | name
-			xmlWriter.writeStartElement(XML_NS_URN2_PREFIX, "name", XML_NS_URN2_NS);
-			xmlWriter.writeCharacters(ico.getSenderInterface());
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | senderInterface | namespace
-			xmlWriter.writeStartElement(XML_NS_URN2_PREFIX, "namespace", XML_NS_URN2_NS);
-			xmlWriter.writeCharacters(ico.getSenderNamespace());
-			xmlWriter.writeEndElement();
-			
-			// Close element: Envelope | Body | getMessageList | filter | senderInterface
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | senderName
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "senderName", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters(ico.getSenderComponent());
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | status
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "status", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters("success");
-			xmlWriter.writeEndElement();
-
-			// Create element: Envelope | Body | getMessageList | filter | timesFailed
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "timesFailed", XML_NS_URN1_NS);
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | toTime
-			if (ico.getToTime() != null) {
-	 			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "toTime", XML_NS_URN1_NS);
-				xmlWriter.writeCharacters(ico.getToTime());
-				xmlWriter.writeEndElement();
-			}
-			
-			// Create element: Envelope | Body | getMessageList | filter | wasEdited
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "wasEdited", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters("false");
-			xmlWriter.writeEndElement();
-			
-			// Close element: Envelope | Body | getMessageList | filter
-			xmlWriter.writeEndElement();
-			
-			// Create element: Envelope | Body | getMessageList | filter | maxMessages
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "maxMessages", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters("" + ico.getMaxMessages());
-			xmlWriter.writeEndElement();
-			
-			// Close tags
-			xmlWriter.writeEndElement(); // Envelope | Body | getMessageList
-			xmlWriter.writeEndElement(); // Envelope | Body
-			xmlWriter.writeEndElement(); // Envelope
-
-			// Finalize writing
-			xmlWriter.flush();
-			xmlWriter.close();
-			stringWriter.flush();
-			
-			return stringWriter.toString().getBytes();
-		} catch (XMLStreamException e) {
-			String msg = "Error creating SOAP request for GetMessageList. " + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
 		}
 	}
 	

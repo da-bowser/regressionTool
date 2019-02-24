@@ -7,12 +7,11 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import com.invixo.extraction.MessageKey;
 import com.invixo.main.GlobalParameters;
 
 public class XmlUtil {
 	private static Logger logger = Logger.getInstance();
-	private static final String LOCATION = MessageKey.class.getName();	
+	private static final String LOCATION = XmlUtil.class.getName();	
 	
 	// Xml: soap envelope, general
 	public static final String SOAP_ENV_NS 	 	= "http://schemas.xmlsoap.org/soap/envelope/";

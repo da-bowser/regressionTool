@@ -63,7 +63,7 @@ class MessageKeyTest {
 			MessageKey msgKey = new MessageKey(ico, messageKey);
 			
 			// Test creation of a new request message (FIRST)
-			InputStream is = msgKey.createNewRequest(messageKey, 0);
+			InputStream is = msgKey.createRequestGetMessageBytesJavaLangStringIntBoolean(messageKey, 0);
 //			System.out.println("-- UNIT TEST -- Request payload created: \n" + new String(is.readAllBytes()));
 			
 			// Check
@@ -96,7 +96,7 @@ class MessageKeyTest {
 			MessageKey msgKey = new MessageKey(ico, messageKey);
 			
 			// Test creation of a new request message (LAST)
-			InputStream is = msgKey.createNewRequest(messageKey, -1);
+			InputStream is = msgKey.createRequestGetMessageBytesJavaLangStringIntBoolean(messageKey, -1);
 //			System.out.println("Request payload created: \n" + new String(is.readAllBytes()));
 			
 			// Check
