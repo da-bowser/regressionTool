@@ -4,18 +4,18 @@ import java.util.UUID;
 
 public class InjectionRequest {
 	private String messageId = UUID.randomUUID().toString();
-	private String sourcePayloadFile = null;					// Source (extracted) payload 
+	private String sourceMultiPartFile = null;					// Source: FIRST XI Message extracted during INIT 
 	private String injectionRequestFile = null;					// Injection request (SAP XI multipart message)
 	private Exception error = null;
 	
 	public String getMessageId() {
 		return messageId;
 	}
-	public String getSourcePayloadFile() {
-		return sourcePayloadFile;
+	public String getSourceMultiPartFile() {
+		return sourceMultiPartFile;
 	}
-	public void setSourcePayloadFile(String payloadFile) {
-		this.sourcePayloadFile = payloadFile;
+	public void setSourceMultiPartFile(String messageFile) {
+		this.sourceMultiPartFile = messageFile;
 	}
 	public String getInjectionRequestFile() {
 		return injectionRequestFile;

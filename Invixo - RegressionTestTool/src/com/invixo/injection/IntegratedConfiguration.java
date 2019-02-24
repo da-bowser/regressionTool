@@ -1,22 +1,25 @@
 package com.invixo.injection;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
 
 import org.apache.http.client.methods.HttpPost;
 
 import com.invixo.common.GeneralException;
 import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.IntegratedConfigurationMain;
+import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.common.util.XiMessageUtil;
 import com.invixo.common.util.HttpException;
 import com.invixo.common.util.HttpHandler;
 import com.invixo.consistency.FileStructure;
@@ -34,7 +37,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	private static final String SERVICE_PATH_INJECT 	= PropertyAccessor.getProperty("SERVICE_PATH_INJECT") + GlobalParameters.PARAM_VAL_SENDER_COMPONENT + ":" + GlobalParameters.PARAM_VAL_XI_SENDER_ADAPTER;
 	private static final String ENDPOINT 				= SERVICE_HOST_PORT + SERVICE_PATH_INJECT;
 	
-	static BufferedWriter mapWriter						= null; 	// Writer for creating MAPPING file between original SAP message ID and new SAP message ID
 	private int filesToBeProcessedTotal					= 0;
 
 	
@@ -83,26 +85,24 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		InjectionRequest ir = null;
 		try {
 			// Get list of all request/payload files related to ICO
-			File[] files = Util.getListOfFilesInDirectory(this.sourcePayloadDirectory);
-			this.filesToBeProcessedTotal = files.length;
-			logger.writeInfo(LOCATION, SIGNATURE, "Number of payload files to be processed: " + this.filesToBeProcessedTotal);
+			// This list can contain redundant entries for FIRST messages if a multimapping is present (1 FIRST can be parent to many LAST)
+			List<String> stateEntries = StateHandler.getLinesMatchingIco(this.getName());
 			
-			// Prepare
-			if (files.length > 0) {
-				// Only create mapping file if there are files to inject and if it is not created already
-				initMappingTableWriter();
-			}
+			// Get unique FIRST file names
+			HashSet<String> uniqueFirstMessages = StateHandler.getUniqueFirstFileNames(stateEntries);
+			
+			// Get list of FIRST lines
+			this.filesToBeProcessedTotal = uniqueFirstMessages.size();
+			logger.writeInfo(LOCATION, SIGNATURE, "Number of FIRST messages to be processed: " + this.filesToBeProcessedTotal);
 
-			// Process each payload file
-			for (File file : files) {
+			// Process each FIRST SAP XI Message file
+			for (String firstMessage : uniqueFirstMessages) {
 				ir = new InjectionRequest();
 				injections.add(ir);
 				
-				// NB: message injection for single payloads terminates on first error!
-				injectMessage(file.getAbsolutePath(), ir);
+				// NB: message injection for single messages terminates on first error!
+				injectMessage(this.getFilePathFirstPayloads() + firstMessage, ir);
 			}
-		} catch (InjectionException e) {
-			this.setEx(e);
 		} catch (InjectionPayloadException|HttpException e) {
 			if (ir != null) {
 				ir.setError(e);
@@ -113,13 +113,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		} finally {
 			try {
 				// Logging
-				String msg = "Number of processed payload files: " + this.injections.size();
+				String msg = "Number of processed FIRST messages: " + this.injections.size();
 				logger.writeInfo(LOCATION, SIGNATURE, msg);
-				
-				// Close resources
-				if (mapWriter != null) {
-					mapWriter.flush();
-				}
 			} catch (Exception e) {
 				// Too bad...
 			} finally {
@@ -127,45 +122,25 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			}
 		}
 	}
-
-
-	/**
-	 * Initialize writer enabling writing to mapping file for source/target SAP message IDs
-	 * @throws InjectionException
-	 */
-	private static void initMappingTableWriter() throws InjectionException {
-		final String SIGNATURE = "initMappingTableWriter()";
-		try {
-			if (mapWriter == null) {
-				mapWriter = Files.newBufferedWriter(Paths.get(FileStructure.FILE_MSG_ID_MAPPING), Charset.forName(GlobalParameters.ENCODING));
-				logger.writeDebug(LOCATION, SIGNATURE, "SAP message Id mapping file initialized: " + FileStructure.FILE_MSG_ID_MAPPING);
-			}
-		} catch (IOException e) {
-			String msg = "Error initializing SAP MessageId mapping file "+ FileStructure.FILE_MSG_ID_MAPPING + ".\n" + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new InjectionException(msg);
-		}
-	}
 	
 	
 	/**
 	 * Main entry point for processing/injecting a single payload file to SAP PO.
 	 * Create HTTP request message to be sent to SAP PO and inject it to the system.
-	 * Routing info is extracted from the ICO Request file.
-	 * Payload is taken from the referenced payload file. 
-	 * @param payloadFile
+	 * Payload is taken from the referenced SAP XI Message file. 
+	 * @param sapXiMessage
 	 * @param ir
 	 * @throws InjectionPayloadException
 	 * @throws HttpException
 	 */
-	private void injectMessage(String payloadFile, InjectionRequest ir) throws InjectionPayloadException, HttpException {
+	private void injectMessage(String sapXiMessage, InjectionRequest ir) throws InjectionPayloadException, HttpException {
 		final String SIGNATURE = "injectMessage(String, InjectionRequest)";
 		try {
-			logger.writeInfo(LOCATION, SIGNATURE, "---- (File " + this.injections.size() + " / " + this.filesToBeProcessedTotal + ") Payload processing BEGIN: " + payloadFile);
-			ir.setSourcePayloadFile(payloadFile);
+			logger.writeInfo(LOCATION, SIGNATURE, "---- (File " + this.injections.size() + " / " + this.filesToBeProcessedTotal + ") Message processing BEGIN: " + sapXiMessage);
+			ir.setSourceMultiPartFile(sapXiMessage);
 
-			// Add payload to injection request. Payload is taken from an "instance" payload file (a file extracted previously)
-			byte[] payload = Util.readFile(payloadFile);
+			// Get file content of source MultiPart message and fetch SAP XI Payload from MultiPart message
+			byte[] payload = getPayloadBytesFromMultiPart(Util.readFile(sapXiMessage));
 			logger.writeInfo(LOCATION, SIGNATURE, "Payload size (MB): " + Util.convertBytesToMegaBytes(payload.length));
 			
 			// Generate SOAP XI Header
@@ -184,34 +159,29 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			// Call SAP PO Web Service (using XI protocol)
 			HttpHandler.post(webServiceRequest);
 			
-			// Write entry to mapping file
-			addMappingEntryToFile(Util.getFileName(payloadFile, false), ir.getMessageId(), this.getName());
+			// Add new entry to internal list of lines to be updated after injection
+			StateHandler.addInjectEntry(Util.getFileName(sapXiMessage, false), ir.getMessageId());
 		} catch (IOException e) {
-			String msg = "Error injecting new request to SAP PO for ICO " + super.getName() + " and payload file " + payloadFile + ".\n" + e.getMessage();
+			String msg = "Error injecting new request to SAP PO for ICO " + super.getName() + " with source message file " + sapXiMessage + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new InjectionPayloadException(msg);
 		} finally {
-			logger.writeInfo(LOCATION, SIGNATURE, "---- Payload processing END");
+			logger.writeInfo(LOCATION, SIGNATURE, "---- Message processing END");
 		}
 	}
 	
 	
-	/**
-	 * Write new SAP Message ID (source --> target) mapping to mapping file 
-	 * @param sourceMsgId
-	 * @param targetMsgId
-	 * @param icoName
-	 * @throws IOException
-	 */
-	private void addMappingEntryToFile(String sourceMsgId, String targetMsgId, String icoName) throws IOException {
-		final String SIGNATURE = "addMappingEntryToFile(String, String, String)";
-		
-		String mapEntry = createMappingEntryLine(sourceMsgId, targetMsgId, icoName);
-		
-		// Write line to map
-		mapWriter.write(mapEntry);
-		
-		logger.writeDebug(LOCATION, SIGNATURE, "Map file update with new entry: " + mapEntry);
+	private byte[] getPayloadBytesFromMultiPart(byte[] multipartBytes) throws InjectionPayloadException {
+		final String SIGNATURE = "getPayloadBytesFromMultiPart(byte[]";
+		try {
+			Multipart mmp = XiMessageUtil.createMultiPartMessage(multipartBytes);
+			byte[] payload = XiMessageUtil.getPayloadBytesFromMultiPartMessage(mmp);
+			return payload;
+		} catch (IOException|MessagingException e) {
+			String msg = "Error getting SAP XI Payload bytes from Multipart message. " + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new InjectionPayloadException(msg);
+		}
 	}
 
 

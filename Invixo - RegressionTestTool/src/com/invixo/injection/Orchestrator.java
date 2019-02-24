@@ -1,10 +1,10 @@
 package com.invixo.injection;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import com.invixo.common.GeneralException;
 import com.invixo.common.IcoOverviewInstance;
+import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
 
 
@@ -37,18 +37,14 @@ public class Orchestrator {
 				processSingleIco(ico, counter);
 			}
 			
+			// Update State File
+			StateHandler.replaceInjectTemplateWithId();
+			logger.writeInfo(LOCATION, SIGNATURE, "State file updated.");
+			
 			logger.writeInfo(LOCATION, SIGNATURE, "Finished processing all ICO's...");
 			return icoList;
 		} finally {
-			try {
-				// Close resources
-				if (IntegratedConfiguration.mapWriter != null) {
-					IntegratedConfiguration.mapWriter.flush();
-					IntegratedConfiguration.mapWriter.close();
-				}
-			} catch (IOException e) {
-				// Too bad...
-			}	
+
 		}
 	}
 	

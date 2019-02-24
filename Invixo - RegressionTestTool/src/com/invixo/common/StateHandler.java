@@ -1,12 +1,15 @@
 package com.invixo.common;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Stream;
 
 import com.invixo.common.util.Logger;
 import com.invixo.consistency.FileStructure;
@@ -17,8 +20,13 @@ public class StateHandler {
 	private static final String LOCATION = StateHandler.class.getName();
 	
 	private static final Path FILE_PATH = Paths.get(FileStructure.FILE_STATE);
-	private static Stream<String> stream = null;
+	private static final Path FILE_PATH_TEMP = Paths.get(FileStructure.FILE_STATE + "TEMP");
+	private static final String INJECT_TEMPLATE = "<TEMPLATE_INJECT_MSG_ID>";
+	private static final String SEPARATOR = GlobalParameters.FILE_DELIMITER;
+	
+	private static HashMap<String, String> tempMsgLink = new HashMap<String, String>();	// Map of <FIRST msg Id, Inject Id> created during inject.
 
+	
 	
 	/**
 	 * Create an entry during init extraction.
@@ -28,35 +36,33 @@ public class StateHandler {
 	 * @return
 	 */
 	public static String createExtractEntry(String icoName, Payload first, Payload last) {
-		final String injectTemplate = "<TEMPLATE_INJECT_MSG_ID>";
-		return createEntry(icoName, first, last, injectTemplate);
+		return createEntry(icoName, first, last, INJECT_TEMPLATE);
 	}
 	
 
 	private static String createEntry(String icoName, Payload first, Payload last, String injectMsgId) {
-		final String separator = GlobalParameters.FILE_DELIMITER;
 		String line	= System.currentTimeMillis() 
-					+ separator 
+					+ SEPARATOR 
 					
 					// FIRST payload
 					+ first.getSapMessageKey()
-					+ separator 
+					+ SEPARATOR 
 					+ first.getSapMessageId()
-					+ separator 
+					+ SEPARATOR 
 					+ first.getFileName()
-					+ separator
+					+ SEPARATOR
 					
 					// LAST payload
 					+ last.getSapMessageKey()
-					+ separator 
+					+ SEPARATOR 
 					+ last.getSapMessageId()
-					+ separator
+					+ SEPARATOR
 					+ last.getFileName()
-					+ separator
+					+ SEPARATOR
 					
 					// Inject Message Id
 					+ injectMsgId
-					+ separator
+					+ SEPARATOR
 					
 					// ICO identifier
 					+ icoName;
@@ -94,29 +100,11 @@ public class StateHandler {
 	}
 	
 	
-	public static Stream<String> openStreamToStateFile() {
-		final String SIGNATURE = "openStreamToStateFile()";
-		try {
-			if (stream == null) {
-				stream = Files.lines(FILE_PATH);	
-			}
-			
-			return stream;
-		} catch (IOException e) {
-			String msg = "Error opening stream to state file: " + FILE_PATH.toString() + "\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
-		}
-	}
-	
-	
-	public static void closeStream() {
-		if (stream != null) {
-			stream.close();	
-		}
-	}
-	
-	
+	/**
+	 * Get a list of State lines matching ICO from the State File.
+	 * @param icoName
+	 * @return
+	 */
 	public static List<String> getLinesMatchingIco(String icoName) {
 		final String SIGNATURE = "getLinesMatchingIco(String)";
 		try {
@@ -134,4 +122,83 @@ public class StateHandler {
 		}
 	}
 
+	
+	/**
+	 * Get list of unique FIRST file names from a list of State lines.
+	 * @param lines				Lines to extract unique FIRST IDs from
+	 * @return
+	 */
+	public static HashSet<String> getUniqueFirstFileNames(List<String> lines) {
+		HashSet<String> uniqueFirstIds = new HashSet<String>();
+		
+		for (String line : lines) {
+			String messageId = line.split(SEPARATOR)[3];		// File name for a Source/original FIRST message Id
+			uniqueFirstIds.add(messageId);
+		}
+		
+		return uniqueFirstIds;
+	}
+	
+	
+	/**
+	 * Replace INJECT_TEMPLATE with inject Message Id, for all lines containing @param firstMsgId.
+	 * This uses internal resource containing Map<FIRST msgId, InjectId> to update all required lines. 
+	 * @return
+	 */
+	public static void replaceInjectTemplateWithId() {
+		final String SIGNATURE = "replaceInjectTemplateWithId()";
+		try {
+			// Read file
+			List<String> lines = Files.readAllLines(FILE_PATH);
+					
+			// Create new list of lines with modified content
+			BufferedWriter bw = Files.newBufferedWriter(FILE_PATH_TEMP);
+			for (String line : lines) {
+				// Split
+				String[] lineParts = line.split(SEPARATOR);
+				
+				// Get FIRST message id
+				String currentFirstMsgId = lineParts[2];
+				
+				// Determine if message id of current line needs to be updated
+				boolean isMatchFound = tempMsgLink.containsKey(currentFirstMsgId);
+				
+				// Replace inject template text with inject id, if the 2 FIRST message ids are the same
+				if (isMatchFound) {
+					String injectId = tempMsgLink.get(currentFirstMsgId);
+					String newLine = line.replace(INJECT_TEMPLATE, injectId);
+					bw.write(newLine);
+					bw.newLine();
+				}
+			}
+			
+			// Cleanup
+			bw.flush();
+			bw.close();
+			
+			// Delete original state file
+			File file = new File(FILE_PATH_TEMP.toString());
+			Files.delete(FILE_PATH);
+			
+			// Rename temp state file
+			boolean isRenamed = file.renameTo(FILE_PATH.toFile());
+			if (isRenamed) {
+				String msg = "Temp state file is renamed to: " + FILE_PATH.toString();
+				logger.writeDebug(LOCATION, SIGNATURE, msg);
+			} else {
+				String msg = "Temp state file could not be renamed to: " + FILE_PATH.toString();
+				logger.writeError(LOCATION, SIGNATURE, msg);
+				throw new RuntimeException(msg);
+			}
+		} catch (IOException e) {
+			String msg = "Error reading all ICO lines from state file: " + FILE_PATH.toString() + "\n" + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new RuntimeException(msg);
+		}
+	}
+	
+	
+	public static void addInjectEntry(String firstMsgId, String injectMsgId) {
+		tempMsgLink.put(firstMsgId, injectMsgId);
+	}
 }

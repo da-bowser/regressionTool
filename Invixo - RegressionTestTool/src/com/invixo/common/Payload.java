@@ -4,15 +4,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 
-import javax.activation.DataSource;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
+import com.invixo.common.util.XiMessageUtil;
 import com.invixo.consistency.FileStructure;
 
 public class Payload {
@@ -62,8 +61,7 @@ public class Payload {
 			byte[] decodedMessage = Base64.getMimeDecoder().decode(base64EncodedMultiPart);
 			
 			// Create multipart message from decoded base64
-			DataSource ds = new ByteArrayDataSource(decodedMessage, "multipart/related");
-			MimeMultipart mmp = new MimeMultipart(ds);
+			MimeMultipart mmp = XiMessageUtil.createMultiPartMessage(decodedMessage);
 		
 			// Set MultiPart message
 			this.xiMultipart = mmp;			
@@ -83,7 +81,7 @@ public class Payload {
 	private void setXiHeader(Multipart multiPartMessage) throws PayloadException {
 		final String SIGNATURE = "setXiHeader(Multipart)";
 		try {
-			BodyPart bp = multiPartMessage.getBodyPart(0);		// bodyPart(0) = SAP PO internal envelope (no payload), bodyPart(1) = Payload
+			BodyPart bp = XiMessageUtil.getHeaderFromMultiPartMessage(multiPartMessage);
 			logger.writeDebug(LOCATION, SIGNATURE, "SAP XI Header fetched from multipart message");
 			
 			this.xiHeader = bp;			
@@ -103,7 +101,7 @@ public class Payload {
 	private void setXiPayload(Multipart multiPartMessage) throws PayloadException {
 		final String SIGNATURE = "setXiPayload(Multipart)";
 		try {
-			BodyPart bp = multiPartMessage.getBodyPart(1);		// bodyPart(0) = SAP PO internal envelope (no payload), bodyPart(1) = Payload
+			BodyPart bp = XiMessageUtil.getPayloadFromMultiPartMessage(multiPartMessage);
 			logger.writeDebug(LOCATION, SIGNATURE, "SAP XI payload fetched from multipart message");
 			
 			this.xiHeader = bp;			

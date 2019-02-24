@@ -132,13 +132,13 @@ public class ReportWriter {
 					xmlWriter.writeCharacters(req.getMessageId());
 					xmlWriter.writeEndElement();		
 					
-					// Create element: InjectReport | IntegratedConfiguration | Injections | info | SourcePayloadFile
-					xmlWriter.writeStartElement(XML_PREFIX, "SourcePayloadFile", XML_NS);					
-					xmlWriter.writeCharacters(req.getSourcePayloadFile());
+					// Create element: InjectReport | IntegratedConfiguration | Injections | info | SourceFirstMessage
+					xmlWriter.writeStartElement(XML_PREFIX, "SourceFirstMessage", XML_NS);					
+					xmlWriter.writeCharacters(req.getSourceMultiPartFile());
 					xmlWriter.writeEndElement();
 					
-					// Create element: InjectReport | IntegratedConfiguration | Injections | info | GeneratedRequestFile
-					xmlWriter.writeStartElement(XML_PREFIX, "GeneratedRequestFile", XML_NS);					
+					// Create element: InjectReport | IntegratedConfiguration | Injections | info | GeneratedRequestMessage
+					xmlWriter.writeStartElement(XML_PREFIX, "GeneratedRequestMessage", XML_NS);					
 					xmlWriter.writeCharacters(req.getInjectionRequestFile());
 					xmlWriter.writeEndElement();
 					
