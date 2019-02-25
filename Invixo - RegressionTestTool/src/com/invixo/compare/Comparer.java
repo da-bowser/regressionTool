@@ -93,7 +93,7 @@ public class Comparer {
 			logger.writeDebug(LOCATION, SIGNATURE, "Source file size (bytes): " + this.sourceFileSize);
 			
 			this.compareFileSize = Files.size(compareFile);
-			logger.writeDebug(LOCATION, SIGNATURE, "Compare file size (bytes): " + this.sourceFileSize);
+			logger.writeDebug(LOCATION, SIGNATURE, "Compare file size (bytes): " + this.compareFileSize);
 			
 		} catch (IOException e) {
 			// Not critical - just nice to know when reporting so no exception needs to be thrown
