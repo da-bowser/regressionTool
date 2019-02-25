@@ -22,7 +22,10 @@ public class StateHandler {
 	
 	private static final Path FILE_PATH = Paths.get(FileStructure.FILE_STATE);
 	private static final Path FILE_PATH_TEMP = Paths.get(FileStructure.FILE_STATE + "TEMP");
-	private static final String INJECT_TEMPLATE = "<TEMPLATE_INJECT_MSG_ID>";
+	private static final String INJECT_FIRST_MSG_ID_TEMPLATE = "<TEMPLATE_INJECT_FIRST_MSG_ID>";
+	private static final String NON_INIT_LAST_MSG_ID_TEMPLATE = "<TEMPLATE_NON_INIT_LAST_MSG_ID>";
+	private static final String NON_INIT_LAST_MSG_KEY_TEMPLATE = "<TEMPLATE_NON_INIT_LAST_MSG_KEY>";
+	private static final String NON_INIT_LAST_FILE_NAME_TEMPLATE = "<TEMPLATE_NON_INIT_LAST_FILE_NAME>";
 	private static final String SEPARATOR = GlobalParameters.FILE_DELIMITER;
 	
 	private static HashMap<String, String> tempMsgLink = new HashMap<String, String>();	// Map of <FIRST msg Id, Inject Id> created during inject.
@@ -37,7 +40,7 @@ public class StateHandler {
 	 * @return
 	 */
 	public static String createExtractEntry(String icoName, Payload first, Payload last) {
-		return createEntry(icoName, first, last, INJECT_TEMPLATE);
+		return createEntry(icoName, first, last, INJECT_FIRST_MSG_ID_TEMPLATE);
 	}
 	
 
@@ -45,7 +48,7 @@ public class StateHandler {
 		String line	= System.currentTimeMillis() 
 					+ SEPARATOR 
 					
-					// FIRST payload
+					// INIT FIRST payload
 					+ first.getSapMessageKey()
 					+ SEPARATOR 
 					+ first.getSapMessageId()
@@ -53,7 +56,7 @@ public class StateHandler {
 					+ first.getFileName()
 					+ SEPARATOR
 					
-					// LAST payload
+					// INIT LAST payload
 					+ last.getSapMessageKey()
 					+ SEPARATOR 
 					+ last.getSapMessageId()
@@ -61,8 +64,16 @@ public class StateHandler {
 					+ last.getFileName()
 					+ SEPARATOR
 					
-					// Inject Message Id
+					// INJECT Message Id
 					+ injectMsgId
+					+ SEPARATOR
+
+					// NON-INIT LAST payload
+					+ NON_INIT_LAST_MSG_ID_TEMPLATE
+					+ SEPARATOR 
+					+ NON_INIT_LAST_MSG_KEY_TEMPLATE
+					+ SEPARATOR
+					+ NON_INIT_LAST_FILE_NAME_TEMPLATE
 					+ SEPARATOR
 					
 					// ICO identifier
@@ -167,7 +178,7 @@ public class StateHandler {
 				// Replace inject template text with inject id, if the 2 FIRST message ids are the same
 				if (isMatchFound) {
 					String injectId = tempMsgLink.get(currentFirstMsgId);
-					String newLine = line.replace(INJECT_TEMPLATE, injectId);
+					String newLine = line.replace(INJECT_FIRST_MSG_ID_TEMPLATE, injectId);
 					bw.write(newLine);
 					bw.newLine();
 				}
