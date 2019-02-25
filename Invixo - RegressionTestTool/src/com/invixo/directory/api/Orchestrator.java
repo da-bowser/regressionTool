@@ -1,7 +1,6 @@
 package com.invixo.directory.api;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -11,8 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
-
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -21,8 +18,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 
-import com.invixo.common.IcoOverviewDeserializer;
-import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.util.HttpException;
 import com.invixo.common.util.HttpHandler;
 import com.invixo.common.util.Logger;
