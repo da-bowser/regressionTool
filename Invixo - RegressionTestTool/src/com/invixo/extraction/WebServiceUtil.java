@@ -29,7 +29,7 @@ import com.invixo.main.GlobalParameters;
 
 public class WebServiceUtil {
 	private static Logger logger = Logger.getInstance();
-	private static final String LOCATION = WebServiceUtilTest.class.getName();
+	private static final String LOCATION = WebServiceUtil.class.getName();
 	private static final String ENDPOINT = GlobalParameters.SAP_PO_HTTP_HOST_AND_PORT + PropertyAccessor.getProperty("SERVICE_PATH_EXTRACT");
 	
 	
