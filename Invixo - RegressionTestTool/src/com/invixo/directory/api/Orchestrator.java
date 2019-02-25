@@ -1,6 +1,7 @@
 package com.invixo.directory.api;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -8,6 +9,9 @@ import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -17,6 +21,8 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 
+import com.invixo.common.IcoOverviewDeserializer;
+import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.util.HttpException;
 import com.invixo.common.util.HttpHandler;
 import com.invixo.common.util.Logger;
@@ -55,7 +61,7 @@ public class Orchestrator {
 		
 			// Extract all ICOs from query response
 			Orchestrator.icoReadRequestList = extractIcoDataFromQueryResponse(new ByteArrayInputStream(responseIcoQueryBytes));
-			
+						
 			// Create read request to get additional information about ICO (Receiver, QoS, etc)
 			byte[] requestIcoReadBytes = createIntegratedConfigurationReadRequest(icoReadRequestList);
 						
@@ -67,6 +73,9 @@ public class Orchestrator {
 			
 			// Determine if any ico receiver interfaces uses multimapping
 			getIcoMultiplicityInfoFromRepository(Orchestrator.icoList);
+			
+			// Sort
+			sort(Orchestrator.icoList);
 			
 			// Create complete ICO overview file
 			icoOverviewFilePath = createCompleteIcoOverviewFile(Orchestrator.icoList);
@@ -85,6 +94,19 @@ public class Orchestrator {
 		return icoOverviewFilePath;
 	}
 
+	
+	private static void sort(ArrayList<IntegratedConfiguration> list) {
+		Collections.sort(list, new Comparator<IntegratedConfiguration>() {
+		    @Override
+		    public int compare(IntegratedConfiguration ico1, IntegratedConfiguration ico2) {
+		    	String name1 = ico1.getSenderPartyId() + ico1.getSenderComponentId() + ico1.getSenderInterfaceName();
+		    	String name2 = ico2.getSenderPartyId() + ico2.getSenderComponentId() + ico2.getSenderInterfaceName();
+		    	
+		        return name1.compareTo(name2);
+		    }			
+		});
+	}
+	
 
 	/**
 	 * Calls PO repository simple query to extract receiver interface mapping multiplicity 1:1/1:n.
