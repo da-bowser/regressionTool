@@ -37,10 +37,6 @@ public class Orchestrator {
 				processSingleIco(ico, counter);
 			}
 			
-			// Update State File
-			StateHandler.replaceInjectTemplateWithId();
-			logger.writeInfo(LOCATION, SIGNATURE, "State file updated.");
-			
 			logger.writeInfo(LOCATION, SIGNATURE, "Finished processing all ICO's...");
 			return icoList;
 		} finally {

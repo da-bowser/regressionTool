@@ -15,6 +15,7 @@ import org.apache.http.client.methods.HttpPost;
 import com.invixo.common.GeneralException;
 import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.IntegratedConfigurationMain;
+import com.invixo.common.StateException;
 import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
@@ -84,9 +85,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		final String SIGNATURE = "startInjection()";
 		InjectionRequest ir = null;
 		try {
+			// State Handling: prepare
+			StateHandler.setIcoPath(this.getName());
+			
 			// Get list of all request/payload files related to ICO
 			// This list can contain redundant entries for FIRST messages if a multimapping is present (1 FIRST can be parent to many LAST)
-			List<String> stateEntries = StateHandler.getLinesMatchingIco(this.getName());
+			List<String> stateEntries = StateHandler.readIcoStateLinesFromFile();
 			
 			// Get unique FIRST file names
 			HashSet<String> uniqueFirstMessages = StateHandler.getUniqueFirstFileNames(stateEntries);
@@ -103,7 +107,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 				// NB: message injection for single messages terminates on first error!
 				injectMessage(this.getFilePathFirstPayloads() + firstMessage, ir);
 			}
-		} catch (InjectionPayloadException|HttpException e) {
+			
+			// State Handling: persist
+			StateHandler.replaceInjectTemplateWithId();
+			StateHandler.storeIcoState();
+		} catch (InjectionPayloadException|HttpException|StateException e) {
 			if (ir != null) {
 				ir.setError(e);
 			}

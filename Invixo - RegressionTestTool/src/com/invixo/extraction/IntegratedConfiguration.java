@@ -7,8 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 import com.invixo.common.GeneralException;
 import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.IntegratedConfigurationMain;
+import com.invixo.common.StateException;
 import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
@@ -82,6 +83,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		try {
 			logger.writeInfo(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO: " + this.getName());
 			
+			// State Handling: prepare
+			StateHandler.setIcoPath(this.getName());								// Set path
+			
 			// Housekeeping: Delete old ICO extract data
 			if (GlobalParameters.PARAM_VAL_ALLOW_SAME_ENV) {
 				// Do not delete data (this is a special test parameter)
@@ -101,7 +105,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				// Extract only Message IDs previously injected for ICO 
 				extractModeNonInit();
 			}
-		} catch (ExtractorException|HttpException e) {
+			
+			// State Handling: persist
+			StateHandler.storeIcoState();
+		} catch (ExtractorException|HttpException|StateException e) {
 			this.setEx(e);
 		} finally {
 			this.endTime = Util.getTime();
@@ -163,9 +170,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	private void extractModeNonInit() throws ExtractorException, HttpException {
 		final String SIGNATURE = "extractModeNonInit()";
 		try {
+			// Init State Handler
+			StateHandler.setIcoPath(this.getName());	// Set path
+			
 			// Get list of Message IDs to be extracted (Map<FIRST msgId, Inject Id>)
-	        Map<String, String> messageIdMap = StateHandler.getMessageIdsFromFile(this.getName());
-	        logger.writeInfo(LOCATION, SIGNATURE, "Number of entries (matching ICO) fetched from Message Id Mapping file: " + messageIdMap.size());
+	        Map<String, String> messageIdMap = StateHandler.getMessageIdsFromFile();
+	        logger.writeInfo(LOCATION, SIGNATURE, "Number of entries (matching ICO) fetched from ICO State file: " + messageIdMap.size());
 			
 	        // Split and process map in batches
 	        Map<String, String> currentBatch = new HashMap<String, String>();
@@ -173,7 +183,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	        	// Process batches if max batch size is reached
 	        	if (currentBatch.size() >= 100) {
 	        		logger.writeDebug(LOCATION, SIGNATURE, "Batch size reached. Current batch is being processed...");
-	        		processNonInitInBatch(currentBatch);
+	        		processNonInitInBatch(currentBatch.values());
 	        		currentBatch.clear();
 	        	}
 	        	
@@ -184,10 +194,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	        // Process remaining/leftover maps
         	logger.writeDebug(LOCATION, SIGNATURE, "Batch leftovers to be processed: " + currentBatch.size());
         	if (currentBatch.size() > 0) {
-    	        processNonInitInBatch(currentBatch);        		
+    	        processNonInitInBatch(currentBatch.values());        		
         	}
-		} catch (IllegalStateException|IOException e) {
-			String msg = "Error reading Message Id Map file: " + FileStructure.FILE_MSG_ID_MAPPING + "\n" + e;
+		} catch (IllegalStateException|StateException e) {
+			String msg = "Error reading Message Id Map file: " + StateHandler.getIcoPath() + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);			
 		}
@@ -202,22 +212,22 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * As such all Message IDs in the Message Mapping file must be checked to see if they are in fact 'Parent ID' to other messages.
 	 * The Web Service 'GetMessagesWithSuccessors' is used to determine this, since it returns details for the message itself along with 
 	 * any messages spawned (split) by it (messages that the message is parent to).
-	 * @param messageIdMap					Message Id map build from Message Id mapping file created during injection.
-	 * 										Map<FIRST message ID, Inject message ID>
+	 * @param injectMessageIds				List of Inject Message IDs
 	 * @throws ExtractorException
 	 * @throws HttpException
 	 */
-	private void processNonInitInBatch(Map<String, String> messageIdMap) throws ExtractorException, HttpException {
-		final String SIGNATURE = "processNonInitInBatch(Map<String, String>)";
+	private void processNonInitInBatch(Collection<String> injectMessageIds) throws ExtractorException, HttpException {
+		final String SIGNATURE = "processNonInitInBatch(Collection<String>)";
 		
-		for(Entry<String, String> entry : messageIdMap.entrySet()) {
+		for(String injectMessageId : injectMessageIds) {
 			// Lookup Parent MessageInfo for current Inject ID
-			MessageInfo msgInfo = WebServiceUtil.lookupParentMessageInfo(entry.getValue(), this.getName(), this.getReceiverInterface());
+			MessageInfo msgInfo = WebServiceUtil.lookupParentMessageInfo(injectMessageId, this.getName(), this.getReceiverInterface());
+			this.responseMessageKeys = msgInfo.getObjectKeys();
 			
 			// Special handling for multimapping interfaces(multiplicity 1:n)
 			if (this.isUsingMultiMapping()) {
 				logger.writeDebug(LOCATION, SIGNATURE, "Special handling for MultiMapping scenario");
-				this.responseMessageKeys = handleScenarioMultiMapping(entry.getValue(), msgInfo.getObjectKeys());
+				handleScenarioMultiMapping(injectMessageId, this.responseMessageKeys);
 			}
 			
 			// Special processing for split interfaces (multiplicity 1:1)
@@ -236,16 +246,15 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * 
 	 * @param injectMessageId					Inject Message ID (FIRST)
 	 * @param lastMessageKeys					Children of @param injectMessageId (LAST Message Keys). Can be 1:n for multimapping scenario.
-	 * @return
 	 * @throws HttpException
 	 * @throws ExtractorException
 	 */
-	private HashSet<String> handleScenarioMultiMapping(String injectMessageId, HashSet<String> lastMessageKeys) throws HttpException, ExtractorException {
+	private void handleScenarioMultiMapping(String injectMessageId, HashSet<String> lastMessageKeys) throws HttpException, ExtractorException {
 		final String SIGNATURE = "handleScenarioMultiMapping(HashSet<String>, Collection<String>";
 
 		try {
 			// Read file
-			List<String> lines = StateHandler.getLinesMatchingIco(this.getName());
+			List<String> lines = StateHandler.readIcoStateLinesFromFile();
 
 			// Filter/remove all lines not containing Inject Message Id
 			lines.removeIf(line -> !line.contains(injectMessageId));
@@ -253,43 +262,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Get Message ID from source (FIRST) extract
 			String[] lineParts = lines.get(0).split(GlobalParameters.FILE_DELIMITER);	
 			String sourceFirstMessageId = lineParts[1];
+			String initlastMessageKey = lineParts[1];
 			
-			// Lookup MessageInfo for Message ID
-			MessageInfo extractKeys = WebServiceUtil.lookupParentMessageInfo(sourceFirstMessageId, this.getName(), this.getReceiverInterface());
+			// Get line shit
+//			lines.get(0)
 			
-			// Build new map entries
-			for (String targetMessagKey : lastMessageKeys) {
-				String targetSequence = targetMessagKey.substring(targetMessagKey.indexOf("EOIO"), targetMessagKey.length());
-				
-				for (String sourceMessageKey : extractKeys.getObjectKeys() ) {
-					String sourceSequence = sourceMessageKey.substring(sourceMessageKey.indexOf("EOIO"), sourceMessageKey.length());
-					
-					if (targetSequence.equals(sourceSequence)) {
-						String sourceMsgId = Util.extractMessageIdFromKey(sourceMessageKey);
-						String targetMsgId = Util.extractMessageIdFromKey(targetMessagKey);
-						String mapEntryLine = com.invixo.injection.IntegratedConfiguration.createMappingEntryLine(sourceMsgId, targetMsgId, this.getName());
-						logger.writeDebug(LOCATION, SIGNATURE, mapEntryLine);
-						Files.write(Paths.get(FileStructure.FILE_MSG_ID_MAPPING), mapEntryLine.getBytes(), StandardOpenOption.APPEND);
-						break;
-					}
-				}
-			}
-			
-			// Read all lines from map file except inject id
-//			lines = Files.readAllLines(mapFilePath);
-//			lines.removeIf(line -> line.contains(injectMessageId));
-			
-			// Clear map file
-//			Files.newBufferedWriter(Paths.get(FileStructure.FILE_MSG_ID_MAPPING), StandardOpenOption.TRUNCATE_EXISTING);
-			
-			// Recreate map file
-//			for (String line : lines) {
-//				Files.write(Paths.get(FileStructure.FILE_MSG_ID_MAPPING), (line + "\n").getBytes(), StandardOpenOption.APPEND);
-//			}
-			
-			// Return original object keys to be extracted
-			return lastMessageKeys;
-		} catch (IOException e) {
+			StateHandler.homo("", "", "", "");
+		} catch (StateException e) {
 			String msg = "Error recreating Message Id Mapping file." + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);
@@ -358,12 +337,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @throws ExtractorException
 	 * @throws HttpException
 	 */
-	private void extractModeInit() throws ExtractorException, HttpException {
+	private void extractModeInit() throws ExtractorException, HttpException, StateException {
 		final String SIGNATURE = "extractModeInit()";
 		
-		// Reset (delete) state
-		StateHandler.reset();
-		
+		// Initialize State handling
+		StateHandler.setIcoPath(this.getName());	// Set path
+		StateHandler.reset();						// Delete existing ICO state file
+
 		// Lookup Messages in SAP PO and extract MessageInfo from response
 		MessageInfo msgInfo = WebServiceUtil.lookupMessages(this);
 		

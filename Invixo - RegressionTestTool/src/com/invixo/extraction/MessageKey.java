@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.common.GeneralException;
 import com.invixo.common.Payload;
 import com.invixo.common.PayloadException;
 import com.invixo.common.StateHandler;
@@ -120,11 +119,11 @@ public class MessageKey {
 			// Persist message: LAST
 			last.persistMessage(this.ico.getFilePathLastPayloads());
 			
-			// Update PayloadStateOverview
+			// Build and add new State entry line
 			String newEntry = StateHandler.createExtractEntry(this.ico.getName(), first, last);
-			StateHandler.writeEntry(newEntry);
-		} catch (GeneralException|PayloadException e) {
-			String msg = "Error saving state for MessageKey!\n" + e;
+			StateHandler.addEntryToInternalList(newEntry);
+		} catch (PayloadException e) {
+			String msg = "Error persisting payload for MessageKey!\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			ExtractorException ex = new ExtractorException(msg);
 			this.ex = ex;

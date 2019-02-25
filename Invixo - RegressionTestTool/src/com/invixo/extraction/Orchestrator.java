@@ -25,7 +25,7 @@ public class Orchestrator {
 		final String SIGNATURE = "start(ArrayList<IcoOverviewInstance>)";
 		logger.writeInfo(LOCATION, SIGNATURE, "Extract Mode Initial: " + GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT);
 				
-		// Process each ICO request file
+		// Process each ICO
 		for (IcoOverviewInstance ico : icoOverviewList) {
 			processSingleIco(ico);
 		}
@@ -38,7 +38,8 @@ public class Orchestrator {
 	private static void processSingleIco(IcoOverviewInstance icoInstance) {
 		final String SIGNATURE = "processSingleIco(IcoOverviewInstance)";
 		try {
-			// Prepare
+
+			// Prepare: ICO
 			IntegratedConfiguration ico = new IntegratedConfiguration(icoInstance);
 			icoExtractList.add(ico);
 
