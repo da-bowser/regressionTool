@@ -85,7 +85,8 @@ public class StateHandler {
 	
 	
 	/**
-	 * Create an entry during init extraction.
+	 * Scenario: Extract Init
+	 * Create an entry.
 	 * @param icoName
 	 * @param first
 	 * @param last
@@ -148,6 +149,10 @@ public class StateHandler {
 	}
 
 	
+	/**
+	 * Scenario: Extract
+	 * @param stateEntry
+	 */
 	public static void addEntryToInternalList(String stateEntry) {
 		if (icoLines == null) {
 			icoLines = new ArrayList<String>();
@@ -186,6 +191,7 @@ public class StateHandler {
 	
 	
 	/**
+	 * Scenario: Inject
 	 * Replace INJECT_TEMPLATE with inject Message Id, for all lines containing the referenced 'initFirstMsgId' in internal
 	 * map of <initFirstMsgId, injectId>.
 	 * Replacement does not store data, it merely updates the internal reference to the State Lines in memory. 
@@ -214,7 +220,7 @@ public class StateHandler {
 	
 	
 	/**
-	 * 
+	 * Scenario: Extract NonInit, multimapping
 	 * @param injectMessageId
 	 * @param initlastMessageKey
 	 * @param nonInitLastMessageKey
@@ -243,12 +249,18 @@ public class StateHandler {
 	}
 	
 	
+	/**
+	 * Scenario: Inject
+	 * @param firstMsgId
+	 * @param injectMsgId
+	 */
 	public static void addInjectEntry(String firstMsgId, String injectMsgId) {
 		tempMsgLink.put(firstMsgId, injectMsgId);
 	}
 	
 	
 	/**
+	 * Scenario: Extract NonInit
 	 * Create map from ICO State Lines.
 	 * @return					Map<key, value>
 	 * 								KEY: Source message id (original extracted message id (INIT extract))
@@ -262,6 +274,7 @@ public class StateHandler {
 	
 	
 	/**
+	 * Scenario: Compare
 	 * Create map from ICO State Lines.
 	 * @return					Map<key, value>
 	 * 								KEY: Source message id (init LAST message id)
@@ -302,6 +315,11 @@ public class StateHandler {
 	}
 
 
+	/**
+	 * Scenario: Extract
+	 * @param sapMessageId
+	 * @param fileName
+	 */
 	public static void replaceLastFileNameTemplateWithFileName(String sapMessageId, String fileName) {
 		for (int i = 0; i < icoLines.size(); i++) {
 			String line = icoLines.get(i);
