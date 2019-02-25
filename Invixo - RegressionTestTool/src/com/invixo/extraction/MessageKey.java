@@ -140,7 +140,7 @@ public class MessageKey {
 	
 	
 	/**
-	 * Extract FIRST or LAST payload for ICOs with a mapping multiplicitiy of 1:1.
+	 * Extract FIRST or LAST payload for ICOs with a mapping multiplicity of 1:1.
 	 * Call Web Service for fetching SAP PO message data (SOAP envelope). 
 	 * A normal web service response will contain an XML payload containing base64 encoded SAP XI multipart message.
 	 * This method is responsible for creating a Payload object.

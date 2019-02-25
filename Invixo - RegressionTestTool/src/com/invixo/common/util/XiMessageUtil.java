@@ -39,9 +39,9 @@ public class XiMessageUtil {
 	
 	
 	public static byte[] getPayloadBytesFromMultiPart(byte[] multipartBytes) throws IOException, MessagingException {
-			Multipart mmp = XiMessageUtil.createMultiPartMessage(multipartBytes);
-			byte[] payload = XiMessageUtil.getPayloadBytesFromMultiPartMessage(mmp);
-			return payload;
+		Multipart mmp = createMultiPartMessage(multipartBytes);
+		byte[] payload = getPayloadBytesFromMultiPartMessage(mmp);
+		return payload;
 	}
 	
 }
