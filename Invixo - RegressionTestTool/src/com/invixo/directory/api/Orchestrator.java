@@ -209,7 +209,7 @@ public class Orchestrator {
 	 * @throws FileNotFoundException
 	 * @throws XMLStreamException
 	 */
-	public static String createCompleteIcoOverviewFile(ArrayList<IntegratedConfiguration> icoList) throws FileNotFoundException, XMLStreamException {
+	static String createCompleteIcoOverviewFile(ArrayList<IntegratedConfiguration> icoList) throws FileNotFoundException, XMLStreamException {
 		final String SIGNATURE = "createCompleteIcoOverviewFile(ArrayList<IntegratedConfiguration>)";
 		String icoOverviewFilePath = ICO_OVERVIEW_FILE;
 		
@@ -565,7 +565,7 @@ public class Orchestrator {
 	 * @param icoRequestList	List of ico's found in query response
 	 * @return
 	 */
-	private static byte[] createIntegratedConfigurationReadRequest(ArrayList<IntegratedConfigurationReadRequest> icoRequestList) {
+	static byte[] createIntegratedConfigurationReadRequest(ArrayList<IntegratedConfigurationReadRequest> icoRequestList) {
 		final String SIGNATURE = "createIntegratedConfigurationReadRequest(ArrayList<IntegratedConfigurationReadRequest>)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Create ico read request: start");
 		try {
@@ -667,7 +667,7 @@ public class Orchestrator {
 	 * @return
 	 * @throws DirectoryApiException
 	 */
-	public static ArrayList<IntegratedConfigurationReadRequest> extractIcoDataFromQueryResponse(InputStream responseBytes) throws DirectoryApiException {
+	static ArrayList<IntegratedConfigurationReadRequest> extractIcoDataFromQueryResponse(InputStream responseBytes) throws DirectoryApiException {
 		final String SIGNATURE = "extractIcoDataFromQueryResponse(InputStream)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Extracting data from ico query response");
 		try {
@@ -730,7 +730,7 @@ public class Orchestrator {
 	 * Create "empty" request message for IntegratedConfigurationQueryRequest to include all ICO's in system in the response
 	 * @return IntegratedConfigurationQueryRequest
 	 */
-	public static byte[] createIntegratedConfigurationQueryRequest() {
+	private static byte[] createIntegratedConfigurationQueryRequest() {
 		final String SIGNATURE = "createIntegratedConfigurationQueryRequest()";
 		
 		logger.writeDebug(LOCATION, SIGNATURE, "Create query request: start");

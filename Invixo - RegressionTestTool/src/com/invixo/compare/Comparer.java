@@ -35,7 +35,7 @@ public class Comparer {
 	private ArrayList<String> icoXPathExceptions = new ArrayList<String>();
 	private CompareException ce;
 	
-	public Comparer(Path sourceFile, Path compareFile, ArrayList<String> icoXPathExceptions) {
+	Comparer(Path sourceFile, Path compareFile, ArrayList<String> icoXPathExceptions) {
 		this.sourceFile = sourceFile;
 		this.compareFile = compareFile;
 		this.icoXPathExceptions = icoXPathExceptions;

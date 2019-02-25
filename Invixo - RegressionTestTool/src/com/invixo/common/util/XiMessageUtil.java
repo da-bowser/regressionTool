@@ -32,7 +32,7 @@ public class XiMessageUtil {
 	}
 	
 	
-	public static byte[] getPayloadBytesFromMultiPartMessage(Multipart multiPartMessage) throws IOException, MessagingException {
+	private static byte[] getPayloadBytesFromMultiPartMessage(Multipart multiPartMessage) throws IOException, MessagingException {
 		BodyPart bp = getPayloadFromMultiPartMessage(multiPartMessage);
 		return bp.getInputStream().readAllBytes();
 	}

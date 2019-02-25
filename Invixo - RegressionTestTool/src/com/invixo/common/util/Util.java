@@ -1,10 +1,7 @@
 package com.invixo.common.util;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,55 +32,13 @@ public class Util {
 		return df.format(mb);
 	}
 	
-	
-	public static String inputstreamToString(InputStream is, String encoding) {
-		String result = null;
-		try {
-			if (is != null) {
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				byte[] buffer = new byte[1024];
-				int length;
-				
-				while ((length = is.read(buffer)) != -1) {
-				    baos.write(buffer, 0, length);
-				}
-				
-				result = baos.toString(encoding);
-			}
-			return result;
-		} catch (IOException e) {
-			throw new RuntimeException("*inputstreamToString* Error converting stream to string. " + e);
-		}
-	}
-	
-	
+		
 	public static void writeFileToFileSystem(String filePath, byte[] fileContent) {
 		try {
 			Path path = Paths.get(filePath);
 			Files.write(path, fileContent);			
 		} catch (IOException e) {
 			throw new RuntimeException("*writeFileToFileSystem* Error writing to file system for file " + filePath + "\n" + e);
-		}
-	}
-	
-	
-	public static File[] getListOfFilesInDirectory(String directory) {
-		File folder = new File(directory);
-		
-		// DANGER DANGER DANGER - DUMMY IDIOTIC CODE BELOW to make a quick solution ensuring array is ALWAYS initialized and not evar NULL. Sorry!
-		File[] files = {};
-	
-		File[] files2 = folder.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				return pathname.isFile();
-			}
-		});
-		
-		if (files2 == null) {
-			return files;
-		} else {
-			return files2;
 		}
 	}
 	

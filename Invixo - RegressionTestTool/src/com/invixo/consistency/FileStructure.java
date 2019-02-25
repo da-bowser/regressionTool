@@ -40,14 +40,13 @@ public class FileStructure {
 	// Various
 	private static final String DIR_LOGS							= FILE_BASE_LOCATION + "\\Logs\\";		// Manually set in Logger also.
 	private static final String DIR_DEBUG							= FILE_BASE_LOCATION + "\\Debug\\";
+	private static final String DIR_CONFIG							= FILE_BASE_LOCATION + "\\Config\\";
 	public static final String DIR_REPORTS							= FILE_BASE_LOCATION + "\\Reports\\";
-	public static final String DIR_CONFIG							= FILE_BASE_LOCATION + "\\Config\\";
 	
 	// Files
 	public static final String FILE_CONFIG_SYSTEM_MAPPING			= DIR_CONFIG + "systemMapping.txt";
 	public static final String FILE_CONFIG_COMPARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
 	public static final String FILE_MSG_ID_MAPPING					= DIR_INJECT + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_to_" + GlobalParameters.PARAM_VAL_TARGET_ENV + "_msgId_map.txt";
-	public static final String FILE_STATE							= DIR_INJECT + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_to_" + GlobalParameters.PARAM_VAL_TARGET_ENV + "_msgId_mapNEW.txt";
 	public static final String FILE_STATE_PATH						= DIR_INJECT + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_to_" + GlobalParameters.PARAM_VAL_TARGET_ENV + "_";
 	public static final String PAYLOAD_FILE_EXTENSION 				= ".multipart";	
 	public static final String ICO_OVERVIEW_FILE 					= DIR_CONFIG + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_IntegratedConfigurationsOverview.xml";

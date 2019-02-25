@@ -12,17 +12,9 @@ import com.invixo.common.util.HttpException;
 import com.invixo.main.GlobalParameters;
 
 public class MessageKey {
-	/*====================================================================================
-	 *------------- Class variables
-	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = MessageKey.class.getName();	
 
-
-	
-	/*====================================================================================
-	 *------------- Instance variables
-	 *====================================================================================*/
 	private String sapMessageKey = null;			// SAP Message Key from Web Service response of GetMessageList
 	private String sapMessageId = null;				// SAP Message Id 
 	private IntegratedConfiguration ico	= null;		// Integrated Configuration
@@ -33,9 +25,6 @@ public class MessageKey {
 	
 	
 	
-	/*====================================================================================
-	 *------------- Constructors
-	 *====================================================================================*/
 	MessageKey(IntegratedConfiguration ico, String messageKey) {
 		this.ico = ico;
 		this.setSapMessageKey(messageKey);
@@ -46,52 +35,51 @@ public class MessageKey {
 		}
 	}
 
-
-
-	/*====================================================================================
-	 *------------- Getters and Setters
-	 *====================================================================================*/
+	
 	public String getSapMessageKey() {
 		return sapMessageKey;
 	}
+	
 	
 	public void setSapMessageKey(String sapMessageKey) {
 		this.sapMessageKey = sapMessageKey;
 	}
 	
+	
 	public String getSapMessageId() {
 		return sapMessageId;
 	}
+	
 	
 	public void setSapMessageId(String sapMessageKey) {
 		this.sapMessageId = Util.extractMessageIdFromKey(sapMessageKey);
 	}
 
+	
 	public Exception getEx() {
 		return ex;
 	}
+	
 	
 	public void setEx(Exception e) {
 		this.ex = e;
 	}
 	
+	
 	public ArrayList<String> getMultiMapMessageKeys() {
 		return multiMapMessageKeys;
 	}
+	
 	
 	public Payload getPayloadFirst() {
 		return payloadFirst;
 	}
 
+	
 	public Payload getPayloadLast() {
 		return payloadLast;
 	}
 
-	
-	
-	/*====================================================================================
-	 *------------- Instance methods
-	 *====================================================================================*/
 	
 	/**
 	 * Main entry point

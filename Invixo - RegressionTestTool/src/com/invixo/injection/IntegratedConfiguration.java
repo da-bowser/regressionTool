@@ -176,13 +176,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			logger.writeInfo(LOCATION, SIGNATURE, "---- Message processing END");
 		}
 	}
-
-
-	public static String createMappingEntryLine(String sourceMsgId, String targetMsgId, String icoName) {
-		final String separator = GlobalParameters.FILE_DELIMITER;
-		String mapEntry = System.currentTimeMillis() + separator + sourceMsgId + separator + targetMsgId + separator + icoName + "\n";
-		return mapEntry;
-	}
 		
 	
 	/**
