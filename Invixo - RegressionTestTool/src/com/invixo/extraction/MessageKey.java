@@ -113,15 +113,22 @@ public class MessageKey {
 	void storeState(Payload first, Payload last) throws ExtractorException {
 		final String SIGNATURE = "storeState(Payload, Payload)";
 		try {
-			// Persist message: FIRST
-			first.persistMessage(this.ico.getFilePathFirstPayloads());
+			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
+				// Persist message: FIRST
+				first.persistMessage(this.ico.getFilePathFirstPayloads());
+			}
 			
 			// Persist message: LAST
 			last.persistMessage(this.ico.getFilePathLastPayloads());
 			
 			// Build and add new State entry line
-			String newEntry = StateHandler.createExtractEntry(this.ico.getName(), first, last);
-			StateHandler.addEntryToInternalList(newEntry);
+			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
+				String newEntry = StateHandler.createExtractEntry(this.ico.getName(), first, last);
+				StateHandler.addEntryToInternalList(newEntry);
+			} else {
+				// Replace State nonInit LAST file name template
+				StateHandler.replaceLastFileNameTemplateWithFileName(last.getSapMessageId(), last.getFileName());
+			}
 		} catch (PayloadException e) {
 			String msg = "Error persisting payload for MessageKey!\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);

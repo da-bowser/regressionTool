@@ -1,7 +1,6 @@
 package com.invixo.common;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,8 +20,6 @@ public class StateHandler {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = StateHandler.class.getName();
 	
-	private static final Path FILE_PATH = Paths.get(FileStructure.FILE_STATE);
-	private static final Path FILE_PATH_TEMP = Paths.get(FileStructure.FILE_STATE + "TEMP");
 	private static final String INJECT_FIRST_MSG_ID_TEMPLATE = "<TEMPLATE_INJECT_FIRST_MSG_ID>";
 	private static final String NON_INIT_LAST_MSG_ID_TEMPLATE = "<TEMPLATE_NON_INIT_LAST_MSG_ID>";
 	private static final String NON_INIT_LAST_MSG_KEY_TEMPLATE = "<TEMPLATE_NON_INIT_LAST_MSG_KEY>";
@@ -39,7 +36,7 @@ public class StateHandler {
 	
 
 	public static void setIcoPath(String icoName) {
-		icoStatePath = Paths.get(FileStructure.FILE_STATE_PATH + icoName);
+		icoStatePath = Paths.get(FileStructure.FILE_STATE_PATH + icoName + ".txt");
 	}
 	
 
@@ -226,7 +223,8 @@ public class StateHandler {
 	 */
 	public static void replaceInjectTemplateWithId() {
 		// Modify internal list of ICO lines
-		for (String line : icoLines) {
+		for (int i = 0; i < icoLines.size(); i++) {
+			String line = icoLines.get(i);
 			// Split
 			String[] lineParts = line.split(SEPARATOR);
 			
@@ -240,6 +238,7 @@ public class StateHandler {
 			if (isMatchFound) {
 				String injectId = tempMsgLink.get(currentFirstMsgId);
 				line = line.replace(INJECT_FIRST_MSG_ID_TEMPLATE, injectId);
+				icoLines.set(i, line);
 			}
 		}
 	}
@@ -248,58 +247,26 @@ public class StateHandler {
 	/**
 	 * @return
 	 */
-	public static void homo(String initlastMessageKey, String nonInitLastMessageKey, String nonInitLastMessageId, String nonInitLastFileName) {
-		final String SIGNATURE = "homo()";
-		try {
-			// Read file
-			List<String> lines = Files.readAllLines(FILE_PATH);
-					
-			// Create new list of lines with modified content
-			BufferedWriter bw = Files.newBufferedWriter(FILE_PATH_TEMP);
+	public static void replaceMessageInfoTemplateWithMessageInfo(String injectMessageId, String initlastMessageKey, String nonInitLastMessageKey, String nonInitLastMessageId) {
+		// Get sequence id from Message Key
+		String nonInitLastMessageKeySequenceId = getSequenceIdFromMessageKey(nonInitLastMessageKey);
+		
+		for (int i = 0; i < icoLines.size(); i++) {
+			String line = icoLines.get(i);
 			
-			// Get sequence id from Message Key
-			String nonInitLastMessageKeySequenceId = getSequenceIdFromMessageKey(nonInitLastMessageKey);
-			
-			for (String line : lines) {
-				// Split
-				String[] lineParts = line.split(SEPARATOR);
-				String currentLastMessageKey = lineParts[4];
-				String currentLastKeySequenceId = getSequenceIdFromMessageKey(currentLastMessageKey); 
+			// Split
+			String[] lineParts = line.split(SEPARATOR);
+			String currentLastMessageKey = lineParts[4];
+			String currentLastKeySequenceId = getSequenceIdFromMessageKey(currentLastMessageKey); 
+			String currentInjectMessageId = lineParts[7];
 
-				// Check
-				if (nonInitLastMessageKeySequenceId.equals(currentLastKeySequenceId)) {
-					// Replace templates
-					String newLine = line.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
-					newLine = line.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
-					newLine = line.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, nonInitLastFileName);
-
-					bw.write(newLine);
-					bw.newLine();
-				}
+			// Check
+			if (nonInitLastMessageKeySequenceId.equals(currentLastKeySequenceId) && injectMessageId.equals(currentInjectMessageId)) {
+				// Replace templates
+				line = line.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
+				line = line.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
+				icoLines.set(i, line);		
 			}
-			
-			// Cleanup
-			bw.flush();
-			bw.close();
-			
-			// Delete original state file
-			File file = new File(FILE_PATH_TEMP.toString());
-			Files.delete(FILE_PATH);
-			
-			// Rename temp state file
-			boolean isRenamed = file.renameTo(FILE_PATH.toFile());
-			if (isRenamed) {
-				String msg = "Temp state file is renamed to: " + FILE_PATH.toString();
-				logger.writeDebug(LOCATION, SIGNATURE, msg);
-			} else {
-				String msg = "Temp state file could not be renamed to: " + FILE_PATH.toString();
-				logger.writeError(LOCATION, SIGNATURE, msg);
-				throw new RuntimeException(msg);
-			}
-		} catch (IOException e) {
-			String msg = "Error updating state file: " + FILE_PATH.toString() + "\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new RuntimeException(msg);
 		}
 	}
 	
@@ -339,5 +306,15 @@ public class StateHandler {
 	
 	public static String getIcoPath() {
 		return icoStatePath.toString();
+	}
+
+
+	public static void replaceLastFileNameTemplateWithFileName(String sapMessageId, String fileName) {
+		for (int i = 0; i < icoLines.size(); i++) {
+			String line = icoLines.get(i);
+			line = line.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, fileName);
+			icoLines.set(i, line);
+		}
+		
 	}
 }

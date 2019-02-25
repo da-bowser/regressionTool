@@ -255,19 +255,16 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		try {
 			// Read file
 			List<String> lines = StateHandler.readIcoStateLinesFromFile();
-
-			// Filter/remove all lines not containing Inject Message Id
-			lines.removeIf(line -> !line.contains(injectMessageId));
 			
 			// Get Message ID from source (FIRST) extract
 			String[] lineParts = lines.get(0).split(GlobalParameters.FILE_DELIMITER);	
-			String sourceFirstMessageId = lineParts[1];
-			String initlastMessageKey = lineParts[1];
+			String initlastMessageKey = lineParts[4];
 			
-			// Get line shit
-//			lines.get(0)
+			for(String nonInitLastMessageKey : lastMessageKeys) {
+				String nonInitLastMessageId = Util.extractMessageIdFromKey(nonInitLastMessageKey);
+				StateHandler.replaceMessageInfoTemplateWithMessageInfo(injectMessageId, initlastMessageKey, nonInitLastMessageKey, nonInitLastMessageId);
+			}
 			
-			StateHandler.homo("", "", "", "");
 		} catch (StateException e) {
 			String msg = "Error recreating Message Id Mapping file." + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
