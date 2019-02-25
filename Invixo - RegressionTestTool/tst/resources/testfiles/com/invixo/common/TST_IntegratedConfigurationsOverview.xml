@@ -3,7 +3,7 @@
 	<inv:IntegratedConfiguration>
 		<inv:Active>true</inv:Active>
 		<inv:Name>RTT_Sender_Data_Out_Async_to_RTT_Receiver_Data_In_Async</inv:Name>
-		<inv:QualityOfService>EO</inv:QualityOfService>
+		<inv:QualityOfService>EOIO</inv:QualityOfService>
 		<inv:FromTime/>
 		<inv:ToTime/>
 		<inv:MaxMessages>3</inv:MaxMessages>

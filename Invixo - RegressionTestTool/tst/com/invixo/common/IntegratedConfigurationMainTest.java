@@ -30,7 +30,7 @@ public class IntegratedConfigurationMainTest {
 	void constructorExtractionVerification() {
 		try {
 			// Get ICO list from ICO Overview file
-			String icoOverviewPath = "../../../resources/testfiles/com/invixo/common/TST_IntegratedConfigurationsOverview.xml";
+			String icoOverviewPath = "../../../resources/testfiles/com/invixo/common/TST_IntegratedConfigurationsOverview.xml";			
 			InputStream overviewStream = this.getClass().getResourceAsStream(icoOverviewPath);
 			ArrayList<IcoOverviewInstance> icoOverviewList =  IcoOverviewDeserializer.deserialize(overviewStream);
 			
@@ -39,7 +39,7 @@ public class IntegratedConfigurationMainTest {
 			URL urlSystemMapping = this.getClass().getResource(systemMapping);
 			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
 			
-			// Create GetMessageList request
+			// Create new integrated configuration (this extracts data from ICO Overview file)
 			IntegratedConfigurationMain ico = new IntegratedConfigurationMain(icoOverviewList.get(0), pathSystemMapping, "PRD", "TST");
 			
 			// Check: fail if message properties are not set correctly
@@ -65,7 +65,7 @@ public class IntegratedConfigurationMainTest {
 			assertEquals(null, ico.getFromTime(), "FromTime");
 			assertEquals(null, ico.getToTime(), "ToTime");
 			assertEquals(3, ico.getMaxMessages(), "MaxMessages");
-			assertEquals("EO", ico.getQualityOfService(), "QoS");
+			assertEquals("EOIO", ico.getQualityOfService(), "QoS");
 			assertEquals(null, ico.getEx(), "Exception");
 		} catch (Exception e) {
 			fail("It aint cooking chef! " + e);

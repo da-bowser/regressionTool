@@ -42,7 +42,7 @@ public class IcoOverviewDeserializerTest {
 			assertEquals(null, ico.getFromTime(), "FromTime");
 			assertEquals(null, ico.getToTime(), "ToTime");
 			assertEquals(3, ico.getMaxMessages(), "MaxMessages");
-			assertEquals("EO", ico.getQualityOfService(), "QoS");
+			assertEquals("EOIO", ico.getQualityOfService(), "QoS");
 			assertTrue(ico.isUsingMultiMapping(), "Uses MultiMapping");
 			assertTrue(ico.isActive(), "IsActive");
 		} catch (Exception e) {
