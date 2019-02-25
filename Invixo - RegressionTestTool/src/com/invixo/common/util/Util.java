@@ -157,41 +157,6 @@ public class Util {
 	
 	
 	/**
-	 * Create MAP from a delimiter separated input file. index parameters determines witch properties to extract into map.
-	 * @param path						Path to Message Id mapping file
-	 * @param fileDelimiter				Delimiter used in Message Id mapping file
-	 * @param filterString				Name of ICO. All ICO names not matching this id are filtered/removed/disregarded
-	 * 									Using value null will return everything.
-	 * @param keyIndex					Index in map pointing to Source Message Id (the id originally extracted during INIT extract)
-	 * @param valueIndex				Index in map pointing to Target Message Id (the id used when injecting)
-	 * @return
-	 * @throws IOException
-	 */
-	public static Map<String, String> getMessageIdsFromFile(String path, String fileDelimiter, String filterString, int keyIndex, int valueIndex) throws IOException {
-		Map<String, String> map = new HashMap<String, String>();
-		
-		// Read file
-		Path mapFilePath = new File(path).toPath();
-		List<String> lines = Files.readAllLines(mapFilePath);
-		
-		// Filter/remove all lines not containing string
-		if (filterString != null) {
-			lines.removeIf(line -> !line.contains(filterString));			
-		}
-		
-		// Create map
-		for (String line : lines) {
-			String key 		= line.split(fileDelimiter)[keyIndex];			// Source message id (original extracted message id (INIT extract))
-			String value 	= line.split(fileDelimiter)[valueIndex];		// Target message id (inject message id)
-			map.put(key, value);
-		}
-		
-		// Return map
-		return map;
-	}
-	
-	
-	/**
 	 * Create directories part of a directory path, if they are missing
 	 * @param directoryPath
 	 */

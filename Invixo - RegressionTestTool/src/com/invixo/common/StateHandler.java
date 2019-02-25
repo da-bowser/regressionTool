@@ -10,6 +10,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import com.invixo.common.util.Logger;
 import com.invixo.consistency.FileStructure;
@@ -200,5 +201,32 @@ public class StateHandler {
 	
 	public static void addInjectEntry(String firstMsgId, String injectMsgId) {
 		tempMsgLink.put(firstMsgId, injectMsgId);
+	}
+	
+	
+	/**
+	 * Create MAP from a delimiter separated input file.
+	 * @param icoName
+	 * @return
+	 * @throws IOException
+	 */
+	public static Map<String, String> getMessageIdsFromFile(String icoName) throws IOException {
+		Map<String, String> map = new HashMap<String, String>();
+		
+		// Read file
+		List<String> lines = Files.readAllLines(FILE_PATH);
+		
+		// Filter/remove all lines not containing string
+		lines.removeIf(line -> !line.contains(icoName));			
+		
+		// Create map
+		for (String line : lines) {
+			String key 		= line.split(SEPARATOR)[2];		// Source message id (original extracted message id (INIT extract))
+			String value 	= line.split(SEPARATOR)[7];		// Target message id (inject message id)
+			map.put(key, value);
+		}
+		
+		// Return map
+		return map;
 	}
 }
