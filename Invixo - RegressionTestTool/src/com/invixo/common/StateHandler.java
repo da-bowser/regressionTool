@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,12 +26,8 @@ public class StateHandler {
 	private static final String SEPARATOR = GlobalParameters.FILE_DELIMITER;
 	
 	private static HashMap<String, String> tempMsgLink = new HashMap<String, String>();	// Map of <FIRST msg Id, Inject Id> created during inject.
-	
-	
-	
 	private static List<String> icoLines = null;		// All lines of an ICO state file
 	private static Path icoStatePath =  null;			// Path to an ICO state file
-	
 	
 
 	public static void setIcoPath(String icoName) {
@@ -71,6 +66,7 @@ public class StateHandler {
 	/**
 	 * Read all ICO State lines from File.
 	 * @return
+	 * @throws StateException
 	 */
 	public static List<String> readIcoStateLinesFromFile() throws StateException {
 		final String SIGNATURE = "readIcoStateLinesFromFile()";
@@ -158,24 +154,7 @@ public class StateHandler {
 		}
 		icoLines.add(stateEntry);
 	}
-	
-	
-	public static void writeEntry(String stateEntry) throws GeneralException {
-		final String SIGNATURE = "writeEntry(String)";
-		try {
-			if (!Files.exists(icoStatePath)) {
-				Files.createFile(icoStatePath);
-			}
-			
-			Files.writeString(icoStatePath, stateEntry, StandardOpenOption.APPEND);
-			Files.writeString(icoStatePath, "\n", StandardOpenOption.APPEND);
-		} catch(IOException e) {
-			String msg = "Error writing state entry to file: " + icoStatePath + ".\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new GeneralException(msg);
-		}
-	}
-	
+		
 	
 	public static void reset() throws StateException {
 		final String SIGNATURE = "reset()";
@@ -188,15 +167,6 @@ public class StateHandler {
 		}	
 	}
 	
-	
-	/**
-	 * Get list of ICO State lines.
-	 * @return
-	 */
-	public static List<String> getIcoLines() {
-		return icoLines;		
-	}
-
 	
 	/**
 	 * Get list of unique FIRST file names from a list of State lines.
@@ -219,7 +189,6 @@ public class StateHandler {
 	 * Replace INJECT_TEMPLATE with inject Message Id, for all lines containing the referenced 'initFirstMsgId' in internal
 	 * map of <initFirstMsgId, injectId>.
 	 * Replacement does not store data, it merely updates the internal reference to the State Lines in memory. 
-	 * @return
 	 */
 	public static void replaceInjectTemplateWithId() {
 		// Modify internal list of ICO lines
@@ -245,7 +214,11 @@ public class StateHandler {
 	
 	
 	/**
-	 * @return
+	 * 
+	 * @param injectMessageId
+	 * @param initlastMessageKey
+	 * @param nonInitLastMessageKey
+	 * @param nonInitLastMessageId
 	 */
 	public static void replaceMessageInfoTemplateWithMessageInfo(String injectMessageId, String initlastMessageKey, String nonInitLastMessageKey, String nonInitLastMessageId) {
 		// Get sequence id from Message Key
@@ -254,15 +227,14 @@ public class StateHandler {
 		for (int i = 0; i < icoLines.size(); i++) {
 			String line = icoLines.get(i);
 			
-			// Split
+			// Get parts from current line
 			String[] lineParts = line.split(SEPARATOR);
 			String currentLastMessageKey = lineParts[4];
 			String currentLastKeySequenceId = getSequenceIdFromMessageKey(currentLastMessageKey); 
 			String currentInjectMessageId = lineParts[7];
 
-			// Check
+			// Replace templates
 			if (nonInitLastMessageKeySequenceId.equals(currentLastKeySequenceId) && injectMessageId.equals(currentInjectMessageId)) {
-				// Replace templates
 				line = line.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
 				line = line.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
 				icoLines.set(i, line);		
@@ -277,36 +249,40 @@ public class StateHandler {
 	
 	
 	/**
-	 * Create MAP from a delimiter separated input file.
-	 * @param icoName
-	 * @return
+	 * Create map from ICO State Lines.
+	 * @return					Map<key, value>
+	 * 								KEY: Source message id (original extracted message id (INIT extract))
+	 * 								VAL: Target message id (inject message id)
+	 * @throws StateException
 	 */
 	public static Map<String, String> getMessageIdsFromFile() throws StateException {
-		// Read lines from file (sets internal property)
-		readIcoStateLinesFromFile();
-		
-		// Create map
-		Map<String, String> map = new HashMap<String, String>();
-		for (String line : icoLines) {
-			String key 		= line.split(SEPARATOR)[2];		// Source message id (original extracted message id (INIT extract))
-			String value 	= line.split(SEPARATOR)[7];		// Target message id (inject message id)
-			map.put(key, value);
-		}
-		
-		// Return map
+		Map<String, String> map = convertLineInfoToMap(2, 7);
 		return map;
 	}
 	
 	
+	/**
+	 * Create map from ICO State Lines.
+	 * @return					Map<key, value>
+	 * 								KEY: Source message id (init LAST message id)
+	 * 								VAL: Target message id (non-init LAST mesage id)
+	 * @throws StateException
+	 */
 	public static Map<String, String> getCompareMessageIdsFromIcoLines() throws StateException {
+		Map<String, String> map = convertLineInfoToMap(5, 9);
+		return map;
+	}
+	
+	
+	private static Map<String, String> convertLineInfoToMap(int keyIndex, int valueIndex) throws StateException {
 		// Read lines from file (sets internal property)
 		readIcoStateLinesFromFile();
 		
 		// Create map
 		Map<String, String> map = new HashMap<String, String>();
 		for (String line : icoLines) {
-			String key 		= line.split(SEPARATOR)[5];		// Source message id (init LAST message id)
-			String value 	= line.split(SEPARATOR)[9];		// Target message id (non-init LAST mesage id)
+			String key 		= line.split(SEPARATOR)[keyIndex];
+			String value 	= line.split(SEPARATOR)[valueIndex];
 			map.put(key, value);
 		}
 		
@@ -314,7 +290,7 @@ public class StateHandler {
 		return map;
 	}
 	
-	
+
 	private static String getSequenceIdFromMessageKey(String messageKey) {
 		String sequenceId = messageKey.substring(messageKey.indexOf("EOIO"), messageKey.length());
 		return sequenceId;
@@ -336,6 +312,6 @@ public class StateHandler {
 				icoLines.set(i, line);
 			}
 		}
-		
 	}
+	
 }
