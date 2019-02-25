@@ -1,7 +1,6 @@
 package com.invixo.compare;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,10 +14,10 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.events.XMLEvent;
 
+import com.invixo.common.StateException;
+import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
-import com.invixo.main.GlobalParameters;
 
 
 public class IntegratedConfiguration {
@@ -133,7 +132,7 @@ public class IntegratedConfiguration {
 
 	
 	/**
-	 * Build list of matching source and target message id's created during "Inject".
+	 * Build list of matching source and target message id's.
 	 * List is created from Message Id mapping file.
 	 * @param icoName				ICO name to be used for filtering the Message Id Mapping file
 	 * @return						List of source and target message id's used when matching "LAST" files for compare
@@ -144,16 +143,16 @@ public class IntegratedConfiguration {
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + FileStructure.FILE_MSG_ID_MAPPING);
 			
-			// Build path to mapping file generated during inject
-			String mappingFilePath = FileStructure.FILE_MSG_ID_MAPPING;
+			// Initialize state handler
+			StateHandler.setIcoPath(icoName);
 			
 			// Create map splitting on delimiter from map file <original extract id, inject message id>
-	        Map<String, String> mapFromFile = Util.getMessageIdsFromFile(mappingFilePath, GlobalParameters.FILE_DELIMITER, icoName, 1, 2);
+	        Map<String, String> mapFromFile = StateHandler.getCompareMessageIdsFromIcoLines();
 			
 	        // Return map
 	        return mapFromFile;
-		} catch (IOException e) {
-			String msg = "Error creating msgId map from file: " + FileStructure.FILE_MSG_ID_MAPPING + "\n" + e.getMessage();
+		} catch (StateException e) {
+			String msg = "Error creating msgId map from file: " + StateHandler.getIcoPath() + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new CompareException(msg);
 		}

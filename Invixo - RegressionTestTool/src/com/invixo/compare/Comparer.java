@@ -1,7 +1,5 @@
 package com.invixo.compare;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,13 +7,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.mail.MessagingException;
+
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.Diff;
 import org.xmlunit.diff.Difference;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.main.GlobalParameters;
+import com.invixo.common.util.XiMessageUtil;
 
 public class Comparer {
 	private static Logger logger = Logger.getInstance();
@@ -52,9 +52,9 @@ public class Comparer {
 			setFileSizes(this.sourceFile, this.compareFile);
 			
 			// Prepare files for compare
-			String sourceFileString = Util.inputstreamToString(new FileInputStream(this.sourceFile.toFile()), GlobalParameters.ENCODING);
-			String compareFileString = Util.inputstreamToString(new FileInputStream(this.compareFile.toFile()), GlobalParameters.ENCODING);
-			
+			String sourceFileString = extractPayloadStringFromMultipartFile(this.sourceFile.toString());
+			String compareFileString = extractPayloadStringFromMultipartFile(this.compareFile.toString());
+
 			// Do compare
 			Diff diff = compare(sourceFileString, compareFileString);
 			
@@ -66,17 +66,21 @@ public class Comparer {
 			// Increment compare success for reporting purposes
 			this.compareSuccessCount++;
 			
-		} catch (FileNotFoundException e) {
+		} catch (IOException | MessagingException e) {
 			// Increment compare skipped for reporting purposes
 			this.compareSkippedCount++;
-			String msg = "Problem during compare\n" + e.getMessage() + "\n" +
-						 "No target msgId could be found in msgId mapping file to match the source.\n" +
-						 "REASON: No \"First\" message could be retreived from the " + GlobalParameters.PARAM_VAL_SOURCE_ENV + " environment.\n" +
-						 "As a result of this, a message is not injected to the " + GlobalParameters.PARAM_VAL_TARGET_ENV + " environment making a compare impossible.";
+			String msg = "Problem during compare\n" + e.getMessage();
 
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			this.ce = new CompareException(msg);
 		}
+	}
+
+
+	private String extractPayloadStringFromMultipartFile(String filePath) throws IOException, MessagingException {
+		byte[] payloadBytes = XiMessageUtil.getPayloadBytesFromMultiPart(Util.readFile(filePath));
+		String payloadString = new String(payloadBytes);
+		return payloadString;
 	}
 
 

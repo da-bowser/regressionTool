@@ -298,6 +298,23 @@ public class StateHandler {
 	}
 	
 	
+	public static Map<String, String> getCompareMessageIdsFromIcoLines() throws StateException {
+		// Read lines from file (sets internal property)
+		readIcoStateLinesFromFile();
+		
+		// Create map
+		Map<String, String> map = new HashMap<String, String>();
+		for (String line : icoLines) {
+			String key 		= line.split(SEPARATOR)[5];		// Source message id (init LAST message id)
+			String value 	= line.split(SEPARATOR)[9];		// Target message id (non-init LAST mesage id)
+			map.put(key, value);
+		}
+		
+		// Return map
+		return map;
+	}
+	
+	
 	private static String getSequenceIdFromMessageKey(String messageKey) {
 		String sequenceId = messageKey.substring(messageKey.indexOf("EOIO"), messageKey.length());
 		return sequenceId;
@@ -312,8 +329,12 @@ public class StateHandler {
 	public static void replaceLastFileNameTemplateWithFileName(String sapMessageId, String fileName) {
 		for (int i = 0; i < icoLines.size(); i++) {
 			String line = icoLines.get(i);
-			line = line.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, fileName);
-			icoLines.set(i, line);
+			String currentNonInitLastMessageId = line.split(SEPARATOR)[9];
+			
+			if (sapMessageId.equals(currentNonInitLastMessageId)) {
+				line = line.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, fileName);
+				icoLines.set(i, line);
+			}
 		}
 		
 	}

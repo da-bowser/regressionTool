@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import javax.mail.MessagingException;
-import javax.mail.Multipart;
 
 import org.apache.http.client.methods.HttpPost;
 
@@ -148,7 +147,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			ir.setSourceMultiPartFile(sapXiMessage);
 
 			// Get file content of source MultiPart message and fetch SAP XI Payload from MultiPart message
-			byte[] payload = getPayloadBytesFromMultiPart(Util.readFile(sapXiMessage));
+			byte[] payload = XiMessageUtil.getPayloadBytesFromMultiPart(Util.readFile(sapXiMessage));
 			logger.writeInfo(LOCATION, SIGNATURE, "Payload size (MB): " + Util.convertBytesToMegaBytes(payload.length));
 			
 			// Generate SOAP XI Header
@@ -169,26 +168,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			
 			// Add new entry to internal list of lines to be updated after injection
 			StateHandler.addInjectEntry(Util.getFileName(sapXiMessage, false), ir.getMessageId());
-		} catch (IOException e) {
+		} catch (IOException | MessagingException e) {
 			String msg = "Error injecting new request to SAP PO for ICO " + super.getName() + " with source message file " + sapXiMessage + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new InjectionPayloadException(msg);
 		} finally {
 			logger.writeInfo(LOCATION, SIGNATURE, "---- Message processing END");
-		}
-	}
-	
-	
-	private byte[] getPayloadBytesFromMultiPart(byte[] multipartBytes) throws InjectionPayloadException {
-		final String SIGNATURE = "getPayloadBytesFromMultiPart(byte[]";
-		try {
-			Multipart mmp = XiMessageUtil.createMultiPartMessage(multipartBytes);
-			byte[] payload = XiMessageUtil.getPayloadBytesFromMultiPartMessage(mmp);
-			return payload;
-		} catch (IOException|MessagingException e) {
-			String msg = "Error getting SAP XI Payload bytes from Multipart message. " + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new InjectionPayloadException(msg);
 		}
 	}
 
