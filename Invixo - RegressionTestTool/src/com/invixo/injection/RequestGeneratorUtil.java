@@ -24,7 +24,7 @@ public class RequestGeneratorUtil {
 	
 	
 	public static String generateSoapXiHeaderPart(IntegratedConfiguration ico, String messageId) throws InjectionPayloadException {
-		final String SIGNATURE = "generateSoapXiHeaderPart(IntegratedConfiguration, InjectionRequest)";
+		final String SIGNATURE = "generateSoapXiHeaderPart(IntegratedConfiguration, String)";
 		try {
 			StringWriter stringWriter = new StringWriter();
 			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
