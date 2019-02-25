@@ -321,9 +321,9 @@ public class Main {
 		
 		// Clean up file structure and ensure its consistency
 		FileStructure.startCheck(icoOverviewList);
-		
+			
 		// Start extracting
-		ArrayList<com.invixo.extraction.IntegratedConfiguration> icoList = com.invixo.extraction.Orchestrator.start(icoOverviewList);
+		ArrayList<com.invixo.extraction.IntegratedConfiguration> icoList = com.invixo.extraction.Orchestrator.start(icoOverviewList);			
 		
 		// Write report
 		com.invixo.extraction.reporting.ReportWriter report = new com.invixo.extraction.reporting.ReportWriter(icoList);
