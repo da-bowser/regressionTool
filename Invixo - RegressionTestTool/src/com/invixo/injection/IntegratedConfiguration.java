@@ -78,7 +78,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 	 *------------- Instance methods
 	 *====================================================================================*/
 	/**
-	 * Inject FIRST payloads to SAP PO based on single ICO request file
+	 * Inject FIRST payloads to SAP PO based on single ICO request
 	 */
 	void startInjection() {
 		final String SIGNATURE = "startInjection()";
