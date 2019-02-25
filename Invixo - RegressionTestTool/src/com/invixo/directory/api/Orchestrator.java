@@ -79,7 +79,6 @@ public class Orchestrator {
 			
 			// Create complete ICO overview file
 			icoOverviewFilePath = createCompleteIcoOverviewFile(Orchestrator.icoList);
-			
 		} catch (HttpException e) {
 			String msg = "Error during web service call " + "\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -101,7 +100,6 @@ public class Orchestrator {
 		    public int compare(IntegratedConfiguration ico1, IntegratedConfiguration ico2) {
 		    	String name1 = ico1.getSenderPartyId() + ico1.getSenderComponentId() + ico1.getSenderInterfaceName();
 		    	String name2 = ico2.getSenderPartyId() + ico2.getSenderComponentId() + ico2.getSenderInterfaceName();
-		    	
 		        return name1.compareTo(name2);
 		    }			
 		});
@@ -175,9 +173,7 @@ public class Orchestrator {
 	 */
 	public static void extractInterfaceMultiplicityFromResponse(InputStream responseBytes, ReceiverInterfaceRule rir) throws DirectoryApiException {
 		final String SIGNATURE = "extractInterfaceMultiplicityFromResponse(InputStream, ReceiverInterfaceRule)";
-		
 		try {
-	        
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(responseBytes);
 			
@@ -194,7 +190,6 @@ public class Orchestrator {
 					break;
 				}
 			}
-			
 			logger.writeDebug(LOCATION, SIGNATURE, "Interface multiplicity found for " + rir.getInterfaceMappingName() + ": " + rir.getInterfaceMultiplicity());
 		} catch (XMLStreamException e) {
 			String msg = "Error extracting interface multiplicity from repository simple query response.\n" + e.getMessage();
