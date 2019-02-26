@@ -207,7 +207,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 */
 	private void processNonInitInBatch(Collection<String> injectMessageIds) throws ExtractorException, HttpException {		
 		for(String injectMessageId : injectMessageIds) {
-			// Lookup Parent MessageInfo for current unjectMessageId
+			// Lookup Parent MessageInfo for current injectMessageId
 			MessageInfo msgInfo = WebServiceUtil.lookupParentMessageInfo(injectMessageId, this.getName(), this.getReceiverInterface());
 			this.responseMessageKeys = msgInfo.getObjectKeys();
 					
