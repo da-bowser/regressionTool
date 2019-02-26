@@ -3,6 +3,7 @@ package com.invixo.directory.api;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -52,6 +53,37 @@ public class OrchestratorTest {
 
 			// Do test
 			assertEquals(1, icorr.size());
+
+		} catch (IOException | DirectoryApiException e) {
+			fail("It aint cooking chef! " + e);
+		}
+	}
+	
+	
+	@Test
+	@DisplayName("Test response payload extract and make sure it returns correct Receiver componentId")
+	void verifyExctractReceiverComponent() {
+		try {
+			// Get file from resources
+			String icoReadResponseSingle = "tst/resources/testfiles/com/invixo/directory/api/SingleIcoReadResponse2.xml";
+
+			// Convert to input stream
+			File f = new File(icoReadResponseSingle);
+			InputStream responseBytes;
+			responseBytes = new FileInputStream(f);
+
+			// Extract sender information
+			ArrayList<IntegratedConfiguration> icoList = Orchestrator.extractIcoInformationFromReadResponse(responseBytes);
+			
+			// Get single ICO
+			IntegratedConfiguration  ico = icoList.get(0);
+			
+			// Get receiver components in ICO
+			Receiver r1 = ico.getReceiverList().get(0);
+			Receiver r2 = ico.getReceiverList().get(1);
+			
+			assertEquals("Sys_QA3_011", r1.getComponentId());
+			assertEquals("Sys_T_WMS_KOLDING", r2.getComponentId());
 
 		} catch (IOException | DirectoryApiException e) {
 			fail("It aint cooking chef! " + e);

@@ -26,13 +26,13 @@ public class StateHandler {
 	private static final String SEPARATOR = GlobalParameters.FILE_DELIMITER;
 	
 	private static HashMap<String, String> tempMsgLink = new HashMap<String, String>();	// Map of <FIRST msg Id, Inject Id> created during inject.
-	private static List<String> icoLines = null;		// All lines of an ICO state file
+	private static List<String> icoLines = new ArrayList<String>();		// All lines of an ICO state file
 	private static Path icoStatePath =  null;			// Path to an ICO state file
 	
 
 	public static void init(String icoName) {
-		icoStatePath = Paths.get(FileStructure.FILE_STATE_PATH + icoName + ".txt");
-		icoLines = null;
+		icoStatePath = Paths.get(FileStructure.DIR_STATE + icoName + ".txt");
+		icoLines.clear();
 	}
 	
 
@@ -47,31 +47,31 @@ public class StateHandler {
 
 			// Write header line to file
 			final String headerLine	= "TimeInMillis"
-									+ SEPARATOR
-									+ "InitExtractFirst_MsgKey"
-									+ SEPARATOR
-									+ "InitExtractFirst_MsgId"
-									+ SEPARATOR
-									+ "InitExtractFirst_FileName"
-									+ SEPARATOR
-									+ "InitExtractLast_MsgKey"
-									+ SEPARATOR
-									+ "InitExtractLast_MsgId"
-									+ SEPARATOR
-									+ "InitExtractLast_FileName"
-									+ SEPARATOR
-									+ "inject_MsgId"
-									+ SEPARATOR
-									+ "NonInitExtractLast_MsgKey"
-									+ SEPARATOR
-									+ "NonInitExtractLast_MsgId"
-									+ SEPARATOR
-									+ "NonInitExtractLast_FileName"
-									+ SEPARATOR
-									+ "IcoName";
+					+ SEPARATOR
+					+ "InitExtractFirst_MsgKey"
+					+ SEPARATOR
+					+ "InitExtractFirst_MsgId"
+					+ SEPARATOR
+					+ "InitExtractFirst_FileName"
+					+ SEPARATOR
+					+ "InitExtractLast_MsgKey"
+					+ SEPARATOR
+					+ "InitExtractLast_MsgId"
+					+ SEPARATOR
+					+ "InitExtractLast_FileName"
+					+ SEPARATOR
+					+ "inject_MsgId"
+					+ SEPARATOR
+					+ "NonInitExtractLast_MsgKey"
+					+ SEPARATOR
+					+ "NonInitExtractLast_MsgId"
+					+ SEPARATOR
+					+ "NonInitExtractLast_FileName"
+					+ SEPARATOR
+					+ "IcoName";
 			bw.write(headerLine);
 			bw.newLine();
-							
+
 			// Write lines to file
 			for (String line : icoLines) {
 				bw.write(line);
@@ -81,8 +81,9 @@ public class StateHandler {
 			// Cleanup
 			bw.flush();
 			bw.close();	
-			
+
 			logger.writeInfo(LOCATION, SIGNATURE, "ICO State persisted to file: " + icoStatePath);
+
 		} catch (IOException e) {
 			String msg = "Error updating state file: " + icoStatePath + ".\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -183,13 +184,14 @@ public class StateHandler {
 	
 	/**
 	 * Get list of unique FIRST file names from a list of State lines.
-	 * @param lines				Lines to extract unique FIRST IDs from
 	 * @return
+ 	 * @throws StateException 
 	 */
-	public static HashSet<String> getUniqueFirstFileNames(List<String> lines) {
-		HashSet<String> uniqueFirstIds = new HashSet<String>();
+	public static HashSet<String> getUniqueFirstFileNames() throws StateException {
+		readIcoStateLinesFromFile();
 		
-		for (String line : lines) {
+		HashSet<String> uniqueFirstIds = new HashSet<String>();
+		for (String line : icoLines) {
 			String messageId = line.split(SEPARATOR)[3];		// File name for a source/original FIRST message Id
 			uniqueFirstIds.add(messageId);
 		}

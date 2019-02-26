@@ -469,6 +469,7 @@ public class Orchestrator {
 			Receiver r = null;
 			ReceiverInterfaceRule rir = null;
 			boolean receiverFound = false;
+			boolean receiverInterfaceFound = false;
 			boolean receiverInterfaceRuleFound = false;
 			boolean receiverInterfaceRuleMappingFound = false;
 			
@@ -504,12 +505,15 @@ public class Orchestrator {
 					 * Receiver information
 					 */
 					else if ("ReceiverInterfaces".equals(currentElementName)) { 
-						// New receiver is found
+						// New receiverInterface is found
 						r = new Receiver();
+						receiverInterfaceFound = true;
+					} else if ("Receiver".equals(currentElementName)) { 
+						// New receiver is found
 						receiverFound = true;
-					} else if ("PartyID".equals(currentElementName) && eventReader.peek().isCharacters() && receiverFound) {
+					} else if ("PartyID".equals(currentElementName) && eventReader.peek().isCharacters() && receiverInterfaceFound && receiverFound) {
 						r.setPartyId(eventReader.peek().asCharacters().getData());
-					} else if ("ComponentID".equals(currentElementName) && receiverFound) {
+					} else if ("ComponentID".equals(currentElementName) && receiverInterfaceFound && receiverFound) {
 						r.setComponentId(eventReader.peek().asCharacters().getData());
 					}
 					
@@ -531,7 +535,7 @@ public class Orchestrator {
 					/**
 					 * Receiver interface rule information
 					 */
-					else if ("ReceiverInterfaceRule".equals(currentElementName) && receiverFound) { 
+					else if ("ReceiverInterfaceRule".equals(currentElementName) && receiverInterfaceFound) { 
 						// New receiver interface rule found
 						rir = new ReceiverInterfaceRule();
 						receiverInterfaceRuleFound = true;
@@ -550,8 +554,10 @@ public class Orchestrator {
 					if ("IntegratedConfiguration".equals(currentEndElementName)) {
 						icoList.add(ico);
 					} else if ("ReceiverInterfaces".equals(currentEndElementName)) {
-						receiverFound = false;
+						receiverInterfaceFound = false;
 						ico.getReceiverList().add(r);
+					} else if ("Receiver".equals(currentEndElementName)) {
+						receiverFound = false;
 					} else if ("ReceiverInterfaceRule".equals(currentEndElementName)) {
 						receiverInterfaceRuleFound = false;
 						r.getReceiverInterfaceRules().add(rir);

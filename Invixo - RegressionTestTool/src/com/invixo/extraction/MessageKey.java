@@ -119,7 +119,6 @@ public class MessageKey {
 				StateHandler.addEntryToInternalList(newEntry);
 			} else {
 				// Extract: Non-init
-				// Replace State nonInit LAST file name template
 				StateHandler.replaceMessageInfoTemplateWithMessageInfo(injectMessageId, last.getSapMessageKey(), last.getSapMessageId());
 				StateHandler.replaceLastFileNameTemplateWithFileName(last.getSapMessageId(), last.getFileName());
 			}

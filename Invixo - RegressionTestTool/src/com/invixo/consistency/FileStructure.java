@@ -44,7 +44,6 @@ public class FileStructure {
 	// Files
 	public static final String FILE_CONFIG_SYSTEM_MAPPING			= DIR_CONFIG + "systemMapping.txt";
 	public static final String FILE_CONFIG_COMPARE_EXEPTIONS		= DIR_CONFIG + "compareExceptions.xml";
-	public static final String FILE_STATE_PATH						= DIR_STATE + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_to_" + GlobalParameters.PARAM_VAL_TARGET_ENV + "_";
 	public static final String PAYLOAD_FILE_EXTENSION 				= ".multipart";	
 	public static final String ICO_OVERVIEW_FILE 					= DIR_CONFIG + GlobalParameters.PARAM_VAL_SOURCE_ENV + "_IntegratedConfigurationsOverview.xml";
 	

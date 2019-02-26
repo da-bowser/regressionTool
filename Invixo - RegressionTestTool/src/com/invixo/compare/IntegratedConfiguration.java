@@ -140,9 +140,7 @@ public class IntegratedConfiguration {
 	 */
 	private static Map<String, String> buildMessageIdMap(String icoName) throws CompareException {
 		String SIGNATURE = "buildMessageIdMap(String)";
-		try {
-			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + FileStructure.FILE_STATE_PATH);
-			
+		try {			
 			// Initialize state handler
 			StateHandler.init(icoName);
 			

@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 import javax.mail.MessagingException;
 
@@ -87,12 +86,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			// State Handling: prepare
 			StateHandler.init(this.getName());
 			
-			// Get list of all request/payload files related to ICO
-			// This list can contain redundant entries for FIRST messages if a multimapping is present (1 FIRST can be parent to many LAST)
-			List<String> stateEntries = StateHandler.readIcoStateLinesFromFile();
-			
 			// Get unique FIRST file names
-			HashSet<String> uniqueFirstMessages = StateHandler.getUniqueFirstFileNames(stateEntries);
+			HashSet<String> uniqueFirstMessages = StateHandler.getUniqueFirstFileNames();
 			
 			// Get list of FIRST lines
 			this.filesToBeProcessedTotal = uniqueFirstMessages.size();

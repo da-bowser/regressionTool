@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.Map.Entry;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -32,31 +33,5 @@ class IntegratedConfigurationTest {
 		GlobalParameters.CREDENTIAL_USER = "rttuser";
 		GlobalParameters.CREDENTIAL_PASS = "aLvD#l^[R(52";
     }
-		
-	
-	@Test
-	@DisplayName("Verify buildListOfMessageIdsToBeExtracted builds a correct list of non-split message IDs and split message IDs")
-	void checkBuildingOfMessageIdListWorks() {
-		try {
-			// Get path: web service response (GetMessagesWithSuccessors)
-			String response = "../../../resources/testfiles/com/invixo/extraction/extractMessageInfo_Input2.xml";
-			URL urlResponse = this.getClass().getResource(response);
-			String pathResponse = Paths.get(urlResponse.toURI()).toString();
-			
-			// Read response bytes
-			try (InputStream is = new FileInputStream(new File(pathResponse))) {
-				// Extract data from response
-				MessageInfo msgInfo = WebServiceUtil.extractMessageInfo(is.readAllBytes(), "Data_In_Async_Split");
-				
-				// Build list of Message IDs to be extracted
-				HashSet<String> result = IntegratedConfiguration.buildListOfMessageIdsToBeExtracted(msgInfo.getObjectKeys(), msgInfo.getSplitMessageIds());
-				
-				// Check
-				assertEquals(2, result.size());				
-			}
-		} catch (Exception e) {
-			fail("It aint cooking chef! " + e);
-		}
-	}
 		
 }
