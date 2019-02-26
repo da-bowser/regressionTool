@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
@@ -83,8 +82,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			logger.writeInfo(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO: " + this.getName());
 			
 			// State Handling: prepare
-			StateHandler.setIcoPath(this.getName());								// Set path
-			
+			StateHandler.init(this.getName());								// Set path
 			// Housekeeping: Delete old ICO extract data
 			if (GlobalParameters.PARAM_VAL_ALLOW_SAME_ENV) {
 				// Do not delete data (this is a special test parameter)
@@ -169,9 +167,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	private void extractModeNonInit() throws ExtractorException, HttpException {
 		final String SIGNATURE = "extractModeNonInit()";
 		try {
-			// Init State Handler
-			StateHandler.setIcoPath(this.getName());	// Set path
-			
 			// Get list of Message IDs to be extracted (Map<FIRST msgId, Inject Id>)
 	        Map<String, String> messageIdMap = StateHandler.getMessageIdsFromFile();
 	        logger.writeInfo(LOCATION, SIGNATURE, "Number of entries (matching ICO) fetched from ICO State file: " + messageIdMap.size());
@@ -223,12 +218,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			MessageInfo msgInfo = WebServiceUtil.lookupParentMessageInfo(injectMessageId, this.getName(), this.getReceiverInterface());
 			this.responseMessageKeys = msgInfo.getObjectKeys();
 			
-			// Special handling for multimapping interfaces(multiplicity 1:n)
-			if (this.isUsingMultiMapping()) {
-				logger.writeDebug(LOCATION, SIGNATURE, "Special handling for MultiMapping scenario");
-				handleScenarioMultiMapping(injectMessageId, this.responseMessageKeys);
-			}
-			
 			// Special processing for split interfaces (multiplicity 1:1)
 			if (msgInfo.getSplitMessageIds().size() > 0 && !this.isUsingMultiMapping()) {
 				logger.writeDebug(LOCATION, SIGNATURE, "Special handling for split scenario");
@@ -236,38 +225,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			}
 					
 			// Process extracted message keys
-			processMessageKeysMultiple(this.responseMessageKeys, this.internalObjectId);	
-		}
-	}
-
-
-	/**
-	 * 
-	 * @param injectMessageId					Inject Message ID (FIRST)
-	 * @param lastMessageKeys					Children of @param injectMessageId (LAST Message Keys). Can be 1:n for multimapping scenario.
-	 * @throws HttpException
-	 * @throws ExtractorException
-	 */
-	private void handleScenarioMultiMapping(String injectMessageId, HashSet<String> lastMessageKeys) throws HttpException, ExtractorException {
-		final String SIGNATURE = "handleScenarioMultiMapping(HashSet<String>, Collection<String>";
-
-		try {
-			// Read file
-			List<String> lines = StateHandler.readIcoStateLinesFromFile();
-			
-			// Get Message ID from source (FIRST) extract
-			String[] lineParts = lines.get(0).split(GlobalParameters.FILE_DELIMITER);	
-			String initlastMessageKey = lineParts[4];
-			
-			for(String nonInitLastMessageKey : lastMessageKeys) {
-				String nonInitLastMessageId = Util.extractMessageIdFromKey(nonInitLastMessageKey);
-				StateHandler.replaceMessageInfoTemplateWithMessageInfo(injectMessageId, initlastMessageKey, nonInitLastMessageKey, nonInitLastMessageId);
-			}
-			
-		} catch (StateException e) {
-			String msg = "Error recreating Message Id Mapping file." + "\n" + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new ExtractorException(msg);
+			processMessageKeysMultiple(injectMessageId, this.responseMessageKeys, this.internalObjectId);	
 		}
 	}
 
@@ -337,7 +295,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		final String SIGNATURE = "extractModeInit()";
 		
 		// Initialize State handling
-		StateHandler.setIcoPath(this.getName());	// Set path
 		StateHandler.reset();						// Delete existing ICO state file
 
 		// Lookup Messages in SAP PO and extract MessageInfo from response
@@ -348,17 +305,18 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys contained in Web Service response: " + this.responseMessageKeys.size());
 		
 		// Process extracted message keys
-		processMessageKeysMultiple(this.responseMessageKeys, this.internalObjectId);
+		processMessageKeysMultiple(null, this.responseMessageKeys, this.internalObjectId);
 	}
 
 	
 	/**
 	 * Extract payloads for a list of SAP Message Keys and store these on the file system.
+	 * @param injectMessageId				Inject message id.
 	 * @param messageKeys					List of SAP Message Keys to be processed.
 	 * @param internalObjectId				Internal counter. Used to track which MessageKey number is being processed in the log.
 	 * @throws ExtractorException
 	 */
-	private void processMessageKeysMultiple(HashSet<String> messageKeys, int internalObjectId) throws ExtractorException {
+	private void processMessageKeysMultiple(String injectMessageId, HashSet<String> messageKeys, int internalObjectId) throws ExtractorException {
 		final String SIGNATURE = "processMessageKeysMultiple(HashSet<String>, int)";
 		
 		// For each MessageKey fetch payloads (first and/or last)
@@ -366,7 +324,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		for (String key : messageKeys) {
 			// Process a single Message Key
 			logger.writeInfo(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing started for key: " + key);
-			this.processMessageKeySingle(key);
+			this.processMessageKeySingle(injectMessageId, key);
 			logger.writeInfo(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing finished");
 			counter++;
 		}
@@ -377,9 +335,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
 	 * It extracts payloads and stores the state in case of successfully finding payloads.
 	 * This method can/will generate FIRST/LAST payloads.
+	 * @param inectMessageId
 	 * @param key
 	 */
-	void processMessageKeySingle(String key) {
+	void processMessageKeySingle(String injectMessageId, String key) {
 		try {
 			// Create a new MessageKey object
 			MessageKey msgKey = new MessageKey(this, key);
@@ -391,7 +350,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			msgKey.extractAllPayloads(key);
 			
 			// Store state
-			msgKey.storeState(msgKey.getPayloadFirst(), msgKey.getPayloadLast());
+			msgKey.storeState(injectMessageId, msgKey.getPayloadFirst(), msgKey.getPayloadLast());
 		} catch (ExtractorException e) {
 			// Do nothing, exception already logged
 			// Exceptions at this point are used to terminate further processing of current messageKey

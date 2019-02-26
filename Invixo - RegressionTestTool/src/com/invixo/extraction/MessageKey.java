@@ -7,6 +7,7 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.common.Payload;
 import com.invixo.common.PayloadException;
+import com.invixo.common.StateException;
 import com.invixo.common.StateHandler;
 import com.invixo.common.util.HttpException;
 import com.invixo.main.GlobalParameters;
@@ -98,7 +99,7 @@ public class MessageKey {
 	}
 	
 	
-	void storeState(Payload first, Payload last) throws ExtractorException {
+	void storeState(String injectMessageId, Payload first, Payload last) throws ExtractorException {
 		final String SIGNATURE = "storeState(Payload, Payload)";
 		try {
 			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
@@ -110,15 +111,24 @@ public class MessageKey {
 			last.persistMessage(this.ico.getFilePathLastPayloads());
 			
 			// Build and add new State entry line
-			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
+			if (injectMessageId == null) {
+				// Extract: Init
 				String newEntry = StateHandler.createExtractEntry(this.ico.getName(), first, last);
 				StateHandler.addEntryToInternalList(newEntry);
 			} else {
+				// Extract: Non-init
 				// Replace State nonInit LAST file name template
+				StateHandler.replaceMessageInfoTemplateWithMessageInfo(injectMessageId, last.getSapMessageKey(), last.getSapMessageId());
 				StateHandler.replaceLastFileNameTemplateWithFileName(last.getSapMessageId(), last.getFileName());
 			}
 		} catch (PayloadException e) {
 			String msg = "Error persisting payload for MessageKey!\n" + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			ExtractorException ex = new ExtractorException(msg);
+			this.ex = ex;
+			throw ex;
+		} catch (StateException e) {
+			String msg = "Error replacing LAST templates in State lines.\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			ExtractorException ex = new ExtractorException(msg);
 			this.ex = ex;

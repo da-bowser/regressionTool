@@ -141,10 +141,10 @@ public class IntegratedConfiguration {
 	private static Map<String, String> buildMessageIdMap(String icoName) throws CompareException {
 		String SIGNATURE = "buildMessageIdMap(String)";
 		try {
-			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + FileStructure.FILE_MSG_ID_MAPPING);
+			logger.writeDebug(LOCATION, SIGNATURE, "Building MAP of message ID's for source and compare files from: " + FileStructure.FILE_STATE_PATH);
 			
 			// Initialize state handler
-			StateHandler.setIcoPath(icoName);
+			StateHandler.init(icoName);
 			
 			// Create map splitting on delimiter from map file <original extract id, inject message id>
 	        Map<String, String> mapFromFile = StateHandler.getCompareMessageIdsFromIcoLines();

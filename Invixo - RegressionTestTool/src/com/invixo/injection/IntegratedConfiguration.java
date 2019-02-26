@@ -85,7 +85,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		InjectionRequest ir = null;
 		try {
 			// State Handling: prepare
-			StateHandler.setIcoPath(this.getName());
+			StateHandler.init(this.getName());
 			
 			// Get list of all request/payload files related to ICO
 			// This list can contain redundant entries for FIRST messages if a multimapping is present (1 FIRST can be parent to many LAST)

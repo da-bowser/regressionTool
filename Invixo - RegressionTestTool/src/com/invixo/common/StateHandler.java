@@ -30,8 +30,9 @@ public class StateHandler {
 	private static Path icoStatePath =  null;			// Path to an ICO state file
 	
 
-	public static void setIcoPath(String icoName) {
+	public static void init(String icoName) {
 		icoStatePath = Paths.get(FileStructure.FILE_STATE_PATH + icoName + ".txt");
+		icoLines = null;
 	}
 	
 
@@ -253,8 +254,8 @@ public class StateHandler {
 	
 
 	private static String getSequenceIdFromMessageKey(String messageKey) {
-		String sequenceId = messageKey.substring(messageKey.indexOf("EOIO"), messageKey.length());
-		return sequenceId;
+		String[] parts = messageKey.split("\\\\");
+		return parts[4];
 	}
 	
 	
@@ -284,11 +285,14 @@ public class StateHandler {
 	/**
 	 * Scenario: Extract NonInit, multimapping
 	 * @param injectMessageId
-	 * @param initlastMessageKey
 	 * @param nonInitLastMessageKey
 	 * @param nonInitLastMessageId
+	 * @throws StateException 
 	 */
-	public static void replaceMessageInfoTemplateWithMessageInfo(String injectMessageId, String initlastMessageKey, String nonInitLastMessageKey, String nonInitLastMessageId) {
+	public static void replaceMessageInfoTemplateWithMessageInfo(String injectMessageId, String nonInitLastMessageKey, String nonInitLastMessageId) throws StateException {
+		// Read file
+		StateHandler.readIcoStateLinesFromFile();
+					
 		// Get sequence id from Message Key
 		String nonInitLastMessageKeySequenceId = getSequenceIdFromMessageKey(nonInitLastMessageKey);
 		
@@ -303,9 +307,9 @@ public class StateHandler {
 
 			// Replace templates
 			if (nonInitLastMessageKeySequenceId.equals(currentLastKeySequenceId) && injectMessageId.equals(currentInjectMessageId)) {
-				line = line.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
-				line = line.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
-				icoLines.set(i, line);		
+				String lineWithKey = line.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
+				String finalLine = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
+				icoLines.set(i, finalLine);		
 			}
 		}
 	}
