@@ -102,7 +102,9 @@ public class MessageKey {
 	void storeState(String injectMessageId, Payload first, Payload last) throws ExtractorException {
 		final String SIGNATURE = "storeState(Payload, Payload)";
 		try {
-			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
+			boolean isInitMode = Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT);
+			
+			if (isInitMode) {
 				// Persist message: FIRST
 				first.persistMessage(this.ico.getFilePathFirstPayloads());
 			}
@@ -111,7 +113,7 @@ public class MessageKey {
 			last.persistMessage(this.ico.getFilePathLastPayloads());
 			
 			// Build and add new State entry line
-			if (injectMessageId == null) {
+			if (isInitMode) {
 				// Extract: Init
 				String newEntry = StateHandler.createExtractEntry(this.ico.getName(), first, last);
 				StateHandler.addEntryToInternalList(newEntry);

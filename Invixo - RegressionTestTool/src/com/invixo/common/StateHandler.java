@@ -309,7 +309,7 @@ public class StateHandler {
 			if (nonInitLastMessageKeySequenceId.equals(currentLastKeySequenceId) && injectMessageId.equals(currentInjectMessageId)) {
 				String lineWithKey = line.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
 				String finalLine = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
-				icoLines.set(i, finalLine);		
+				icoLines.set(i, finalLine);
 			}
 		}
 	}
