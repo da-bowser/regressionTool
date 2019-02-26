@@ -319,10 +319,12 @@ public class StateHandler {
 		readIcoStateLinesFromFile();
 		
 		// Create map
+		int lineCount = icoLines.size();
 		Map<String, String> map = new HashMap<String, String>();
-		for (String line : icoLines) {
-			String key 		= line.split(SEPARATOR)[keyIndex];
-			String value 	= line.split(SEPARATOR)[valueIndex];
+		for ( int i=1; i < lineCount; i++) {		// skip first line (header line)
+			String[] currentLineParts = icoLines.get(i).split(SEPARATOR);
+			String key = currentLineParts[keyIndex];
+			String value = currentLineParts[valueIndex];
 			map.put(key, value);
 		}
 		
