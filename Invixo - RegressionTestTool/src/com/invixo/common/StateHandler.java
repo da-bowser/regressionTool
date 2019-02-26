@@ -102,7 +102,6 @@ public class StateHandler {
 				icoLines = Files.readAllLines(icoStatePath);
 				icoLines.remove(0); // remove header line
 			}
-			
 			return icoLines;
 		} catch (IOException e) {
 			String msg = "Error reading ICO lines from state file: " + icoStatePath.toString() + "\n" + e;
