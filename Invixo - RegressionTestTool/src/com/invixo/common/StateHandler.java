@@ -43,7 +43,34 @@ public class StateHandler {
 			
 			// Create file writer
 			BufferedWriter bw = Files.newBufferedWriter(icoStatePath);
-			
+
+			// Write header line to file
+			final String headerLine	= "TimeInMillis"
+									+ SEPARATOR
+									+ "InitExtractFirst_MsgKey"
+									+ SEPARATOR
+									+ "InitExtractFirst_MsgId"
+									+ SEPARATOR
+									+ "InitExtractFirst_FileName"
+									+ SEPARATOR
+									+ "InitExtractLast_MsgKey"
+									+ SEPARATOR
+									+ "InitExtractLast_MsgId"
+									+ SEPARATOR
+									+ "InitExtractLast_FileName"
+									+ SEPARATOR
+									+ "inject_MsgId"
+									+ SEPARATOR
+									+ "NonInitExtractLast_MsgKey"
+									+ SEPARATOR
+									+ "NonInitExtractLast_MsgId"
+									+ SEPARATOR
+									+ "NonInitExtractLast_FileName"
+									+ SEPARATOR
+									+ "IcoName";
+			bw.write(headerLine);
+			bw.newLine();
+							
 			// Write lines to file
 			for (String line : icoLines) {
 				bw.write(line);
