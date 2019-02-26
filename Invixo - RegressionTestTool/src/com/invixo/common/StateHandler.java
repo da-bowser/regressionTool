@@ -100,6 +100,7 @@ public class StateHandler {
 		try {
 			if (icoLines == null) {
 				icoLines = Files.readAllLines(icoStatePath);
+				icoLines.remove(0); // remove header line
 			}
 			
 			return icoLines;
@@ -319,12 +320,10 @@ public class StateHandler {
 		readIcoStateLinesFromFile();
 		
 		// Create map
-		int lineCount = icoLines.size();
 		Map<String, String> map = new HashMap<String, String>();
-		for ( int i=1; i < lineCount; i++) {		// skip first line (header line)
-			String[] currentLineParts = icoLines.get(i).split(SEPARATOR);
-			String key = currentLineParts[keyIndex];
-			String value = currentLineParts[valueIndex];
+		for (String line : icoLines) {
+			String key 		= line.split(SEPARATOR)[keyIndex];
+			String value 	= line.split(SEPARATOR)[valueIndex];
 			map.put(key, value);
 		}
 		
