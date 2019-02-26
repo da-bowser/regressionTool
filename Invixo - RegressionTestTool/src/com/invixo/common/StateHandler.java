@@ -27,11 +27,35 @@ public class StateHandler {
 	
 	private static HashMap<String, String> tempMsgLink = new HashMap<String, String>();	// Map of <FIRST msg Id, Inject Id> created during inject.
 	private static List<String> icoLines = new ArrayList<String>();		// All lines of an ICO state file
-	private static Path icoStatePath =  null;			// Path to an ICO state file
+	private static Path icoStatePathSource =  null;			// Path to an ICO state file: Source
+	private static Path icoStatePathTarget =  null;			// Path to an ICO state file: Target
 	
 
-	public static void init(String icoName) {
-		icoStatePath = Paths.get(FileStructure.DIR_STATE + icoName + ".txt");
+	public static void init(GlobalParameters.Operation operation, String icoName) {
+		final String SIGNATURE = "init(GlobalParameters.Operation, String)";
+		switch (operation) {
+		case extract : 
+			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
+				icoStatePathSource = Paths.get(FileStructure.DIR_STATE + icoName + "_1_" + operation.toString() + "_init" + ".txt");
+				icoStatePathTarget = Paths.get(FileStructure.DIR_STATE + icoName + "_1_" + operation.toString() + "_init" + ".txt");				
+			} else {
+				icoStatePathSource = Paths.get(FileStructure.DIR_STATE + icoName + "_2_" + GlobalParameters.Operation.inject.toString() + ".txt");
+				icoStatePathTarget = Paths.get(FileStructure.DIR_STATE + icoName + "_3_" + operation.toString() + "_nonInit" + ".txt");								
+			}
+			break;
+		case inject : 
+			icoStatePathSource = Paths.get(FileStructure.DIR_STATE + icoName + "_1_" + GlobalParameters.Operation.extract.toString() + "_init" + ".txt");
+			icoStatePathTarget = Paths.get(FileStructure.DIR_STATE + icoName + "_2_" + operation.toString() + ".txt");
+			break;
+		case compare : 
+			icoStatePathSource = Paths.get(FileStructure.DIR_STATE + icoName + "_3_" + GlobalParameters.Operation.extract.toString() + "_nonInit" + ".txt");
+			icoStatePathTarget = null;
+			break;
+		default :
+			throw new RuntimeException("Unsuppported sthdtyjdytjdtyj");
+		}
+		logger.writeDebug(LOCATION, SIGNATURE,  "State source file: " + icoStatePathSource);
+		logger.writeDebug(LOCATION, SIGNATURE,  "State target file: " + icoStatePathTarget);
 		icoLines.clear();
 	}
 	
@@ -43,7 +67,7 @@ public class StateHandler {
 			reset();
 			
 			// Create file writer
-			BufferedWriter bw = Files.newBufferedWriter(icoStatePath);
+			BufferedWriter bw = Files.newBufferedWriter(icoStatePathTarget);
 
 			// Write header line to file
 			final String headerLine	= "TimeInMillis"
@@ -82,10 +106,10 @@ public class StateHandler {
 			bw.flush();
 			bw.close();	
 
-			logger.writeInfo(LOCATION, SIGNATURE, "ICO State persisted to file: " + icoStatePath);
+			logger.writeInfo(LOCATION, SIGNATURE, "ICO State persisted to file: " + icoStatePathTarget);
 
 		} catch (IOException e) {
-			String msg = "Error updating state file: " + icoStatePath + ".\n" + e;
+			String msg = "Error updating state file: " + icoStatePathTarget + ".\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new StateException(msg);
 		}
@@ -101,12 +125,12 @@ public class StateHandler {
 		final String SIGNATURE = "readIcoStateLinesFromFile()";
 		try {
 			if (icoLines.size() == 0) {
-				icoLines = Files.readAllLines(icoStatePath);
+				icoLines = Files.readAllLines(icoStatePathSource);
 				icoLines.remove(0); // remove header line
 			}
 			return icoLines;
 		} catch (IOException e) {
-			String msg = "Error reading ICO lines from state file: " + icoStatePath.toString() + "\n" + e;
+			String msg = "Error reading ICO lines from state file: " + icoStatePathSource.toString() + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new StateException(msg);
 		}
@@ -173,9 +197,9 @@ public class StateHandler {
 	public static void reset() throws StateException {
 		final String SIGNATURE = "reset()";
 		try {
-			Files.deleteIfExists(icoStatePath);	
+			Files.deleteIfExists(icoStatePathTarget);	
 		} catch (IOException e) {
-			String msg = "Error deleting state file: " + icoStatePath.toString() + "\n" + e;
+			String msg = "Error deleting state file: " + icoStatePathTarget.toString() + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new StateException(msg);
 		}	
@@ -262,7 +286,7 @@ public class StateHandler {
 	
 	
 	public static String getIcoPath() {
-		return icoStatePath.toString();
+		return icoStatePathSource.toString();
 	}
 
 

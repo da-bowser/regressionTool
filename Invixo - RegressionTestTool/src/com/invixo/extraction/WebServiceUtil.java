@@ -99,8 +99,8 @@ public class WebServiceUtil {
 	 * @throws HttpException
 	 * @throws ExtractorException
 	 */
-	public static String lookupParentMessageId(String messageId, String icoName) throws HttpException, ExtractorException {
-		final String SIGNATURE = "lookupParentMessageId(Payload)";
+	public static String lookupSuccessorMessageId(String messageId, String icoName) throws HttpException, ExtractorException {
+		final String SIGNATURE = "lookupParentMessageId(String, String)";
 		
 		// Create "GetMessagesWithSuccessors" request
 		List<String> msgIdList = Arrays.asList(messageId);
@@ -120,6 +120,38 @@ public class WebServiceUtil {
 		
 		// Extract parentId from response
 		String parentId = extractParentIdsFromResponse(getMessagesWithSuccessorsResponseBytes);
+		return parentId;
+	}
+	
+	
+	/**
+	 * Call service: GetPredecessorMessageId
+	 * @param messageId
+	 * @param icoName
+	 * @return
+	 * @throws HttpException
+	 * @throws ExtractorException
+	 */
+	public static String lookupPredecessorMessageId(String messageId, String icoName) throws HttpException, ExtractorException {
+		final String SIGNATURE = "lookupPredecessorMessageId(String, String)";
+		
+		// Create "GetPredecessorMessageId" request
+		byte[] getMessagesWithPredecessorsRequestBytes = createRequestGetPredecessorMessageId(messageId);
+		logger.writeDebug(LOCATION, SIGNATURE, "GetPredecessorMessageId request created");
+		
+		// Write request to file system if debug for this is enabled (property)
+		if (GlobalParameters.DEBUG) {
+			String file = FileStructure.getDebugFileName("GetPredecessorMessageId", true, icoName, "xml");
+			Util.writeFileToFileSystem(file, getMessagesWithPredecessorsRequestBytes);
+			logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> MultiMapping scenario: GetPredecessorMessageId request message to be sent to SAP PO is stored here: " + file);
+		}
+					
+		// Call web service (GetPredecessorMessageId)
+		byte[] getPredecessorMessageIdResponseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, getMessagesWithPredecessorsRequestBytes);
+		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetPredecessorMessageId) called");
+		
+		// Extract parentId from response
+		String parentId = extractPredecessorIdFromResponse(getPredecessorMessageIdResponseBytes);
 		return parentId;
 	}
 
@@ -233,6 +265,45 @@ public class WebServiceUtil {
 			throw new ExtractorException(msg);
 		}
 	}
+	
+	
+	/**
+	 * Extract Predecessor from GetPredecessorMessageId response.
+	 * @param responseBytes
+	 * @return
+	 * @throws ExtractorException
+	 */
+	static String extractPredecessorIdFromResponse(byte[] responseBytes) throws ExtractorException {
+		final String SIGNATURE = "extractPredecessorIdFromResponse(byte[])";
+		try {
+	        String predecessorId = "";
+	        
+			XMLInputFactory factory = XMLInputFactory.newInstance();
+			XMLEventReader eventReader = factory.createXMLEventReader(new ByteArrayInputStream(responseBytes));
+
+			while (eventReader.hasNext()) {
+				XMLEvent event = eventReader.nextEvent();
+
+				switch (event.getEventType()) {
+				case XMLStreamConstants.START_ELEMENT:
+					String currentElementName = event.asStartElement().getName().getLocalPart();
+
+					if ("Response".equals(currentElementName)) {
+						predecessorId = eventReader.peek().asCharacters().getData();
+					}
+					break;
+				}
+			}
+			
+			// Return parentId found in response
+			return predecessorId;
+		} catch (XMLStreamException e) {
+			String msg = "Error extracting parentIds from 'GetMessagesWithSuccessors' Web Service response.\n" + e.getMessage();
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new ExtractorException(msg);
+		}
+	}
+	
 	
 	
 	static String extractEncodedPayload(byte[] fileContent) throws ExtractorException {
@@ -696,6 +767,67 @@ public class WebServiceUtil {
 		}
 	}
 
+	
+	/**
+	 * Create request message for GetPredecessorMessageId
+	 * @param messageId			Message ID to get message details from.
+	 * @return
+	 */
+	static byte[] createRequestGetPredecessorMessageId(String messageId) {
+		final String SIGNATURE = "createRequestGetMessagesWithSuccessors(Collection<String>)";
+		try {
+			final String XML_NS_URN_PREFIX	= "urn";
+			final String XML_NS_URN_NS		= "urn:AdapterMessageMonitoringVi";
+			final String XML_NS_LANG_PREFIX	= "lang";
+			final String XML_NS_LANG_NS		= "java/lang";
+			
+			StringWriter stringWriter = new StringWriter();
+			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
+			XMLStreamWriter xmlWriter = xMLOutputFactory.createXMLStreamWriter(stringWriter);
+
+			// Add xml version and encoding to output
+			xmlWriter.writeStartDocument(GlobalParameters.ENCODING, "1.0");
+
+			// Create element: Envelope
+			xmlWriter.writeStartElement(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_ROOT, XmlUtil.SOAP_ENV_NS);
+			xmlWriter.writeNamespace(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_NS);
+			xmlWriter.writeNamespace(XML_NS_URN_PREFIX, XML_NS_URN_NS);
+			xmlWriter.writeNamespace(XML_NS_LANG_PREFIX, XML_NS_LANG_NS);
+
+			// Create element: Envelope | Body
+			xmlWriter.writeStartElement(XmlUtil.SOAP_ENV_PREFIX, XmlUtil.SOAP_ENV_BODY, XmlUtil.SOAP_ENV_NS);
+
+			// Create element: Envelope | Body | getPredecessorMessageId
+			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "getPredecessorMessageId", XML_NS_URN_NS);
+
+			// Create element: Envelope | Body | getPredecessorMessageId | messageId
+			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "messageId", XML_NS_URN_NS);
+			xmlWriter.writeCharacters(messageId);
+	        xmlWriter.writeEndElement();			
+	                
+			// Create element: Envelope | Body | getPredecessorMessageId | direction
+			xmlWriter.writeStartElement(XML_NS_URN_PREFIX, "direction", XML_NS_URN_NS);
+			xmlWriter.writeCharacters("OUTBOUND");
+			xmlWriter.writeEndElement();
+			
+			// Close tags
+	        xmlWriter.writeEndElement(); // Envelope | Body | getPredecessorMessageId
+			xmlWriter.writeEndElement(); // Envelope | Body
+			xmlWriter.writeEndElement(); // Envelope
+
+			// Finalize writing
+			xmlWriter.flush();
+			xmlWriter.close();
+			stringWriter.flush();
+			
+			return stringWriter.toString().getBytes();
+		} catch (XMLStreamException e) {
+			String msg = "Error creating SOAP request for GetPredecessorMessageId. " + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new RuntimeException(msg);
+		}
+	}
+	
 
 	/**
 	 * Create request message for GetMessagesByIDsRequest

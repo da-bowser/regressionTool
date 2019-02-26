@@ -198,7 +198,7 @@ public class MessageKey {
 			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [FIRST] MultiMapping processing start");
 			
 			// Lookup parent Message Id
-			String parentId = WebServiceUtil.lookupParentMessageId(payload.getSapMessageId(), this.ico.getName());
+			String parentId = WebServiceUtil.lookupPredecessorMessageId(payload.getSapMessageId(), this.ico.getName());
 			
 			// Lookup Message Key
 			String messageKey = WebServiceUtil.lookupMessageKey(parentId, this.ico.getName());

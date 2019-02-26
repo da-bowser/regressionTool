@@ -104,7 +104,7 @@ public class IntegratedConfigurationMain {
 		this.filePathFirstPayloads 	= FileStructure.DIR_EXTRACT_OUTPUT_PRE 
 									+ this.name 
 									+ "\\" 
-									+ GlobalParameters.PARAM_VAL_TARGET_ENV 
+									+ GlobalParameters.PARAM_VAL_SOURCE_ENV 
 									+ FileStructure.DIR_EXTRACT_OUTPUT_POST_FIRST_ENVLESS;
 		
 		// Set file path: LAST payloads

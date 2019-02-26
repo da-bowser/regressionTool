@@ -82,7 +82,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			logger.writeInfo(LOCATION, SIGNATURE, "*********** (" + this.internalObjectId + ") Start processing ICO: " + this.getName());
 			
 			// State Handling: prepare
-			StateHandler.init(this.getName());
+			StateHandler.init(GlobalParameters.Operation.valueOf(GlobalParameters.PARAM_VAL_OPERATION), this.getName());
 			
 			// Housekeeping: Delete old ICO extract data
 			if (GlobalParameters.PARAM_VAL_ALLOW_SAME_ENV) {

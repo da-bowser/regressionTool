@@ -84,7 +84,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 		InjectionRequest ir = null;
 		try {
 			// State Handling: prepare
-			StateHandler.init(this.getName());
+			StateHandler.init(GlobalParameters.Operation.valueOf(GlobalParameters.PARAM_VAL_OPERATION), this.getName());
 			
 			// Get unique FIRST file names
 			HashSet<String> uniqueFirstMessages = StateHandler.getUniqueFirstFileNames();

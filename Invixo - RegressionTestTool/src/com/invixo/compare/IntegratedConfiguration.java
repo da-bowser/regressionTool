@@ -18,6 +18,7 @@ import com.invixo.common.StateException;
 import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
 import com.invixo.consistency.FileStructure;
+import com.invixo.main.GlobalParameters;
 
 
 public class IntegratedConfiguration {
@@ -142,7 +143,7 @@ public class IntegratedConfiguration {
 		String SIGNATURE = "buildMessageIdMap(String)";
 		try {			
 			// Initialize state handler
-			StateHandler.init(icoName);
+			StateHandler.init(GlobalParameters.Operation.valueOf(GlobalParameters.PARAM_VAL_OPERATION), icoName);
 			
 			// Create map splitting on delimiter from map file <original extract id, inject message id>
 	        Map<String, String> mapFromFile = StateHandler.getCompareMessageIdsFromIcoLines();
