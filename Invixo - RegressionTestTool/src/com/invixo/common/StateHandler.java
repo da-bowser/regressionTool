@@ -97,10 +97,10 @@ public class StateHandler {
 	 * @return
 	 * @throws StateException
 	 */
-	public static List<String> readIcoStateLinesFromFile() throws StateException {
+	private static List<String> readIcoStateLinesFromFile() throws StateException {
 		final String SIGNATURE = "readIcoStateLinesFromFile()";
 		try {
-			if (icoLines == null) {
+			if (icoLines.size() == 0) {
 				icoLines = Files.readAllLines(icoStatePath);
 				icoLines.remove(0); // remove header line
 			}
