@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.http.client.methods.HttpPost;
 
@@ -18,6 +20,7 @@ import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
+import com.invixo.common.util.XiHeader;
 import com.invixo.common.util.XiMessageUtil;
 import com.invixo.common.util.HttpException;
 import com.invixo.common.util.HttpHandler;
@@ -141,12 +144,18 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			logger.writeInfo(LOCATION, SIGNATURE, "---- (File " + this.injections.size() + " / " + this.filesToBeProcessedTotal + ") Message processing BEGIN: " + sapXiMessage);
 			ir.setSourceMultiPartFile(sapXiMessage);
 
-			// Get file content of source MultiPart message and fetch SAP XI Payload from MultiPart message
-			byte[] payload = XiMessageUtil.getPayloadBytesFromMultiPart(Util.readFile(sapXiMessage));
+			// Get FIRST multipart SAP XI Message
+			Multipart firstMultipart = XiMessageUtil.createMultiPartMessage(Util.readFile(sapXiMessage));
+			
+			// Get payload to be injected from FIRST multipart
+			byte[] payload = XiMessageUtil.getPayloadBytesFromMultiPartMessage(firstMultipart);
 			logger.writeInfo(LOCATION, SIGNATURE, "Payload size (MB): " + Util.convertBytesToMegaBytes(payload.length));
 			
+			// Get XI Header from FIRST multipart
+			XiHeader firstXiHeader = XiMessageUtil.deserializeXiHeader(firstMultipart);
+			
 			// Generate SOAP XI Header
-			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(this, ir.getMessageId());
+			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(this, ir.getMessageId(), firstXiHeader);
 			
 			// Build Request to be sent via Web Service call
 			HttpPost webServiceRequest = HttpHandler.buildMultipartHttpPostRequest(ENDPOINT, soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
@@ -167,6 +176,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			String msg = "Error injecting new request to SAP PO for ICO " + super.getName() + " with source message file " + sapXiMessage + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new InjectionPayloadException(msg);
+		} catch (XMLStreamException e) {
+				String msg = "Error deserializing XI Header contained in FIRST multipart: " + sapXiMessage + ".\n" + e.getMessage();
+				logger.writeError(LOCATION, SIGNATURE, msg);
+				throw new InjectionPayloadException(msg);
 		} finally {
 			logger.writeInfo(LOCATION, SIGNATURE, "---- Message processing END");
 		}

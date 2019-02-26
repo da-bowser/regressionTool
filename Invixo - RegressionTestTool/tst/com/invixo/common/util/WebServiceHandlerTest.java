@@ -13,6 +13,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import javax.mail.Multipart;
+
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.BeforeAll;
@@ -132,22 +134,26 @@ class WebServiceHandlerTest {
 			// Get payload
 			byte[] payload = getFilecontent("multipartPayload.xml");
 			
-			// Build SAP XI Header - PREPARE # Get path: System Component mapping file
+			// Build inject SAP XI Header - PREPARE # Get path: System Component mapping file
 			String systemMapping = resourceBasePath + "systemMapping.txt";
 			URL urlSystemMapping = this.getClass().getResource(systemMapping);
 			String pathSystemMapping = Paths.get(urlSystemMapping.toURI()).toString();
 			
-			// BUILD SAP XI Header: PREPARE # Get ICO list from ICO Overview file
+			// BUILD inject SAP XI Header: PREPARE # Get ICO list from ICO Overview file
 			String icoOverviewPath = resourceBasePath + "TST_IntegratedConfigurationsOverview.xml";
 			InputStream overviewStream = this.getClass().getResourceAsStream(icoOverviewPath);
 			ArrayList<IcoOverviewInstance> icoOverviewList =  IcoOverviewDeserializer.deserialize(overviewStream);
 			
-			// Build SAP XI Header - PREPARE # Create GetMessageList request
+			// Build inject SAP XI Header - PREPARE # Create GetMessageList request
 			IntegratedConfiguration ico = new IntegratedConfiguration(icoOverviewList.get(0), pathSystemMapping, "PRD", "TST");
 
-			// Build SAP XI Header
+			// Build dummy XI Header
+			Multipart firstMultipart = XiMessageUtil.createMultiPartMessage(getFilecontent("c4b6a300-2ea5-4691-88f2-fbc1a3d24ca5.multipart"));
+			XiHeader firstXiHeader = XiMessageUtil.deserializeXiHeader(firstMultipart);
+			
+			// Build inject SAP XI Header
 			InjectionRequest ir = new InjectionRequest();
-			String xiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(ico, ir.getMessageId());
+			String xiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(ico, ir.getMessageId(), firstXiHeader);
 			
 			// Perform test
 			HttpPost httpPost = HttpHandler.buildMultipartHttpPostRequest(endpoint, xiHeader.getBytes(), payload);

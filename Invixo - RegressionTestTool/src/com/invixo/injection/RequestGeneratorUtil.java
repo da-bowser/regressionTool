@@ -14,6 +14,7 @@ import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
 import com.invixo.common.util.Logger;
+import com.invixo.common.util.XiHeader;
 import com.invixo.common.util.XmlUtil;
 
 public class RequestGeneratorUtil {
@@ -23,7 +24,7 @@ public class RequestGeneratorUtil {
 	private static final String TARGET_SAP_NS_PREFIX	= "sap";
 	
 	
-	public static String generateSoapXiHeaderPart(IntegratedConfiguration ico, String messageId) throws InjectionPayloadException {
+	public static String generateSoapXiHeaderPart(IntegratedConfiguration ico, String messageId, XiHeader firstXiHeader) throws InjectionPayloadException {
 		final String SIGNATURE = "generateSoapXiHeaderPart(IntegratedConfiguration, String)";
 		try {
 			StringWriter stringWriter = new StringWriter();
@@ -72,7 +73,7 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | ProcessingMode
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ProcessingMode");
 			xmlEventWriter.add(startElement);
-			value = xmlEventFactory.createCharacters("BE".equals(ico.getQualityOfService())?"synchronous":"asynchronous");
+			value = xmlEventFactory.createCharacters("BE".equals(firstXiHeader.getQualityOfService())?"synchronous":"asynchronous");
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ProcessingMode"));
 	        
@@ -137,7 +138,7 @@ public class RequestGeneratorUtil {
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService");
 			xmlEventWriter.add(startElement);
 			
-			if ("EO".equals(ico.getQualityOfService())) {
+			if ("EO".equals(firstXiHeader.getQualityOfService())) {
 				value = xmlEventFactory.createCharacters("ExactlyOnce");
 			} else if ("BE".equals(ico.getQualityOfService())) {
 				value = xmlEventFactory.createCharacters("BestEffort");
