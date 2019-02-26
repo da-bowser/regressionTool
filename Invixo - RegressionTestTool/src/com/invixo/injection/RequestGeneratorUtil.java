@@ -73,7 +73,7 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | ProcessingMode
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ProcessingMode");
 			xmlEventWriter.add(startElement);
-			value = xmlEventFactory.createCharacters("BE".equals(firstXiHeader.getQualityOfService())?"synchronous":"asynchronous");
+			value = xmlEventFactory.createCharacters("BestEffort".equals(firstXiHeader.getQualityOfService())?"synchronous":"asynchronous");
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ProcessingMode"));
 	        
@@ -138,9 +138,9 @@ public class RequestGeneratorUtil {
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService");
 			xmlEventWriter.add(startElement);
 			
-			if ("EO".equals(firstXiHeader.getQualityOfService())) {
+			if ("ExactlyOnce".equals(firstXiHeader.getQualityOfService())) {
 				value = xmlEventFactory.createCharacters("ExactlyOnce");
-			} else if ("BE".equals(ico.getQualityOfService())) {
+			} else if ("BestEffort".equals(firstXiHeader.getQualityOfService())) {
 				value = xmlEventFactory.createCharacters("BestEffort");
 			} else {
 				value = xmlEventFactory.createCharacters("ExactlyOnceInOrder");
@@ -149,7 +149,7 @@ public class RequestGeneratorUtil {
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService"));
 
 			// Create element: Envelope | Header | Main | ReliableMessaging | QueueId
-	        if ("EOIO".equals(ico.getQualityOfService())) {
+	        if ("ExactlyOnceInOrder".equals(firstXiHeader.getQualityOfService())) {
 				startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QueueId");
 				xmlEventWriter.add(startElement);
 				value = xmlEventFactory.createCharacters("_20195000060431");
