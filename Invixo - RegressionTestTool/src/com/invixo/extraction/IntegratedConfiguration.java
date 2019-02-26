@@ -1,6 +1,5 @@
 package com.invixo.extraction;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -415,30 +414,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
         }
         
         // Modify relevant, existing entries in Message Mapping file
-        updateMessageIdMappingFile(messageIds);
-	}
-
-
-	private void updateMessageIdMappingFile(HashMap<String, String> updatedMessageIds) {
-		final String SIGNATURE = "updateMessageIdMappingFile(HashMap<String, String>)";
-		String messageId;
-		String parentId;
-		File file = new File(FileStructure.FILE_MSG_ID_MAPPING);
-		
-		// Update Message Mapping file
-		if (updatedMessageIds.size() > 0 && file.exists()) {
-			String content = new String(Util.readFile(FileStructure.FILE_MSG_ID_MAPPING));
-			for (HashMap.Entry<String, String> entry : updatedMessageIds.entrySet()) {
-				parentId = entry.getKey();
-				messageId = entry.getValue();
-				logger.writeDebug(LOCATION, SIGNATURE, "Message split scenario found!");
-				logger.writeDebug(LOCATION, SIGNATURE, "Key: " + parentId + " will be replaced with key: " + messageId);
-				content = content.replace(entry.getKey(), entry.getValue());
-			}
-
-			logger.writeDebug(LOCATION, SIGNATURE, "Changed file will be written to: " + FileStructure.FILE_MSG_ID_MAPPING);
-			Util.writeFileToFileSystem(FileStructure.FILE_MSG_ID_MAPPING, content.getBytes());
-		}
+        StateHandler.replaceInjectIdWithSplitId(messageIds);
 	}
 	
 }

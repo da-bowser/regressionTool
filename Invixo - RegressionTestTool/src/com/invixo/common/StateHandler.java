@@ -111,26 +111,6 @@ public class StateHandler {
 	}
 	
 	
-	/**
-	 * Scenario: Extract Init
-	 * Create an entry.
-	 * @param icoName
-	 * @param first
-	 * @param last
-	 * @return
-	 */
-	public static String createExtractEntry(String icoName, Payload first, Payload last) {
-		return createEntry(	icoName, 
-							first, 
-							last, 
-							INJECT_FIRST_MSG_ID_TEMPLATE, 
-							NON_INIT_LAST_MSG_KEY_TEMPLATE,
-							NON_INIT_LAST_MSG_ID_TEMPLATE,
-							NON_INIT_LAST_FILE_NAME_TEMPLATE
-							);
-	}
-
-
 	private static String createEntry(	String icoName, 
 										Payload first, 
 										Payload last, 
@@ -209,73 +189,14 @@ public class StateHandler {
 		HashSet<String> uniqueFirstIds = new HashSet<String>();
 		
 		for (String line : lines) {
-			String messageId = line.split(SEPARATOR)[3];		// File name for a Source/original FIRST message Id
+			String messageId = line.split(SEPARATOR)[3];		// File name for a source/original FIRST message Id
 			uniqueFirstIds.add(messageId);
 		}
 		
 		return uniqueFirstIds;
 	}
 	
-	
-	/**
-	 * Scenario: Inject
-	 * Replace INJECT_TEMPLATE with inject Message Id, for all lines containing the referenced 'initFirstMsgId' in internal
-	 * map of <initFirstMsgId, injectId>.
-	 * Replacement does not store data, it merely updates the internal reference to the State Lines in memory. 
-	 */
-	public static void replaceInjectTemplateWithId() {
-		// Modify internal list of ICO lines
-		for (int i = 0; i < icoLines.size(); i++) {
-			String line = icoLines.get(i);
-			// Split
-			String[] lineParts = line.split(SEPARATOR);
-			
-			// Get FIRST message id
-			String currentFirstMsgId = lineParts[2];
-			
-			// Determine if message id of current line needs to be updated
-			boolean isMatchFound = tempMsgLink.containsKey(currentFirstMsgId);
-			
-			// Replace inject template text with inject id, if the 2 FIRST message ids are the same
-			if (isMatchFound) {
-				String injectId = tempMsgLink.get(currentFirstMsgId);
-				line = line.replace(INJECT_FIRST_MSG_ID_TEMPLATE, injectId);
-				icoLines.set(i, line);
-			}
-		}
-	}
-	
-	
-	/**
-	 * Scenario: Extract NonInit, multimapping
-	 * @param injectMessageId
-	 * @param initlastMessageKey
-	 * @param nonInitLastMessageKey
-	 * @param nonInitLastMessageId
-	 */
-	public static void replaceMessageInfoTemplateWithMessageInfo(String injectMessageId, String initlastMessageKey, String nonInitLastMessageKey, String nonInitLastMessageId) {
-		// Get sequence id from Message Key
-		String nonInitLastMessageKeySequenceId = getSequenceIdFromMessageKey(nonInitLastMessageKey);
 		
-		for (int i = 0; i < icoLines.size(); i++) {
-			String line = icoLines.get(i);
-			
-			// Get parts from current line
-			String[] lineParts = line.split(SEPARATOR);
-			String currentLastMessageKey = lineParts[4];
-			String currentLastKeySequenceId = getSequenceIdFromMessageKey(currentLastMessageKey); 
-			String currentInjectMessageId = lineParts[7];
-
-			// Replace templates
-			if (nonInitLastMessageKeySequenceId.equals(currentLastKeySequenceId) && injectMessageId.equals(currentInjectMessageId)) {
-				line = line.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
-				line = line.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
-				icoLines.set(i, line);		
-			}
-		}
-	}
-	
-	
 	/**
 	 * Scenario: Inject
 	 * @param firstMsgId
@@ -355,6 +276,118 @@ public class StateHandler {
 			if (sapMessageId.equals(currentNonInitLastMessageId)) {
 				line = line.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, fileName);
 				icoLines.set(i, line);
+			}
+		}
+	}
+	
+	
+	/**
+	 * Scenario: Extract NonInit, multimapping
+	 * @param injectMessageId
+	 * @param initlastMessageKey
+	 * @param nonInitLastMessageKey
+	 * @param nonInitLastMessageId
+	 */
+	public static void replaceMessageInfoTemplateWithMessageInfo(String injectMessageId, String initlastMessageKey, String nonInitLastMessageKey, String nonInitLastMessageId) {
+		// Get sequence id from Message Key
+		String nonInitLastMessageKeySequenceId = getSequenceIdFromMessageKey(nonInitLastMessageKey);
+		
+		for (int i = 0; i < icoLines.size(); i++) {
+			String line = icoLines.get(i);
+			
+			// Get parts from current line
+			String[] lineParts = line.split(SEPARATOR);
+			String currentLastMessageKey = lineParts[4];
+			String currentLastKeySequenceId = getSequenceIdFromMessageKey(currentLastMessageKey); 
+			String currentInjectMessageId = lineParts[7];
+
+			// Replace templates
+			if (nonInitLastMessageKeySequenceId.equals(currentLastKeySequenceId) && injectMessageId.equals(currentInjectMessageId)) {
+				line = line.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
+				line = line.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
+				icoLines.set(i, line);		
+			}
+		}
+	}
+	
+	
+	/**
+	 * Scenario: Inject
+	 * Replace INJECT_TEMPLATE with inject Message Id, for all lines containing the referenced 'initFirstMsgId' in internal
+	 * map of <initFirstMsgId, injectId>.
+	 * Replacement does not store data, it merely updates the internal reference to the State Lines in memory. 
+	 */
+	public static void replaceInjectTemplateWithId() {
+		// Modify internal list of ICO lines
+		for (int i = 0; i < icoLines.size(); i++) {
+			// Get current line
+			String currentLine = icoLines.get(i);
+			
+			// Split
+			String[] lineParts = currentLine.split(SEPARATOR);
+			
+			// Get FIRST message id
+			String currentFirstMsgId = lineParts[2];
+			
+			// Determine if message id of current line needs to be updated
+			boolean isMatchFound = tempMsgLink.containsKey(currentFirstMsgId);
+			
+			// Replace inject template text with inject id, if the 2 FIRST message ids are the same
+			if (isMatchFound) {
+				String injectId = tempMsgLink.get(currentFirstMsgId);
+				currentLine = currentLine.replace(INJECT_FIRST_MSG_ID_TEMPLATE, injectId);
+				icoLines.set(i, currentLine);
+			}
+		}
+	}
+	
+	
+	/**
+	 * Scenario: Extract Init
+	 * Create an entry.
+	 * @param icoName
+	 * @param first
+	 * @param last
+	 * @return
+	 */
+	public static String createExtractEntry(String icoName, Payload first, Payload last) {
+		return createEntry(	icoName, 
+							first, 
+							last, 
+							INJECT_FIRST_MSG_ID_TEMPLATE, 
+							NON_INIT_LAST_MSG_KEY_TEMPLATE,
+							NON_INIT_LAST_MSG_ID_TEMPLATE,
+							NON_INIT_LAST_FILE_NAME_TEMPLATE
+							);
+	}
+	
+	
+	/**
+	 * Scenario: NonInit, Message Split
+	 * @param updatedMessageIds		Map of
+	 * 									Key: inject id
+	 * 									Val: new split message id
+	 */
+	public static void replaceInjectIdWithSplitId(HashMap<String, String> map) {
+		final String SIGNATURE = "replaceInjectIdWithSplitId(HashMap<String, String>)";
+		String newSplitId;
+		String injectId;
+		
+		for (HashMap.Entry<String, String> entry : map.entrySet()) {
+			injectId = entry.getKey();
+			newSplitId = entry.getValue();
+			
+			for (int i=0; i<icoLines.size(); i++) {
+				String currentLine = icoLines.get(i);
+				String[] lineParts = currentLine.split(SEPARATOR);
+				String currentInjectId = lineParts[7];
+				
+				// Update entry
+				if (injectId.equals(currentInjectId)) {
+					logger.writeDebug(LOCATION, SIGNATURE, "Message Split: InjectMsgId '" + injectId + "' replaced with SplitMsgId '" + newSplitId + "'");
+					String newLine = currentLine.replace(injectId, newSplitId);
+					icoLines.set(i, newLine);
+				}
 			}
 		}
 	}
