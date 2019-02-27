@@ -119,8 +119,7 @@ public class MessageKey {
 				StateHandler.addEntryToInternalList(newEntry);
 			} else {
 				// Extract: Non-init
-				StateHandler.replaceMessageInfoTemplateWithMessageInfo(injectMessageId, last.getSapMessageKey(), last.getSapMessageId());
-				StateHandler.replaceLastFileNameTemplateWithFileName(last.getSapMessageId(), last.getFileName());
+				StateHandler.addNonInitMessageInfoToInternalList(injectMessageId, last.getSapMessageKey(), last.getSapMessageId(), last.getFileName());
 			}
 		} catch (PayloadException e) {
 			String msg = "Error persisting payload for MessageKey!\n" + e;
@@ -128,13 +127,7 @@ public class MessageKey {
 			ExtractorException ex = new ExtractorException(msg);
 			this.ex = ex;
 			throw ex;
-		} catch (StateException e) {
-			String msg = "Error replacing LAST templates in State lines.\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			ExtractorException ex = new ExtractorException(msg);
-			this.ex = ex;
-			throw ex;
-		}
+		} 
 	}
 	
 	

@@ -171,7 +171,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			HttpHandler.post(webServiceRequest);
 			
 			// Add new entry to internal list of lines to be updated after injection
-			StateHandler.addInjectEntry(Util.getFileName(sapXiMessage, false), ir.getMessageId());
+			StateHandler.addInjectEntry(firstXiHeader.getMessageId(), ir.getMessageId());
 		} catch (IOException | MessagingException e) {
 			String msg = "Error injecting new request to SAP PO for ICO " + super.getName() + " with source message file " + sapXiMessage + ".\n" + e.getMessage();
 			logger.writeError(LOCATION, SIGNATURE, msg);

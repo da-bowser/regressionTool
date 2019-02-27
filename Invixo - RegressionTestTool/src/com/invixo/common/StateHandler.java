@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +29,7 @@ public class StateHandler {
 	
 	private static HashMap<String, String> tempMsgLink = new HashMap<String, String>();	// Map of <FIRST msg Id, Inject Id> created during inject.
 	private static List<String> icoLines = new ArrayList<String>();		// All lines of an ICO state file
+	private static List<String> tempNonInitMsgInfo = new ArrayList<String>();
 	private static Path icoStatePathSource =  null;			// Path to an ICO state file: Source
 	private static Path icoStatePathTarget =  null;			// Path to an ICO state file: Target
 	
@@ -257,7 +260,7 @@ public class StateHandler {
 	 * @throws StateException
 	 */
 	public static Map<String, String> getCompareMessageIdsFromIcoLines() throws StateException {
-		Map<String, String> map = convertLineInfoToMap(5, 9);
+		Map<String, String> map = convertLineInfoToMap(6, 10);
 		return map;
 	}
 	
@@ -303,39 +306,6 @@ public class StateHandler {
 			if (sapMessageId.equals(currentNonInitLastMessageId)) {
 				line = line.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, fileName);
 				icoLines.set(i, line);
-			}
-		}
-	}
-	
-	
-	/**
-	 * Scenario: Extract NonInit, multimapping
-	 * @param injectMessageId
-	 * @param nonInitLastMessageKey
-	 * @param nonInitLastMessageId
-	 * @throws StateException 
-	 */
-	public static void replaceMessageInfoTemplateWithMessageInfo(String injectMessageId, String nonInitLastMessageKey, String nonInitLastMessageId) throws StateException {
-		// Read file
-		StateHandler.readIcoStateLinesFromFile();
-					
-		// Get sequence id from Message Key
-		String nonInitLastMessageKeySequenceId = getSequenceIdFromMessageKey(nonInitLastMessageKey);
-		
-		for (int i = 0; i < icoLines.size(); i++) {
-			String line = icoLines.get(i);
-			
-			// Get parts from current line
-			String[] lineParts = line.split(SEPARATOR);
-			String currentLastMessageKey = lineParts[4];
-			String currentLastKeySequenceId = getSequenceIdFromMessageKey(currentLastMessageKey); 
-			String currentInjectMessageId = lineParts[7];
-
-			// Replace templates
-			if (nonInitLastMessageKeySequenceId.equals(currentLastKeySequenceId) && injectMessageId.equals(currentInjectMessageId)) {
-				String lineWithKey = line.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
-				String finalLine = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
-				icoLines.set(i, finalLine);
 			}
 		}
 	}
@@ -420,6 +390,87 @@ public class StateHandler {
 				}
 			}
 		}
+	}
+
+
+	public static void addNonInitMessageInfoToInternalList(String injectMessageId, String sapMessageKey,
+			String sapMessageId, String fileName) {
+		tempNonInitMsgInfo.add(injectMessageId + SEPARATOR + sapMessageKey + SEPARATOR + sapMessageId + SEPARATOR + fileName);
+	}
+
+
+	public static void sequenceMagicMultiMap() {
+		List<String[]> initLastMessageKeys = new ArrayList<String[]>();
+		List<String[]> nonInitLastMessageKeys = new ArrayList<String[]>();
+		
+		for (String line : icoLines) {
+			initLastMessageKeys.add(line.split(SEPARATOR)[4]);
+		}
+		
+		for (String line : tempNonInitMsgInfo) {
+			nonInitLastMessageKeys.add(line.split(SEPARATOR)[1]);
+		} 
+		
+		// Sort init list by sequence
+		Collections.sort(initLastMessageKeys, new Comparator<String>() {
+		    @Override
+		    public int compare(String key1, String key2) {
+		    	String seq1 = getSequenceIdFromMessageKey(key1);
+		    	String seq2 = getSequenceIdFromMessageKey(key2);
+		        return seq1.compareTo(seq2);
+	    }});
+		
+		// Sort non-init list by sequence
+		Collections.sort(nonInitLastMessageKeys, new Comparator<String>() {
+		    @Override
+		    public int compare(String key1, String key2) {
+		    	String seq1 = getSequenceIdFromMessageKey(key1);
+		    	String seq2 = getSequenceIdFromMessageKey(key2);
+		        return seq1.compareTo(seq2);
+	    }});
+		
+		for (int i = 0; i < icoLines.size(); i++) {
+			String line = icoLines.get(i);
+			
+			// Get parts from current line
+			String[] lineParts = line.split(SEPARATOR);
+			String currentLastMessageKey = lineParts[4]; 
+			String currentInjectMessageId = lineParts[7];
+			
+			int matchIndex = initLastMessageKeys.indexOf(currentLastMessageKey);
+			
+			System.out.println("Init: " + currentLastMessageKey);
+			System.out.println("Non-init: " + nonInitLastMessageKeys.get(matchIndex));
+			
+			
+			String nonInitLastMessageKey = nonInitLastMessageKeys.get(matchIndex);
+			String nonInitFileName = "";
+			String nonInitMessageId = "";
+			for (String s : tempNonInitMsgInfo) {
+				if (s.contains(currentInjectMessageId)) {
+					
+				}
+			}
+
+			// Replace templates
+//			if (injectMessageId.equals(currentInjectMessageId)) {
+				String lineWithKey = line.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKeys.get(matchIndex));
+				String lineWithId = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitMessageId);
+				String finalLine = lineWithId.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, nonInitFileName);
+				icoLines.set(i, finalLine);
+//			}
+		}
+		
+	}
+
+
+	public static void nonInitReplaceTemplates(boolean isUsingMultiMapping) {
+		if (isUsingMultiMapping) {
+			sequenceMagicMultiMap();
+		} else {
+			//TODO: non sequence shit
+		}
+		
 	}
 	
 }

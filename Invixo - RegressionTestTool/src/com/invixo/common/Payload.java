@@ -125,7 +125,11 @@ public class Payload {
 	
 	
 	public String getFileName() {
-		return this.sapMessageId + FileStructure.PAYLOAD_FILE_EXTENSION;
+		String fileName = "";
+		if (this.sapMessageKey != null) {
+			fileName = this.sapMessageKey.replace("\\", "_");
+		}
+		return fileName + FileStructure.PAYLOAD_FILE_EXTENSION;
 	}
 	
 	

@@ -167,8 +167,8 @@ public class IntegratedConfiguration {
 		
 		// Process each Message Id representing the baseline (often PRD)
 		for (Entry<String, String> entry : this.messageIdMap.entrySet()) {
-			final Path currentSourcePath = Paths.get(this.baseFilePath + entry.getKey() + FileStructure.PAYLOAD_FILE_EXTENSION);
-			final Path comparePathMatch = Paths.get(this.compareFilePath + entry.getValue() + FileStructure.PAYLOAD_FILE_EXTENSION);
+			final Path currentSourcePath = Paths.get(this.baseFilePath + entry.getKey());
+			final Path comparePathMatch = Paths.get(this.compareFilePath + entry.getValue());
 
 			Comparer comp = new Comparer(currentSourcePath, comparePathMatch, this.xpathExceptions);
 			this.compareProcessedList.add(comp);
