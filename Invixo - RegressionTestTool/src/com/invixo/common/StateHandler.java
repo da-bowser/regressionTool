@@ -444,7 +444,7 @@ public class StateHandler {
 			int matchIndex = -1;
 			for (int i=0; i < initLastMessageKeys.size(); i++) {
 				String[] parts = initLastMessageKeys.get(i).split(SEPARATOR);
-				String initMsgKey = parts[1]; 
+				String initMsgKey = parts[4]; 
 				if (initMsgKey.contains(currentLastMessageKey)) {
 					matchIndex = i;
 					break;
@@ -452,7 +452,7 @@ public class StateHandler {
 			}
 				
 			String[] currentNonInitLastLine = nonInitLastMessageKeys.get(matchIndex).split(SEPARATOR);
-			String nonInitLastMessageKey 	= currentNonInitLastLine[0];
+			String nonInitLastMessageKey 	= currentNonInitLastLine[1];
 			String nonInitLastMessageId		= currentNonInitLastLine[2];
 			String nonInitFileName 			= currentNonInitLastLine[3];
 
@@ -472,9 +472,38 @@ public class StateHandler {
 		if (isUsingMultiMapping) {
 			sequenceMagicMultiMap();
 		} else {
-			//TODO: non sequence shit
+			noMultiOrSplitMagic();
 		}
 		
+	}
+
+
+	private static void noMultiOrSplitMagic() {
+		for (int j=0; j < icoLines.size(); j++) {
+			String currentIcoLine = icoLines.get(j);
+			
+			// Get parts from current line
+			String[] lineParts = currentIcoLine.split(SEPARATOR);
+			String currentInjectMessageId = lineParts[7];
+				
+			for (int i = 0; i < tempNonInitMsgInfo.size(); i++) {
+				String[] currentTempNonInitLastLine = tempNonInitMsgInfo.get(i).split(SEPARATOR);
+				String nonInitinjectMessageId 	= currentTempNonInitLastLine[0];
+				String nonInitLastMessageKey 	= currentTempNonInitLastLine[1];
+				String nonInitLastMessageId		= currentTempNonInitLastLine[2];
+				String nonInitFileName 			= currentTempNonInitLastLine[3];
+				
+				// Replace templates
+				if (nonInitinjectMessageId.equals(currentInjectMessageId)) {
+					String lineWithKey = currentIcoLine.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
+					String lineWithId = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
+					String finalLine = lineWithId.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, nonInitFileName);
+					icoLines.set(j, finalLine);
+					
+					break;
+				}
+			}
+		}
 	}
 	
 }

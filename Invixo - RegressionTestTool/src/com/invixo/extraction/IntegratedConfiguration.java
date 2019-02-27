@@ -102,10 +102,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			} else {
 				// Extract only Message IDs previously injected for ICO 
 				extractModeNonInit();
+				StateHandler.nonInitReplaceTemplates(this.isUsingMultiMapping());
 			}
 			
 			// State Handling: persist
-			StateHandler.nonInitReplaceTemplates(this.isUsingMultiMapping());
 			StateHandler.storeIcoState();
 		} catch (ExtractorException|HttpException|StateException e) {
 			this.setEx(e);
