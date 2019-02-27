@@ -25,6 +25,8 @@ public class StateHandler {
 	private static final String NON_INIT_LAST_MSG_ID_TEMPLATE = "<TEMPLATE_NON_INIT_LAST_MSG_ID>";
 	private static final String NON_INIT_LAST_MSG_KEY_TEMPLATE = "<TEMPLATE_NON_INIT_LAST_MSG_KEY>";
 	private static final String NON_INIT_LAST_FILE_NAME_TEMPLATE = "<TEMPLATE_NON_INIT_LAST_FILE_NAME>";
+	private static final String NON_INIT_SEQUENCE_ID_TEMPLATE = "<NON_INIT_SEQUENCE_ID_TEMPLATE>";
+	
 	private static final String SEPARATOR = GlobalParameters.FILE_DELIMITER;
 	
 	private static HashMap<String, String> tempMsgLink = new HashMap<String, String>();	// Map of <FIRST msg Id, Inject Id> created during inject.
@@ -89,6 +91,8 @@ public class StateHandler {
 					+ SEPARATOR
 					+ "InitExtractLast_FileName"
 					+ SEPARATOR
+					+ "InitExtractLast_InternalSequenceNumber"
+					+ SEPARATOR
 					+ "inject_MsgId"
 					+ SEPARATOR
 					+ "NonInitExtractLast_MsgKey"
@@ -96,6 +100,8 @@ public class StateHandler {
 					+ "NonInitExtractLast_MsgId"
 					+ SEPARATOR
 					+ "NonInitExtractLast_FileName"
+					+ SEPARATOR
+					+ "NonInitExtractLast_InternalSequenceNumber"
 					+ SEPARATOR
 					+ "IcoName";
 			bw.write(headerLine);
@@ -142,13 +148,50 @@ public class StateHandler {
 	}
 	
 	
+	/**
+	 * Scenario: Extract Init
+	 * Create an entry.
+	 * @param icoName
+	 * @param first
+	 * @param last
+	 * @return
+	 */
+	public static String createExtractEntry(String icoName, Payload first, Payload last, int initSequenceNumber) {
+		return createEntry(	icoName, 
+							first, 
+							last, 
+							"" + initSequenceNumber,
+							INJECT_FIRST_MSG_ID_TEMPLATE, 
+							NON_INIT_LAST_MSG_KEY_TEMPLATE,
+							NON_INIT_LAST_MSG_ID_TEMPLATE,
+							NON_INIT_LAST_FILE_NAME_TEMPLATE,
+							NON_INIT_SEQUENCE_ID_TEMPLATE
+							);
+	}
+	
+	
+	/**
+	 * 
+	 * @param icoName
+	 * @param first
+	 * @param last
+	 * @param injectFirstMsgId
+	 * @param nonInitLastMsgKey
+	 * @param nonInitLastMsgId
+	 * @param nonInitLastFileName
+	 * @param initInternalSequenceId
+	 * @param nonInitInternalSequenceId
+	 * @return
+	 */
 	private static String createEntry(	String icoName, 
 										Payload first, 
 										Payload last, 
+										String initInternalSequenceId,
 										String injectFirstMsgId, 
 										String nonInitLastMsgKey, 
 										String nonInitLastMsgId, 
-										String nonInitLastFileName) {
+										String nonInitLastFileName,
+										String nonInitInternalSequenceId) {
 		String line	= System.currentTimeMillis() 
 					+ SEPARATOR 
 					
@@ -167,6 +210,8 @@ public class StateHandler {
 					+ SEPARATOR
 					+ last.getFileName()
 					+ SEPARATOR
+					+ initInternalSequenceId
+					+ SEPARATOR
 					
 					// INJECT Message Id
 					+ injectFirstMsgId
@@ -178,6 +223,8 @@ public class StateHandler {
 					+ nonInitLastMsgId
 					+ SEPARATOR
 					+ nonInitLastFileName
+					+ SEPARATOR
+					+ nonInitInternalSequenceId
 					+ SEPARATOR
 					
 					// ICO identifier
@@ -248,7 +295,7 @@ public class StateHandler {
 	 * @throws StateException
 	 */
 	public static Map<String, String> getMessageIdsFromFile() throws StateException {
-		Map<String, String> map = convertLineInfoToMap(2, 7);
+		Map<String, String> map = convertLineInfoToMap(3, 8);
 		return map;
 	}
 	
@@ -345,26 +392,6 @@ public class StateHandler {
 	
 	
 	/**
-	 * Scenario: Extract Init
-	 * Create an entry.
-	 * @param icoName
-	 * @param first
-	 * @param last
-	 * @return
-	 */
-	public static String createExtractEntry(String icoName, Payload first, Payload last) {
-		return createEntry(	icoName, 
-							first, 
-							last, 
-							INJECT_FIRST_MSG_ID_TEMPLATE, 
-							NON_INIT_LAST_MSG_KEY_TEMPLATE,
-							NON_INIT_LAST_MSG_ID_TEMPLATE,
-							NON_INIT_LAST_FILE_NAME_TEMPLATE
-							);
-	}
-	
-	
-	/**
 	 * Scenario: NonInit, Message Split
 	 * @param updatedMessageIds		Map of
 	 * 									Key: inject id
@@ -395,9 +422,23 @@ public class StateHandler {
 	}
 
 
-	public static void addNonInitMessageInfoToInternalList(String injectMessageId, String sapMessageKey,
-			String sapMessageId, String fileName) {
-		tempNonInitMsgInfo.add(injectMessageId + SEPARATOR + sapMessageKey + SEPARATOR + sapMessageId + SEPARATOR + fileName);
+	public static void addNonInitMessageInfoToInternalList(
+							String injectMessageId, 
+							String sapMessageKey,
+							String sapMessageId, 
+							String fileName,
+							int internalSequenceId) {
+		tempNonInitMsgInfo.add(
+				injectMessageId 
+				+ SEPARATOR 
+				+ sapMessageKey 
+				+ SEPARATOR 
+				+ sapMessageId 
+				+ SEPARATOR 
+				+ fileName
+				+ SEPARATOR 
+				+ internalSequenceId
+				);
 	}
 
 
@@ -458,17 +499,15 @@ public class StateHandler {
 			String nonInitLastMessageKey 	= currentNonInitLastLine[1];
 			String nonInitLastMessageId		= currentNonInitLastLine[2];
 			String nonInitFileName 			= currentNonInitLastLine[3];
-
-			if (currentInjectMessageId.equals("4cfa82c5-2df1-46a0-8736-04da46f5baf3")) {
-				System.out.println("HELLO");
-			}
+			String nonInitSequenceNumber	= currentNonInitLastLine[4];
 
 			// Replace templates
 			if (injectMessageId.equals(currentInjectMessageId)) {
 				String lineWithKey = currentIcoLine.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
 				String lineWithId = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
 				String finalLine = lineWithId.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, nonInitFileName);
-				icoLines.set(j, finalLine);
+				String finalfinalline = finalLine.replace(NON_INIT_SEQUENCE_ID_TEMPLATE, nonInitSequenceNumber);
+				icoLines.set(j, finalfinalline);
 			}
 		}
 	}
@@ -490,7 +529,7 @@ public class StateHandler {
 			
 			// Get parts from current line
 			String[] lineParts = currentIcoLine.split(SEPARATOR);
-			String currentInjectMessageId = lineParts[7];
+			String currentSequenceId = lineParts[7];
 				
 			for (int i = 0; i < tempNonInitMsgInfo.size(); i++) {
 				String[] currentTempNonInitLastLine = tempNonInitMsgInfo.get(i).split(SEPARATOR);
@@ -498,13 +537,15 @@ public class StateHandler {
 				String nonInitLastMessageKey 	= currentTempNonInitLastLine[1];
 				String nonInitLastMessageId		= currentTempNonInitLastLine[2];
 				String nonInitFileName 			= currentTempNonInitLastLine[3];
+				String nonInitSequenceNumber	= currentTempNonInitLastLine[4];
 				
 				// Replace templates
-				if (nonInitinjectMessageId.equals(currentInjectMessageId)) {
+				if (currentSequenceId.equals(nonInitSequenceNumber)) {
 					String lineWithKey = currentIcoLine.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
 					String lineWithId = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
 					String finalLine = lineWithId.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, nonInitFileName);
-					icoLines.set(j, finalLine);
+					String finalfinalline = finalLine.replace(NON_INIT_SEQUENCE_ID_TEMPLATE, nonInitSequenceNumber);
+					icoLines.set(j, finalfinalline);
 					
 					break;
 				}

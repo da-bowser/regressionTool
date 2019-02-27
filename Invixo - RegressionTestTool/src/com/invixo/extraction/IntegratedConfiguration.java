@@ -33,6 +33,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	private static final String LOCATION = IntegratedConfiguration.class.getName();
 
 	
+	
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/

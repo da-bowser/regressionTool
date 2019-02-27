@@ -7,7 +7,6 @@ import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.common.Payload;
 import com.invixo.common.PayloadException;
-import com.invixo.common.StateException;
 import com.invixo.common.StateHandler;
 import com.invixo.common.util.HttpException;
 import com.invixo.main.GlobalParameters;
@@ -23,6 +22,7 @@ public class MessageKey {
 	private Payload payloadLast = new Payload();	// LAST payload
 	private ArrayList<String> multiMapMessageKeys;	// List of Parent Message Keys in the case of Multimapping scenario
 	private Exception ex = null;					// Error details
+	private static int sequenceCounter = 0;
 	
 	
 	
@@ -115,11 +115,16 @@ public class MessageKey {
 			// Build and add new State entry line
 			if (isInitMode) {
 				// Extract: Init
-				String newEntry = StateHandler.createExtractEntry(this.ico.getName(), first, last);
+				String newEntry = StateHandler.createExtractEntry(this.ico.getName(), first, last, ++sequenceCounter);
 				StateHandler.addEntryToInternalList(newEntry);
 			} else {
 				// Extract: Non-init
-				StateHandler.addNonInitMessageInfoToInternalList(injectMessageId, last.getSapMessageKey(), last.getSapMessageId(), last.getFileName());
+				StateHandler.addNonInitMessageInfoToInternalList(
+									injectMessageId, 
+									last.getSapMessageKey(), 
+									last.getSapMessageId(), 
+									last.getFileName(),
+									++sequenceCounter);
 			}
 		} catch (PayloadException e) {
 			String msg = "Error persisting payload for MessageKey!\n" + e;
