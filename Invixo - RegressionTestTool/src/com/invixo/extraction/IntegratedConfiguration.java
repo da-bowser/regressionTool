@@ -105,7 +105,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			}
 			
 			// State Handling: persist
-			StateHandler.sequenceMagicMultiMap();
+			StateHandler.nonInitReplaceTemplates(this.isUsingMultiMapping());
 			StateHandler.storeIcoState();
 		} catch (ExtractorException|HttpException|StateException e) {
 			this.setEx(e);
