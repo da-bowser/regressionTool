@@ -152,8 +152,7 @@ public class RequestGeneratorUtil {
 	        if ("ExactlyOnceInOrder".equals(firstXiHeader.getQualityOfService())) {
 				startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QueueId");
 				xmlEventWriter.add(startElement);
-//				value = xmlEventFactory.createCharacters("_20195000060431");
-				value = xmlEventFactory.createCharacters("_" + System.nanoTime());
+				value = xmlEventFactory.createCharacters(ico.getQueueId());
 				xmlEventWriter.add(value);
 				xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QueueId"));
 	        }

@@ -35,6 +35,7 @@ public class IntegratedConfigurationMain {
 	private String name = null;
 	private boolean active = false;
 	private String qualityOfService = null;
+	private String queueId = "_" + System.nanoTime();
 	private String fromTime = null;
 	private String toTime = null;
 	private int maxMessages = 0;
@@ -223,6 +224,11 @@ public class IntegratedConfigurationMain {
 
 	public boolean isUsingMultiMapping() {
 		return isUsingMultiMapping;
+	}
+	
+	
+	public String getQueueId() {
+		return queueId;
 	}
 
 
