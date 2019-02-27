@@ -60,6 +60,8 @@ public class StateHandler {
 		logger.writeDebug(LOCATION, SIGNATURE,  "State source file: " + icoStatePathSource);
 		logger.writeDebug(LOCATION, SIGNATURE,  "State target file: " + icoStatePathTarget);
 		icoLines.clear();
+		tempNonInitMsgInfo.clear();
+		tempMsgLink.clear();
 	}
 	
 
@@ -452,18 +454,22 @@ public class StateHandler {
 			}
 				
 			String[] currentNonInitLastLine = nonInitLastMessageKeys.get(matchIndex).split(SEPARATOR);
+			String injectMessageId			= currentNonInitLastLine[0];
 			String nonInitLastMessageKey 	= currentNonInitLastLine[1];
 			String nonInitLastMessageId		= currentNonInitLastLine[2];
 			String nonInitFileName 			= currentNonInitLastLine[3];
 
+			if (currentInjectMessageId.equals("4cfa82c5-2df1-46a0-8736-04da46f5baf3")) {
+				System.out.println("HELLO");
+			}
 
 			// Replace templates
-//			if (injectMessageId.equals(currentInjectMessageId)) {
+			if (injectMessageId.equals(currentInjectMessageId)) {
 				String lineWithKey = currentIcoLine.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
 				String lineWithId = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
 				String finalLine = lineWithId.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, nonInitFileName);
 				icoLines.set(j, finalLine);
-//			}
+			}
 		}
 	}
 

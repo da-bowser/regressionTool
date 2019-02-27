@@ -104,7 +104,7 @@ public class Payload {
 			BodyPart bp = XiMessageUtil.getPayloadFromMultiPartMessage(multiPartMessage);
 			logger.writeDebug(LOCATION, SIGNATURE, "SAP XI payload fetched from multipart message");
 			
-			this.xiHeader = bp;			
+			this.xiPayload = bp;			
 		} catch (MessagingException e) {
 			String msg = "Error extrac SAP XI Header from MultiPart message\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);

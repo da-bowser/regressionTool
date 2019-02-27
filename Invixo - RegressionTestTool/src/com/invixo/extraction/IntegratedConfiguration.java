@@ -211,7 +211,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Lookup Parent MessageInfo for current injectMessageId
 			MessageInfo msgInfo = WebServiceUtil.lookupParentMessageInfo(injectMessageId, this.getName(), this.getReceiverInterface());
 			this.responseMessageKeys = msgInfo.getObjectKeys();
-					
+			
+			if(injectMessageId.equals("4cfa82c5-2df1-46a0-8736-04da46f5baf3")) {
+				System.out.println("GOTCHA!");
+			}
 			// Process extracted message keys
 			processMessageKeysMultiple(injectMessageId, this.responseMessageKeys, this.internalObjectId);	
 		}
