@@ -1,6 +1,6 @@
 package com.invixo.directory.api;
 
-public class ReceiverInterfaceRule {
+class ReceiverInterfaceRule {
 	private String interfaceOperation = "";
 	private String interfaceName = "";
 	private String interfaceNamespace = "";	
@@ -10,10 +10,7 @@ public class ReceiverInterfaceRule {
 	private String interfaceMappingSoftwareComponentVersionId = "";
 	private RepositorySimpleQueryException ex = null;
 	
-	
-	/*====================================================================================
-	 *------------- Getters and Setters
-	 *====================================================================================*/
+
 	public String getInterfaceOperation() {
 		return interfaceOperation;
 	}

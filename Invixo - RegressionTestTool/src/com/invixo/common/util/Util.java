@@ -1,6 +1,5 @@
 package com.invixo.common.util;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,29 +50,6 @@ public class Util {
 		} catch (IOException e) {
 			throw new RuntimeException("*readFile* Error reading file: " + file + "\n" + e);
 		}
-	}
-	
-	
-	/**
-	 * Extract the file name from a path.
-	 * @param fileName					Path including a file name
-	 * @param includeFileExtension		Indicates if file extension should be preserved in output or not
-	 * @return
-	 */
-	public static String getFileName(String fileName, boolean includeFileExtension) {
-		File file = new File(fileName);
-		if (includeFileExtension) {
-			return file.getName();
-		} else {
-			int index = file.getName().lastIndexOf(".");
-			if (index == -1) {
-				// There is no extension
-				return file.getName();
-			} else {
-				// There is an extension
-				return file.getName().substring(0, index);	
-			}
-		}	
 	}
    
     

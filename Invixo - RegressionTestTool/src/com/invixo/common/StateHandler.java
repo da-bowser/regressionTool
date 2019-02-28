@@ -27,10 +27,12 @@ public class StateHandler {
 	private static final String NON_INIT_SEQUENCE_ID_TEMPLATE = "<NON_INIT_SEQUENCE_ID_TEMPLATE>";
 	
 	private static final String SEPARATOR = GlobalParameters.FILE_DELIMITER;
+
 	
 	private static HashMap<String, String> tempMsgLink = new HashMap<String, String>();	// Map of <FIRST msg Id, Inject Id> created during inject.
-	private static List<String> icoLines = new ArrayList<String>();		// All lines of an ICO state file
 	private static List<String> tempNonInitMsgInfo = new ArrayList<String>();
+	private static List<String> icoLines = new ArrayList<String>();		// All lines of an ICO state file
+	
 	private static Path icoStatePathSource =  null;			// Path to an ICO state file: Source
 	private static Path icoStatePathTarget =  null;			// Path to an ICO state file: Target
 	
@@ -130,7 +132,7 @@ public class StateHandler {
 	 * @return
 	 * @throws StateException
 	 */
-	public static List<String> readIcoStateLinesFromFile() throws StateException {
+	private static List<String> readIcoStateLinesFromFile() throws StateException {
 		final String SIGNATURE = "readIcoStateLinesFromFile()";
 		try {
 			if (icoLines.size() == 0) {
@@ -148,10 +150,10 @@ public class StateHandler {
 	
 	/**
 	 * Scenario: Extract Init
-	 * Create an entry.
 	 * @param icoName
 	 * @param first
 	 * @param last
+	 * @param initSequenceNumber
 	 * @return
 	 */
 	public static String createExtractEntry(String icoName, Payload first, Payload last, String initSequenceNumber) {
@@ -284,22 +286,6 @@ public class StateHandler {
 	}
 	
 	
-	/**
-	 * Scenario: Extract NonInit
-	 * Create map from ICO State Lines.
-	 * @return					Map<key, value>
-	 * 								KEY: Source message id (original extracted message id (INIT extract))
-	 * 								VAL: Target message id (inject message id)
-	 * @throws StateException
-	 */
-	public static Map<String, String> getMessageIdsFromFile() throws StateException {
-		Map<String, String> map = convertLineInfoToMap(3, 8);
-		return map;
-	}
-	
-	
-	
-	
 	public static HashSet<String> getUniqueInjectIdsFromStateFile() throws StateException {
 		Map<String, String> map = convertLineInfoToMap(8, 8);
 		
@@ -310,9 +296,6 @@ public class StateHandler {
 		
 		return uniqueInjectIds;
 	}
-	
-	
-	
 	
 	
 	/**
@@ -350,24 +333,6 @@ public class StateHandler {
 		return icoStatePathSource.toString();
 	}
 
-
-	/**
-	 * Scenario: Extract
-	 * @param sapMessageId
-	 * @param fileName
-	 */
-	public static void replaceLastFileNameTemplateWithFileName(String sapMessageId, String fileName) {
-		for (int i = 0; i < icoLines.size(); i++) {
-			String line = icoLines.get(i);
-			String currentNonInitLastMessageId = line.split(SEPARATOR)[9];
-			
-			if (sapMessageId.equals(currentNonInitLastMessageId)) {
-				line = line.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, fileName);
-				icoLines.set(i, line);
-			}
-		}
-	}
-	
 	
 	/**
 	 * Scenario: Inject
@@ -398,60 +363,9 @@ public class StateHandler {
 			}
 		}
 	}
-	
-	
-	/**
-	 * Scenario: NonInit, Message Split
-	 * @param updatedMessageIds		Map of
-	 * 									Key: inject id
-	 * 									Val: new split message id
-	 */
-	public static void replaceInjectIdWithSplitId(HashMap<String, String> map) {
-		final String SIGNATURE = "replaceInjectIdWithSplitId(HashMap<String, String>)";
-		String newSplitId;
-		String injectId;
-		
-		for (HashMap.Entry<String, String> entry : map.entrySet()) {
-			injectId = entry.getKey();
-			newSplitId = entry.getValue();
-			
-			for (int i=0; i<icoLines.size(); i++) {
-				String currentLine = icoLines.get(i);
-				String[] lineParts = currentLine.split(SEPARATOR);
-				String currentInjectId = lineParts[7];
-				
-				// Update entry
-				if (injectId.equals(currentInjectId)) {
-					logger.writeDebug(LOCATION, SIGNATURE, "Message Split: InjectMsgId '" + injectId + "' replaced with SplitMsgId '" + newSplitId + "'");
-					String newLine = currentLine.replace(injectId, newSplitId);
-					icoLines.set(i, newLine);
-				}
-			}
-		}
-	}
 
 
-	public static void addNonInitMessageInfoToInternalList(
-							String injectMessageId, 
-							String sapMessageKey,
-							String sapMessageId, 
-							String fileName,
-							int internalSequenceId) {
-		tempNonInitMsgInfo.add(
-				injectMessageId 
-				+ SEPARATOR 
-				+ sapMessageKey 
-				+ SEPARATOR 
-				+ sapMessageId 
-				+ SEPARATOR 
-				+ fileName
-				+ SEPARATOR 
-				+ internalSequenceId
-				);
-	}
-
-
-	public static void nonInitReplaceShitIDetMindste(Payload first, Payload last, String lastSequenceId) throws StateException {
+	public static void nonInitReplaceTemplates(Payload first, Payload last, String lastSequenceId) throws StateException {
 		List<String> icoLines = readIcoStateLinesFromFile();
 		
 		for (int i=0; i<icoLines.size(); i++) {

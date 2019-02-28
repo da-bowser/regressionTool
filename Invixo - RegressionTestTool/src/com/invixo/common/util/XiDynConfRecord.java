@@ -1,6 +1,6 @@
 package com.invixo.common.util;
 
-public class XiDynConfRecord {
+class XiDynConfRecord {
 	private String name = null;
 	private String namespace = null;
 	private String value = null;

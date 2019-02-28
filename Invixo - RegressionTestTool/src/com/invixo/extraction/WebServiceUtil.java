@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -68,7 +66,7 @@ public class WebServiceUtil {
 	 * @throws HttpException
 	 * @throws ExtractorException
 	 */
-	public static String lookupMessageKey(String messageId, String icoName) throws HttpException, ExtractorException {
+	static String lookupMessageKey(String messageId, String icoName) throws HttpException, ExtractorException {
 		final String SIGNATURE = "lookupMessageKey(String)";
 		
 		// Create "GetMessagesByIDs" request
@@ -90,39 +88,6 @@ public class WebServiceUtil {
 		return messageKey;
 	}
 
-
-	/**
-	 * Call service: GetMessagesWithSuccessors
-	 * @param messageId
-	 * @param icoName
-	 * @return
-	 * @throws HttpException
-	 * @throws ExtractorException
-	 */
-	public static String lookupSuccessorMessageId(String messageId, String icoName) throws HttpException, ExtractorException {
-		final String SIGNATURE = "lookupParentMessageId(String, String)";
-		
-		// Create "GetMessagesWithSuccessors" request
-		List<String> msgIdList = Arrays.asList(messageId);
-		byte[] getMessagesWithSuccessorsRequestBytes = createRequestGetMessagesWithSuccessors(msgIdList);
-		logger.writeDebug(LOCATION, SIGNATURE, "GetMessagesWithSuccessors request created");
-		
-		// Write request to file system if debug for this is enabled (property)
-		if (GlobalParameters.DEBUG) {
-			String file = FileStructure.getDebugFileName("GetMessagesWithSuccessors", true, icoName, "xml");
-			Util.writeFileToFileSystem(file, getMessagesWithSuccessorsRequestBytes);
-			logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> MultiMapping scenario: GetMessagesWithSuccessors request message to be sent to SAP PO is stored here: " + file);
-		}
-					
-		// Call web service (GetMessagesWithSuccessors)
-		byte[] getMessagesWithSuccessorsResponseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, getMessagesWithSuccessorsRequestBytes);
-		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessagesWithSuccessors) called");
-		
-		// Extract parentId from response
-		String parentId = extractParentIdsFromResponse(getMessagesWithSuccessorsResponseBytes);
-		return parentId;
-	}
-	
 	
 	/**
 	 * Call service: GetPredecessorMessageId
@@ -132,7 +97,7 @@ public class WebServiceUtil {
 	 * @throws HttpException
 	 * @throws ExtractorException
 	 */
-	public static String lookupPredecessorMessageId(String messageId, String icoName) throws HttpException, ExtractorException {
+	static String lookupPredecessorMessageId(String messageId, String icoName) throws HttpException, ExtractorException {
 		final String SIGNATURE = "lookupPredecessorMessageId(String, String)";
 		
 		// Create "GetPredecessorMessageId" request
@@ -178,26 +143,7 @@ public class WebServiceUtil {
 		
 		return responseBytes;
 	}
-	
-	
-	/**
-	 * Call service: GetMessagesWithSuccessors
-	 * @param messageId
-	 * @param icoName
-	 * @param receiverInterface
-	 * @return
-	 * @throws HttpException
-	 * @throws ExtractorException
-	 */
-	public static MessageInfo lookupParentMessageInfo(String messageId, String icoName, String receiverInterface) throws HttpException, ExtractorException {
-		byte[] responseBytes = lookupSuccessors(messageId, icoName);
-
-		// Extract message info from Web Service response
-		MessageInfo msgInfo = extractMessageInfo(responseBytes, receiverInterface);
 		
-		return msgInfo;
-	}
-	
 	
 	/**
 	 * Call service: GetMessageList
@@ -206,7 +152,7 @@ public class WebServiceUtil {
 	 * @throws ExtractorException
 	 * @throws HttpException
 	 */
-	public static MessageInfo lookupMessages(IntegratedConfiguration ico) throws ExtractorException, HttpException {
+	static MessageInfo lookupMessages(IntegratedConfiguration ico) throws ExtractorException, HttpException {
 		final String SIGNATURE = "lookupMessages(IntegratedConfiguration)";
 		// Create request for GetMessageList
 		byte[] requestBytes = createRequestGetMessageList(ico);
@@ -230,50 +176,12 @@ public class WebServiceUtil {
 	
 	
 	/**
-	 * Extract parentId from getMessagesWithSuccessors response.
-	 * @param responseBytes
-	 * @return
-	 * @throws ExtractorException
-	 */
-	static String extractParentIdsFromResponse(byte[] responseBytes) throws ExtractorException {
-		final String SIGNATURE = "extractParentIdsFromResponse(byte[])";
-		try {
-	        String parentId = "";
-	        
-			XMLInputFactory factory = XMLInputFactory.newInstance();
-			XMLEventReader eventReader = factory.createXMLEventReader(new ByteArrayInputStream(responseBytes));
-
-			while (eventReader.hasNext()) {
-				XMLEvent event = eventReader.nextEvent();
-
-				switch (event.getEventType()) {
-				case XMLStreamConstants.START_ELEMENT:
-					String currentElementName = event.asStartElement().getName().getLocalPart();
-
-					if ("parentID".equals(currentElementName)) {
-						parentId = eventReader.peek().asCharacters().getData();
-					}
-					break;
-				}
-			}
-			
-			// Return parentId found in response
-			return parentId;
-		} catch (XMLStreamException e) {
-			String msg = "Error extracting parentIds from 'GetMessagesWithSuccessors' Web Service response.\n" + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new ExtractorException(msg);
-		}
-	}
-	
-	
-	/**
 	 * Extract Predecessor from GetPredecessorMessageId response.
 	 * @param responseBytes
 	 * @return
 	 * @throws ExtractorException
 	 */
-	static String extractPredecessorIdFromResponse(byte[] responseBytes) throws ExtractorException {
+	private static String extractPredecessorIdFromResponse(byte[] responseBytes) throws ExtractorException {
 		final String SIGNATURE = "extractPredecessorIdFromResponse(byte[])";
 		try {
 	        String predecessorId = "";
@@ -306,7 +214,7 @@ public class WebServiceUtil {
 	
 	
 	
-	static String extractEncodedPayload(byte[] fileContent) throws ExtractorException {
+	private static String extractEncodedPayload(byte[] fileContent) throws ExtractorException {
 		final String SIGNATURE = "extractEncodedPayload(byte[])";
 		boolean fetchData = false;
 		try {
@@ -857,7 +765,7 @@ public class WebServiceUtil {
 	 * @param messageId			Message ID to get message details from.
 	 * @return
 	 */
-	static byte[] createRequestGetPredecessorMessageId(String messageId) {
+	private static byte[] createRequestGetPredecessorMessageId(String messageId) {
 		final String SIGNATURE = "createRequestGetMessagesWithSuccessors(Collection<String>)";
 		try {
 			final String XML_NS_URN_PREFIX	= "urn";
@@ -918,7 +826,7 @@ public class WebServiceUtil {
 	 * @param messageId
 	 * @return
 	 */
-	static byte[] createRequestGetMessagesByIDs(String messageId) {
+	private static byte[] createRequestGetMessagesByIDs(String messageId) {
 		final String SIGNATURE = "createRequestGetMessagesByIDs(String)";
 		try {
 			final String XML_NS_URN_PREFIX	= "urn";

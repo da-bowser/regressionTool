@@ -212,25 +212,4 @@ class WebServiceUtilTest {
 		}
 	}
 
-
-	@Test
-	@DisplayName("Test extraction of parentId from GetMessagesWithSuccessors WS response")
-	void extractMessageKeyFromWsGetMessagesWithSuccessorsResponse() {
-		try {
-			// Get response file from resources
-			String getMessagesByIDsResponse = "tst/resources/testfiles/com/invixo/extraction/GetMessagesWithSuccessorsResponse.xml";
-			
-			// Convert to byte array
-			File f = new File(getMessagesByIDsResponse);
-			byte[] responseBytes = Files.readAllBytes(f.toPath());
-			
-			// Extract messageKey from  response
-			String parentId = WebServiceUtil.extractParentIdsFromResponse(responseBytes);
-			
-			// Check
-			assertEquals("060fb733-3481-11e9-bf85-000000554e16", parentId);
-		} catch (Exception e) {
-			fail("It aint cooking chef! " + e);
-		}
-	}
 }

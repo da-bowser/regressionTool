@@ -166,7 +166,7 @@ public class Orchestrator {
 	 * @param rir				ReceiverInterfaceRule object
 	 * @throws DirectoryApiException
 	 */
-	public static void extractInterfaceMultiplicityFromResponse(InputStream responseBytes, ReceiverInterfaceRule rir) throws DirectoryApiException {
+	static void extractInterfaceMultiplicityFromResponse(InputStream responseBytes, ReceiverInterfaceRule rir) throws DirectoryApiException {
 		final String SIGNATURE = "extractInterfaceMultiplicityFromResponse(InputStream, ReceiverInterfaceRule)";
 		try {
 			XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -458,7 +458,7 @@ public class Orchestrator {
 	 * @return
 	 * @throws DirectoryApiException
 	 */
-	public static ArrayList<IntegratedConfiguration> extractIcoInformationFromReadResponse(InputStream responseBytes) throws DirectoryApiException {
+	static ArrayList<IntegratedConfiguration> extractIcoInformationFromReadResponse(InputStream responseBytes) throws DirectoryApiException {
 		final String SIGNATURE = "extractIcoInformationFromReadResponse(InputStream)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Extract ico info from read response: start");
 		try {
@@ -583,7 +583,7 @@ public class Orchestrator {
 	 * @param icoRequestList	List of ico's found in query response
 	 * @return
 	 */
-	static byte[] createIntegratedConfigurationReadRequest(ArrayList<IntegratedConfigurationReadRequest> icoRequestList) {
+	private static byte[] createIntegratedConfigurationReadRequest(ArrayList<IntegratedConfigurationReadRequest> icoRequestList) {
 		final String SIGNATURE = "createIntegratedConfigurationReadRequest(ArrayList<IntegratedConfigurationReadRequest>)";
 		logger.writeDebug(LOCATION, SIGNATURE, "Create ico read request: start");
 		try {

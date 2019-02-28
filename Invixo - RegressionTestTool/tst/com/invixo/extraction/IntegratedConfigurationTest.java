@@ -1,20 +1,6 @@
 package com.invixo.extraction;
 
-import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Map.Entry;
-
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import com.invixo.main.GlobalParameters;
 
 class IntegratedConfigurationTest {

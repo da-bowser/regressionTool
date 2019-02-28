@@ -206,4 +206,11 @@ public class Payload {
 		return parts[4];
 	}
 	
+	
+	public void clearPayload() {
+		this.xiMultipart = null;
+		this.xiHeader = null;
+		this.xiPayload = null;
+	}
+	
 }

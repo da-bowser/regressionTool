@@ -8,7 +8,7 @@ import org.xmlunit.diff.DifferenceEvaluator;
 
 import com.invixo.common.util.Logger;
 
-public class CustomDifferenceEvaluator implements DifferenceEvaluator {
+class CustomDifferenceEvaluator implements DifferenceEvaluator {
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = CustomDifferenceEvaluator.class.getName();
 	private List<String> exceptionList;	
@@ -19,7 +19,7 @@ public class CustomDifferenceEvaluator implements DifferenceEvaluator {
 	 * Class constructor
 	 * @param configuredExceptionList	List of Xpath strings used to ignore DIFFERENCES found in XML evaluation
 	 */
-	public CustomDifferenceEvaluator(List<String> configuredExceptionList, Comparer comparer) {
+	CustomDifferenceEvaluator(List<String> configuredExceptionList, Comparer comparer) {
 		this.exceptionList = configuredExceptionList;
 		this.comp = comparer;
 	}

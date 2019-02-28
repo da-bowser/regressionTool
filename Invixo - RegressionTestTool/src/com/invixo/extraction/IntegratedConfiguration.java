@@ -8,7 +8,6 @@ import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.stream.Stream;
 
 import com.invixo.common.GeneralException;
@@ -38,17 +37,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *------------- Instance variables
 	 *====================================================================================*/
 	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();		// List of FIRST MessageKeys created/processed
-	
-	
 	private ArrayList<String> multiMapFirstMsgKeys = new ArrayList<String>();		// List of MessageKeys processed for MultiMapping interfaces
-	
-	
-	// NEW STUFF
-	private ArrayList<Payload> payloadFirstList = new ArrayList<Payload>();			// List of FIRST payloads extracted firstly
-	private ArrayList<Payloads> payloadsList = new ArrayList<Payloads>();			// List of related FIRST and LAST payloads
-	
-	
-	
+
 	
 	
 	/*====================================================================================
@@ -169,8 +159,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/**
 	 * Method extracts messages from SAP PO.
 	 * The messages extracted are those that has already been injected previously by this tool.
-	 * List of Message IDs previously injected is contained in the Message Mapping Id file.
-	 * NB: messages resulting from a Message Split is also extracted.
+	 * List of Message IDs previously injected is contained in the State ICO file during injection.
 	 * @throws ExtractorException
 	 * @throws HttpException
 	 */
@@ -198,7 +187,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				int total = lastPayloads.size()-1;
 				for (int i=total; i>=0; i--) {
 					Payload currentLast = lastPayloads.get(i);
-					StateHandler.nonInitReplaceShitIDetMindste(firstPayload, currentLast, (total - i)+"");
+					StateHandler.nonInitReplaceTemplates(firstPayload, currentLast, (total - i)+"");
 				}
 			}
 		} catch (IllegalStateException|StateException e) {
@@ -209,13 +198,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 	
 	
-	
-
-	
-	
-	
-	
-	ArrayList<Payloads> commonGround(HashSet<String> firstMessageKeys, boolean isInit, int currentIcoCount) throws ExtractorException, HttpException {
+	private ArrayList<Payloads> commonGround(HashSet<String> firstMessageKeys, boolean isInit, int currentIcoCount) throws ExtractorException, HttpException {
 		// Collect basic FIRST info
 		ArrayList<Payload> firstPayloads = collectBasicFirstInfoForAllKeys(firstMessageKeys, currentIcoCount);
 		
@@ -254,6 +237,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * The messages extracted are which ever messages present in SAP PO matching the requests made by this tool.
 	 * @throws ExtractorException
 	 * @throws HttpException
+	 * @throws StateException
 	 */
 	private void extractModeInit() throws ExtractorException, HttpException, StateException {
 		final String SIGNATURE = "extractModeInit()";
@@ -298,10 +282,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 	
 
-	void persist(Payload payload, boolean isFirst)  throws ExtractorException {
+	private void persist(Payload payload, boolean isFirst)  throws ExtractorException {
 		final String SIGNATURE = "persist(Payload, boolean)";
 		try {
-			// Lookup and set internally
+			// Lookup Payload in SAP system (sets internal variables)
 			payload.extractPayloadFromSystem(isFirst);
 			
 			// Persist on file system
@@ -312,14 +296,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			}
 			
 			// Clear payload so we do not carry around large objects
-			//TODO
+			payload.clearPayload();
 		} catch (PayloadException e) {
 			String msg = "Error during persist of payload: " + payload.getSapMessageKey() + ". " + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);
 		}
 	}
-	
 	
 	
 	/**
@@ -330,11 +313,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @throws ExtractorException
 	 */
 	private ArrayList<Payload> collectBasicFirstInfoForAllKeys(HashSet<String> messageKeys, int internalObjectId) throws ExtractorException {
-		final String SIGNATURE = "processMessageKeysMultiple(HashSet<String>, int)";
-		
-		ArrayList<Payload> firstPayloads = new ArrayList<Payload>();
+		final String SIGNATURE = "collectBasicFirstInfoForAllKeys(HashSet<String>, int)";
 		
 		// For each MessageKey fetch payloads (first and/or last)
+		ArrayList<Payload> firstPayloads = new ArrayList<Payload>();
 		int counter = 1;
 		for (String key : messageKeys) {
 			// Process a single Message Key
@@ -361,7 +343,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * Get FIRST payload for single MessageKey
 	 * @param key
 	 */
-	Payload processMessageKeySingle(String key) throws ExtractorException {
+	private Payload processMessageKeySingle(String key) throws ExtractorException {
 		// Create a new MessageKey object
 		MessageKey msgKey = new MessageKey(this, key);
 			

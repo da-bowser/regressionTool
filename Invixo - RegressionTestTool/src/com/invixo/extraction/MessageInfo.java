@@ -3,7 +3,7 @@ package com.invixo.extraction;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class MessageInfo {
+class MessageInfo {
 	private HashSet<String> objectKeys = new HashSet<String>();
 	private HashMap<String, String> splitMessageIds = new HashMap<String, String>();
 		

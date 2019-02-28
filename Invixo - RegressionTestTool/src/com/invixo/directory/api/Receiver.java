@@ -2,17 +2,12 @@ package com.invixo.directory.api;
 
 import java.util.ArrayList;
 
-public class Receiver {
+class Receiver {
 	private String partyId = "";
 	private String componentId = "";
 	private ArrayList<ReceiverInterfaceRule> receiverInterfaceRules = new ArrayList<ReceiverInterfaceRule>();
 	
 	
-	
-	
-	/*====================================================================================
-	 *------------- Getters and Setters
-	 *====================================================================================*/
 	public String getPartyId() {
 		return partyId;
 	}
@@ -41,4 +36,5 @@ public class Receiver {
 	public void setReceiverInterfaceRules(ArrayList<ReceiverInterfaceRule> receiverInterfaceRules) {
 		this.receiverInterfaceRules = receiverInterfaceRules;
 	}
+	
 }

@@ -145,7 +145,7 @@ public class Comparer {
 	}
 	
 	
-	public void addDiffIgnored(String diffFound, String ignoreXPath) {
+	void addDiffIgnored(String diffFound, String ignoreXPath) {
 		this.diffsIgnoredByConfiguration.put(diffFound, ignoreXPath);
 	}
 	
