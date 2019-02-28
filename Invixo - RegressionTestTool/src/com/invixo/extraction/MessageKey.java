@@ -142,7 +142,6 @@ public class MessageKey {
 			
 			return payload;
 		} catch (PayloadException e) {
-			this.setEx(e);
 			String msg = "Error finding basic FIRST info for key: " + key + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);

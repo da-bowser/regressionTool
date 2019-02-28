@@ -38,9 +38,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *====================================================================================*/
 	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();		// List of FIRST MessageKeys created/processed
 	private ArrayList<String> multiMapFirstMsgKeys = new ArrayList<String>();		// List of MessageKeys processed for MultiMapping interfaces
+	private ArrayList<Payloads> payloadsLinkList = null;
+	
 
-	
-	
+
 	/*====================================================================================
 	 *------------- Constructors
 	 *====================================================================================*/
@@ -64,6 +65,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 
 	public ArrayList<MessageKey> getMessageKeys() {
 		return messageKeys;
+	}
+	
+	public ArrayList<Payloads> getPayloadsLinkList() {
+		return payloadsLinkList;
 	}
 	
 	
@@ -179,7 +184,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of unique Inject Message Keys to be processed: " + injectIds.size());
 			
 			// Call common
-			ArrayList<Payloads> payloadsLinkList = commonGround(injectIds, false, this.internalObjectId);
+			this.payloadsLinkList = commonGround(injectIds, false, this.internalObjectId);
 			
 			// Handle STATE file
 			logger.writeDebug(LOCATION, SIGNATURE, "Start building internal STATE list (template replacement)");
@@ -268,7 +273,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys contained in Web Service response: " + responseMessageKeys.size());
 		
 		// Call common ground
-		ArrayList<Payloads> payloadsLinkList = commonGround(responseMessageKeys, true,  this.internalObjectId);
+		this.payloadsLinkList = commonGround(responseMessageKeys, true,  this.internalObjectId);
 		
 		// Handle STATE file
 		logger.writeDebug(LOCATION, SIGNATURE, "Start building internal STATE list (template replacement)");

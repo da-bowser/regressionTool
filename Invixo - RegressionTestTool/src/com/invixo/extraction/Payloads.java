@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import com.invixo.common.Payload;
 
-class Payloads {
+public class Payloads {
 	private Payload firstPayload = null;
 	private ArrayList<Payload> lastPayloadList = new ArrayList<Payload>();
 	

@@ -16,6 +16,7 @@ import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.IntegratedConfiguration;
 import com.invixo.extraction.MessageKey;
+import com.invixo.extraction.Payloads;
 import com.invixo.main.GlobalParameters;
 
 public class ReportWriter {
@@ -40,7 +41,6 @@ public class ReportWriter {
 	
 	// MessageKey general
 	private int	countMsgKeyTotal				= 0;	// Total message keys processed
-	private int	countMsgKeyTechErr				= 0;	// Total, with technical error
 	private int	countMsgKeyTechOkButNoPayload	= 0;	// Total, no technical error, but FIRST and/or LAST does not exist
 	private int	countMsgKeyOk					= 0;	// Total, ok (FIRST and LAST exists)
 	private int	countMsgVersionFirstNopayload	= 0;	// Total, missing FIRST
@@ -81,17 +81,14 @@ public class ReportWriter {
 		HashSet<String> messageKeysFirst = new HashSet<String>();
 		HashSet<String> messageKeysLast = new HashSet<String>();
 		
-		// Determine number of successfully and erroneous MessageKeys
-		for (MessageKey key : ico.getMessageKeys()) {
-			Payload firstPayload = key.getPayloadFirst();
-			Payload lastPayload = key.getPayloadLast();
+		// Calc status
+		for (Payloads linkedList : ico.getPayloadsLinkList()) {
+			Payload firstPayload = linkedList.getFirstPayload();
 			
-			// Add to messageKeys
-			messageKeysFirst.add(firstPayload.getSapMessageKey());
-			messageKeysLast.add(lastPayload.getSapMessageKey());
-			
-			// Set other counters
-			if (key.getEx() == null) {
+			for (Payload lastPayload : linkedList.getLastPayloadList()) {
+				// Add to messageKeys
+				messageKeysFirst.add(firstPayload.getSapMessageKey());
+				messageKeysLast.add(lastPayload.getSapMessageKey());
 				
 				// Check: only FIRST payloads is enabled
 				if (fetchPayloadFirst && !fetchPayloadLast) {
@@ -143,9 +140,6 @@ public class ReportWriter {
 						this.countMsgVersionLastNopayload++;
 					}
 				}
-			} else {
-				// Technical error
-				this.countMsgKeyTechErr++;
 			}
 		}
 				
@@ -416,24 +410,21 @@ public class ReportWriter {
 		int keysTotal = ico.getMessageKeys().size();
 		int keysOk = 0;			// No technical errors, both FIRST and LAST was found
 		int keysTechOk = 0;		// No technical errors, but either FIST and/or LAST is missing
-		int keysError = 0;		// Technical error
 		int keysNoFirstPayload = 0;
 		int keysNoLastPayload = 0;
 		int keysPayloadsCreated = 0;
 		HashSet<String> messageKeysFirst = new HashSet<String>();
 		HashSet<String> messageKeysLast = new HashSet<String>();
 		
-		for (MessageKey key : ico.getMessageKeys()) {
-			Payload firstPayload = key.getPayloadFirst();
-			Payload lastPayload = key.getPayloadLast();
+		// Calc status
+		for (Payloads linkedList : ico.getPayloadsLinkList()) {
+			Payload firstPayload = linkedList.getFirstPayload();
 			
-			// Add to messageKeys
-			messageKeysFirst.add(firstPayload.getSapMessageKey());
-			messageKeysLast.add(lastPayload.getSapMessageKey());
-						
-			// Set other counters
-			if (key.getEx() == null) {
-				
+			for (Payload lastPayload : linkedList.getLastPayloadList()) {
+				// Add to messageKeys
+				messageKeysFirst.add(firstPayload.getSapMessageKey());
+				messageKeysLast.add(lastPayload.getSapMessageKey());
+
 				// Check: only FIRST payloads is enabled
 				if (fetchPayloadFirst && !fetchPayloadLast) {
 					// Check: No technical error, FIRST payload is missing
@@ -493,11 +484,8 @@ public class ReportWriter {
 					if (Payload.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						keysNoLastPayload++;
 					}
-				}
-					
-			} else {
-				keysError++;
-			}
+				}	
+			} 
 		}	
 		
 		// Set local counter
@@ -524,11 +512,6 @@ public class ReportWriter {
 		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | SuccessNotAllPayloadsFound
 		xmlWriter.writeStartElement(XML_PREFIX, "SuccessNotAllPayloadsFound", XML_NS);
 		xmlWriter.writeCharacters("" + keysTechOk);
-		xmlWriter.writeEndElement();
-
-		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | TechnicalError
-		xmlWriter.writeStartElement(XML_PREFIX, "TechnicalError", XML_NS);
-		xmlWriter.writeCharacters("" + keysError);
 		xmlWriter.writeEndElement();
 		
 		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | FirstPayloadMissing
@@ -578,11 +561,6 @@ public class ReportWriter {
 		// Create element: ExtractReport | MessageKeysOverview | SuccessNotAllPayloadsFound
 		xmlWriter.writeStartElement(XML_PREFIX, "SuccessNotAllPayloadsFound", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgKeyTechOkButNoPayload);
-		xmlWriter.writeEndElement();
-		
-		// Create element: ExtractReport | MessageKeysOverview | TechnicalError
-		xmlWriter.writeStartElement(XML_PREFIX, "TechnicalError", XML_NS);
-		xmlWriter.writeCharacters("" + this.countMsgKeyTechErr);
 		xmlWriter.writeEndElement();
 		
 		// Create element: ExtractReport | MessageKeysOverview | FirstPayloadMissing
