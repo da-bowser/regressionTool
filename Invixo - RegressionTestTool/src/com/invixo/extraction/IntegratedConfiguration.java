@@ -207,12 +207,15 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		
 		// Collect basic FIRST info
 		ArrayList<Payload> firstPayloads = collectBasicFirstInfoForAllKeys(firstMessageKeys, currentIcoCount);
-		logger.writeInfo(LOCATION, SIGNATURE, "FIRST: basic info collected. Number of FIRST payloads: " + firstPayloads.size());
+		int firstPaylodsTotal = firstPayloads.size();
+		logger.writeInfo(LOCATION, SIGNATURE, "FIRST: basic info collected. Number of FIRST payloads: " + firstPaylodsTotal);
 		
 		// Add basic LAST info
+		int firstCounter = 0;
 		ArrayList<Payloads> payloadsLinkList = new ArrayList<Payloads>();
 		for (Payload firstPayload : firstPayloads) {
-			logger.writeInfo(LOCATION, SIGNATURE, "LAST: start finding basic info for current FIRST key: " + firstPayload.getSapMessageKey());
+			firstCounter++;
+			logger.writeInfo(LOCATION, SIGNATURE, "Find basic LAST info for FIRST entry ["+ firstCounter + "/" + firstPaylodsTotal + "]. Referenced FIRST key: " + firstPayload.getSapMessageKey());
 			
 			// Add current FIRST to combined list of FIRST and related LAST messages
 			Payloads currentPayloadsLink = new Payloads();
