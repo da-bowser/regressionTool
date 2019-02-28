@@ -6,8 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -327,7 +325,7 @@ public class StateHandler {
 	 * @throws StateException
 	 */
 	public static Map<String, String> getCompareMessageIdsFromIcoLines() throws StateException {
-		Map<String, String> map = convertLineInfoToMap(6, 10);
+		Map<String, String> map = convertLineInfoToMap(6, 11);
 		return map;
 	}
 	
@@ -346,12 +344,6 @@ public class StateHandler {
 		
 		// Return map
 		return map;
-	}
-	
-
-	private static String getSequenceIdFromMessageKey(String messageKey) {
-		String[] parts = messageKey.split("\\\\");
-		return parts[4];
 	}
 	
 	
