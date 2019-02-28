@@ -9,10 +9,13 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.internet.MimeMultipart;
 
+import com.invixo.common.util.HttpException;
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.XiMessageUtil;
 import com.invixo.consistency.FileStructure;
+import com.invixo.extraction.ExtractorException;
+import com.invixo.extraction.WebServiceUtil;
 
 public class Payload {
 	private static Logger logger = Logger.getInstance();
@@ -155,6 +158,46 @@ public class Payload {
 	
 	public STATUS getPayloadFoundStatus() {
 		return this.payloadFoundStatus;
+	}
+	
+	
+	/**
+	 * Extract payload from SAP PO system.
+	 * @param isFirst
+	 * @throws PayloadException
+	 */
+	public void extractPayloadFromSystem(boolean isFirst) throws PayloadException {
+		final String SIGNATURE = "extractPayload(String, boolean)";
+		try {	
+			// Lookup SAP XI Message
+			String base64EncodedMessage = WebServiceUtil.lookupSapXiMessage(this.getSapMessageKey(), isFirst);
+			
+			// Check if payload was found
+			if ("".equals(base64EncodedMessage)) {
+				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains no XI message.");
+				setPayloadFoundStatus(Payload.STATUS.NOT_FOUND);
+			} else {
+				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains XI message.");
+				setPayloadFoundStatus(Payload.STATUS.FOUND);
+				setMultipartBase64Bytes(base64EncodedMessage);
+			}
+		} catch (IOException e) {
+			String msg = "Error reading bytes from WebService response.\n" + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new PayloadException(msg);
+		} catch (ExtractorException e) {
+			String msg = "Error handling XML creation (request) or extraction (response).\n" + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new PayloadException(msg);
+		} catch (PayloadException e) {
+			String msg = "Error unwrapping multipart message and getting parts from it.\n" + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new PayloadException(msg);
+		} catch (HttpException e) {
+			String msg = "Error calling service when fetching payload.\n" + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new PayloadException(msg);
+		}
 	}
 	
 }

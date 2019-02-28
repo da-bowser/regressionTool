@@ -7,16 +7,15 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.stream.Stream;
 
 import com.invixo.common.GeneralException;
 import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.IntegratedConfigurationMain;
+import com.invixo.common.Payload;
+import com.invixo.common.PayloadException;
 import com.invixo.common.StateException;
 import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
@@ -24,6 +23,7 @@ import com.invixo.common.util.Util;
 import com.invixo.common.util.HttpException;
 import com.invixo.consistency.FileStructure;
 import com.invixo.main.GlobalParameters;
+
 
 public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/*====================================================================================
@@ -37,10 +37,18 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/*====================================================================================
 	 *------------- Instance variables
 	 *====================================================================================*/
-	private HashSet<String> responseMessageKeys = new HashSet<String>();			// MessageKey IDs returned by Web Service GetMessageList
 	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();		// List of FIRST MessageKeys created/processed
-	private ArrayList<String> multiMapMessageKeys = new ArrayList<String>();		// List of MessageKeys processed for MultiMapping interfaces
-
+	
+	
+	private ArrayList<String> multiMapFirstMsgKeys = new ArrayList<String>();		// List of MessageKeys processed for MultiMapping interfaces
+	
+	
+	// NEW STUFF
+	private ArrayList<Payload> payloadFirstList = new ArrayList<Payload>();			// List of FIRST payloads extracted firstly
+	private ArrayList<Payloads> payloadsList = new ArrayList<Payloads>();			// List of related FIRST and LAST payloads
+	
+	
+	
 	
 	
 	/*====================================================================================
@@ -60,8 +68,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	/*====================================================================================
 	 *------------- Getters and Setters
 	 *====================================================================================*/
-	public ArrayList<String> getMultiMapMessageKeys() {
-		return multiMapMessageKeys;
+	public ArrayList<String> getMultiMapFirstMsgKeys() {
+		return multiMapFirstMsgKeys;
 	}
 
 	public ArrayList<MessageKey> getMessageKeys() {
@@ -103,7 +111,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			} else {
 				// Extract only Message IDs previously injected for ICO 
 				extractModeNonInit();
-				StateHandler.nonInitReplaceTemplates(this.isUsingMultiMapping());
 			}
 			
 			// State Handling: persist
@@ -170,55 +177,74 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	private void extractModeNonInit() throws ExtractorException, HttpException {
 		final String SIGNATURE = "extractModeNonInit()";
 		try {
-			// Get list of Message IDs to be extracted (Map<FIRST msgId, Inject Id>)
-	        Map<String, String> messageIdMap = StateHandler.getMessageIdsFromFile();
-	        logger.writeInfo(LOCATION, SIGNATURE, "Number of entries (matching ICO) fetched from ICO State file: " + messageIdMap.size());
+			// Get list of Message IDs to be extracted (Inject Id)
+	        HashSet<String> uniqueInjectIds = StateHandler.getUniqueInjectIdsFromStateFile();
+			logger.writeInfo(LOCATION, SIGNATURE, "Number of entries (matching ICO) fetched from ICO State file: " + uniqueInjectIds.size());
+
+			HashSet<String> injectKeys = new HashSet<String>();
+			for (String injectMessageId : uniqueInjectIds) {
+				String currentMsgKey = WebServiceUtil.lookupMessageKey(injectMessageId, this.getName());
+				injectKeys.add(currentMsgKey);
+			}
 			
-	        // Split and process map in batches
-	        Map<String, String> currentBatch = new HashMap<String, String>();
-	        for (Entry<String, String> entry : messageIdMap.entrySet()) {
-	        	// Process batches if max batch size is reached
-	        	if (currentBatch.size() >= 100) {
-	        		logger.writeDebug(LOCATION, SIGNATURE, "Batch size reached. Current batch is being processed...");
-	        		processNonInitInBatch(currentBatch.values());
-	        		currentBatch.clear();
-	        	}
-	        	
-	        	// Add current entry to batch
-	        	currentBatch.put(entry.getKey(), entry.getValue());
-	        }
-	        
-	        // Process remaining/leftover maps
-        	logger.writeDebug(LOCATION, SIGNATURE, "Batch leftovers to be processed: " + currentBatch.size());
-        	if (currentBatch.size() > 0) {
-    	        processNonInitInBatch(currentBatch.values());        		
-        	}
+			// Call common
+			ArrayList<Payloads> payloadsLinkList = commonGround(injectKeys, false, this.internalObjectId);
+			
+			// Handle STATE file
+			for (Payloads currentPayloadsLink : payloadsLinkList) {
+				Payload firstPayload = currentPayloadsLink.getFirstPayload();
+				ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
+
+				for (int i=0; i < lastPayloads.size(); i++) {
+					Payload currentLast = lastPayloads.get(i);
+					StateHandler.nonInitReplaceShitIDetMindste(firstPayload, currentLast, ""+i);
+				}
+			}
 		} catch (IllegalStateException|StateException e) {
 			String msg = "Error reading Message Id Map file: " + StateHandler.getIcoPath() + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);			
 		}
 	}
+	
+	
+	
 
-
-	/**
-	 * Extract data (LAST payloads) for a single non-init batch run.
-	 * @param injectMessageIds				List of Inject Message IDs
-	 * @throws ExtractorException
-	 * @throws HttpException
-	 */
-	private void processNonInitInBatch(Collection<String> injectMessageIds) throws ExtractorException, HttpException {		
-		for(String injectMessageId : injectMessageIds) {
-			// Lookup Parent MessageInfo for current injectMessageId
-			MessageInfo msgInfo = WebServiceUtil.lookupParentMessageInfo(injectMessageId, this.getName(), this.getReceiverInterface());
-			this.responseMessageKeys = msgInfo.getObjectKeys();
+	
+	
+	
+	
+	ArrayList<Payloads> commonGround(HashSet<String> firstMessageKeys, boolean isInit, int currentIcoCount) throws ExtractorException, HttpException {
+		// Collect basic FIRST info
+		ArrayList<Payload> firstPayloads = collectBasicFirstInfoForAllKeys(firstMessageKeys, currentIcoCount);
+		
+		// Add basic LAST info
+		ArrayList<Payloads> payloadsLinkList = new ArrayList<Payloads>();
+		for (Payload firstPayload : firstPayloads) {
+			// Add current FIRST to combined list of FIRST and related LAST messages
+			Payloads currentPayloadsLink = new Payloads();
+			currentPayloadsLink.setFirstPayload(firstPayload);
 			
-			if(injectMessageId.equals("4cfa82c5-2df1-46a0-8736-04da46f5baf3")) {
-				System.out.println("GOTCHA!");
+			// Get successors (children) of current FIRST message
+			byte[] successorResponse = WebServiceUtil.lookupSuccessors(firstPayload.getSapMessageId(), this.getName());
+			ArrayList<String> successorsList = WebServiceUtil.extractSuccessors(successorResponse, this.getReceiverInterface());
+			
+			// Add successors to current FIRST
+			for (String messageKey : successorsList) {
+				// Create LAST basic info
+				Payload lastPayload = new Payload();
+				lastPayload.setSapMessageKey(messageKey);
+
+				// Add current LAST payload to current FIRST payload
+				currentPayloadsLink.getLastPayloadList().add(lastPayload);
 			}
-			// Process extracted message keys
-			processMessageKeysMultiple(injectMessageId, this.responseMessageKeys, this.internalObjectId);	
+			payloadsLinkList.add(currentPayloadsLink);
 		}
+		 
+		// Persist payload (FIRST and/or LAST)
+		storePayloads(payloadsLinkList, isInit);
+		
+		return payloadsLinkList;
 	}
 
 
@@ -232,66 +258,117 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		final String SIGNATURE = "extractModeInit()";
 		
 		// Initialize State handling
-		StateHandler.reset();						// Delete existing ICO state file
+		StateHandler.reset();
 
 		// Lookup Messages in SAP PO and extract MessageInfo from response
 		MessageInfo msgInfo = WebServiceUtil.lookupMessages(this);
 		
 		// Set MessageKeys from web Service response
-		this.responseMessageKeys = msgInfo.getObjectKeys();
-		logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys contained in Web Service response: " + this.responseMessageKeys.size());
+		HashSet<String> responseMessageKeys = msgInfo.getObjectKeys();
+		logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys contained in Web Service response: " + responseMessageKeys.size());
 		
-		// Process extracted message keys
-		processMessageKeysMultiple(null, this.responseMessageKeys, this.internalObjectId);
-	}
+		// Call common ground
+		ArrayList<Payloads> payloadsLinkList = commonGround(responseMessageKeys, true,  this.internalObjectId);
 
+		// Handle STATE file
+		for (Payloads currentPayloadsLink : payloadsLinkList) {
+			Payload firstPayload = currentPayloadsLink.getFirstPayload();
+			ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
+
+			for (int i=0; i < lastPayloads.size(); i++) {
+				Payload currentLast = lastPayloads.get(i);
+				String currentIcoLine = StateHandler.createExtractEntry(this.getName(), firstPayload, currentLast, i);
+				StateHandler.addEntryToInternalList(currentIcoLine);
+			}
+		}
+	}
+	
+	
+	private void storePayloads(ArrayList<Payloads> payloadsLinkList, boolean isInit) throws ExtractorException {
+		for (Payloads currentPayloadsLink : payloadsLinkList) {
+			Payload firstPayload = currentPayloadsLink.getFirstPayload();
+			ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
+			persist(firstPayload, true);
+			
+			for (Payload lastPaylad : lastPayloads) {
+				persist(lastPaylad, false);
+			}
+		}
+	}
+	
+
+	void persist(Payload payload, boolean isFirst)  throws ExtractorException {
+		final String SIGNATURE = "persist(Payload, boolean)";
+		try {
+			// Lookup and set internally
+			payload.extractPayloadFromSystem(isFirst);
+			
+			// Persist on file system
+			if (isFirst) {
+				payload.persistMessage(this.getFilePathFirstPayloads());	
+			} else {
+				payload.persistMessage(this.getFilePathLastPayloads());
+			}
+			
+			// Clear payload so we do not carry around large objects
+			//TODO
+		} catch (PayloadException e) {
+			String msg = "Error during persist of payload: " + payload.getSapMessageKey() + ". " + e;
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new ExtractorException(msg);
+		}
+	}
+	
+	
 	
 	/**
 	 * Extract payloads for a list of SAP Message Keys and store these on the file system.
-	 * @param injectMessageId				Inject message id.
 	 * @param messageKeys					List of SAP Message Keys to be processed.
 	 * @param internalObjectId				Internal counter. Used to track which MessageKey number is being processed in the log.
+	 * @return
 	 * @throws ExtractorException
 	 */
-	private void processMessageKeysMultiple(String injectMessageId, HashSet<String> messageKeys, int internalObjectId) throws ExtractorException {
+	private ArrayList<Payload> collectBasicFirstInfoForAllKeys(HashSet<String> messageKeys, int internalObjectId) throws ExtractorException {
 		final String SIGNATURE = "processMessageKeysMultiple(HashSet<String>, int)";
+		
+		ArrayList<Payload> firstPayloads = new ArrayList<Payload>();
 		
 		// For each MessageKey fetch payloads (first and/or last)
 		int counter = 1;
 		for (String key : messageKeys) {
 			// Process a single Message Key
 			logger.writeInfo(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing started for key: " + key);
-			this.processMessageKeySingle(injectMessageId, key);
+			Payload firstPayload = this.processMessageKeySingle(key);
+			
+			// Only add FIRST payload if it was new (this related to MultiMapping handling
+			// where many LAST keys (which is what is contained in @messageKeys for a multimap) can have the same parent (FIRST).
+			// This is why in a multimap scenario the FIRST payload can be 'null'.
+			if (firstPayload == null) {
+				logger.writeDebug(LOCATION, SIGNATURE, "MultiMap scenario: payload was null (already processed by a previous MessageKey");
+			} else {
+				firstPayloads.add(firstPayload);
+			}
+
 			logger.writeInfo(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing finished");
 			counter++;
 		}
+		return firstPayloads;
 	}
 	
 	
 	/**
-	 * Processes a single MessageKey returned in Web Service response for service GetMessageList.
-	 * It extracts payloads and stores the state in case of successfully finding payloads.
-	 * This method can/will generate FIRST/LAST payloads.
-	 * @param inectMessageId
+	 * Get FIRST payload for single MessageKey
 	 * @param key
 	 */
-	void processMessageKeySingle(String injectMessageId, String key) {
-		try {
-			// Create a new MessageKey object
-			MessageKey msgKey = new MessageKey(this, key);
+	Payload processMessageKeySingle(String key) throws ExtractorException {
+		// Create a new MessageKey object
+		MessageKey msgKey = new MessageKey(this, key);
 			
-			// Attach a reference to newly created MessageKey object to this ICO
-			this.messageKeys.add(msgKey);
-			
-			// Extract FIRST and/or LAST payloads
-			msgKey.extractAllPayloads(key);
-			
-			// Store state
-			msgKey.storeState(injectMessageId, msgKey.getPayloadFirst(), msgKey.getPayloadLast());
-		} catch (ExtractorException e) {
-			// Do nothing, exception already logged
-			// Exceptions at this point are used to terminate further processing of current messageKey
-		}
+		// Attach a reference to newly created MessageKey object to this ICO
+		this.messageKeys.add(msgKey);
+						
+		Payload payloadFirst = msgKey.getBasicFirstInfo(key);
+		return payloadFirst;
 	}
 	
 }

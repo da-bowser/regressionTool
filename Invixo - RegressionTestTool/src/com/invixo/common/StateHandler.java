@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.invixo.common.util.Logger;
 import com.invixo.consistency.FileStructure;
@@ -132,7 +133,7 @@ public class StateHandler {
 	 * @return
 	 * @throws StateException
 	 */
-	private static List<String> readIcoStateLinesFromFile() throws StateException {
+	public static List<String> readIcoStateLinesFromFile() throws StateException {
 		final String SIGNATURE = "readIcoStateLinesFromFile()";
 		try {
 			if (icoLines.size() == 0) {
@@ -300,6 +301,23 @@ public class StateHandler {
 	}
 	
 	
+	
+	
+	public static HashSet<String> getUniqueInjectIdsFromStateFile() throws StateException {
+		Map<String, String> map = convertLineInfoToMap(8, 8);
+		
+		HashSet<String> uniqueInjectIds = new HashSet<String>();
+		for (Entry<String, String> entry : map.entrySet()) {
+			uniqueInjectIds.add(entry.getKey());
+		}
+		
+		return uniqueInjectIds;
+	}
+	
+	
+	
+	
+	
 	/**
 	 * Scenario: Compare
 	 * Create map from ICO State Lines.
@@ -442,113 +460,21 @@ public class StateHandler {
 	}
 
 
-	public static void sequenceMagicMultiMap() {
-		List<String> initLastMessageKeys = new ArrayList<String>();
-		List<String> nonInitLastMessageKeys = new ArrayList<String>();
+	public static void nonInitReplaceShitIDetMindste(Payload first, Payload last, String lastSequenceId) throws StateException {
+		List<String> icoLines = readIcoStateLinesFromFile();
 		
-		for (String line : icoLines) {
-			initLastMessageKeys.add(line);
-		}
-		
-		for (String line : tempNonInitMsgInfo) {
-			nonInitLastMessageKeys.add(line);
-		} 
-		
-		// Sort init list by sequence
-		Collections.sort(initLastMessageKeys, new Comparator<String>() {
-		    @Override
-		    public int compare(String line1, String line2) {
-		    	String msgKey1 = line1.split(SEPARATOR)[4];
-		    	String msgKey2 = line1.split(SEPARATOR)[4];
-		    	String seq1 = getSequenceIdFromMessageKey(msgKey1);
-		    	String seq2 = getSequenceIdFromMessageKey(msgKey2);
-		        return seq1.compareTo(seq2);
-	    }});
-		
-		// Sort non-init list by sequence
-		Collections.sort(nonInitLastMessageKeys, new Comparator<String>() {
-		    @Override
-		    public int compare(String line1, String line2) {
-		    	String msgKey1 = line1.split(SEPARATOR)[1];
-		    	String msgKey2 = line1.split(SEPARATOR)[1];
-		    	String seq1 = getSequenceIdFromMessageKey(msgKey1);
-		    	String seq2 = getSequenceIdFromMessageKey(msgKey2);
-		    	return seq1.compareTo(seq2);
-	    }});
-		
-		for (int j=0; j < icoLines.size(); j++) {
-			String currentIcoLine = icoLines.get(j);
+		for (int i=0; i<icoLines.size(); i++) {
+			String currentLine = icoLines.get(i);
+			String[] icoLineParts = currentLine.split(SEPARATOR);
+			String currentInjectId = icoLineParts[8];
+			String currentFirstSequenceId = icoLineParts[7];
 			
-			// Get parts from current line
-			String[] lineParts = currentIcoLine.split(SEPARATOR);
-			String currentLastMessageKey = lineParts[4]; 
-			String currentInjectMessageId = lineParts[7];
-			
-			int matchIndex = -1;
-			for (int i=0; i < initLastMessageKeys.size(); i++) {
-				String[] parts = initLastMessageKeys.get(i).split(SEPARATOR);
-				String initMsgKey = parts[4]; 
-				if (initMsgKey.contains(currentLastMessageKey)) {
-					matchIndex = i;
-					break;
-				}
-			}
-				
-			String[] currentNonInitLastLine = nonInitLastMessageKeys.get(matchIndex).split(SEPARATOR);
-			String injectMessageId			= currentNonInitLastLine[0];
-			String nonInitLastMessageKey 	= currentNonInitLastLine[1];
-			String nonInitLastMessageId		= currentNonInitLastLine[2];
-			String nonInitFileName 			= currentNonInitLastLine[3];
-			String nonInitSequenceNumber	= currentNonInitLastLine[4];
-
-			// Replace templates
-			if (injectMessageId.equals(currentInjectMessageId)) {
-				String lineWithKey = currentIcoLine.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
-				String lineWithId = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
-				String finalLine = lineWithId.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, nonInitFileName);
-				String finalfinalline = finalLine.replace(NON_INIT_SEQUENCE_ID_TEMPLATE, nonInitSequenceNumber);
-				icoLines.set(j, finalfinalline);
-			}
-		}
-	}
-
-
-	public static void nonInitReplaceTemplates(boolean isUsingMultiMapping) {
-		if (isUsingMultiMapping) {
-			sequenceMagicMultiMap();
-		} else {
-			noMultiOrSplitMagic();
-		}
-		
-	}
-
-
-	private static void noMultiOrSplitMagic() {
-		for (int j=0; j < icoLines.size(); j++) {
-			String currentIcoLine = icoLines.get(j);
-			
-			// Get parts from current line
-			String[] lineParts = currentIcoLine.split(SEPARATOR);
-			String currentSequenceId = lineParts[7];
-				
-			for (int i = 0; i < tempNonInitMsgInfo.size(); i++) {
-				String[] currentTempNonInitLastLine = tempNonInitMsgInfo.get(i).split(SEPARATOR);
-				String nonInitinjectMessageId 	= currentTempNonInitLastLine[0];
-				String nonInitLastMessageKey 	= currentTempNonInitLastLine[1];
-				String nonInitLastMessageId		= currentTempNonInitLastLine[2];
-				String nonInitFileName 			= currentTempNonInitLastLine[3];
-				String nonInitSequenceNumber	= currentTempNonInitLastLine[4];
-				
-				// Replace templates
-				if (currentSequenceId.equals(nonInitSequenceNumber)) {
-					String lineWithKey = currentIcoLine.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, nonInitLastMessageKey);
-					String lineWithId = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, nonInitLastMessageId);
-					String finalLine = lineWithId.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, nonInitFileName);
-					String finalfinalline = finalLine.replace(NON_INIT_SEQUENCE_ID_TEMPLATE, nonInitSequenceNumber);
-					icoLines.set(j, finalfinalline);
-					
-					break;
-				}
+			if (currentInjectId.equals(first.getSapMessageId()) && currentFirstSequenceId.equals(lastSequenceId)) {
+				String lineWithKey = currentLine.replace(NON_INIT_LAST_MSG_KEY_TEMPLATE, last.getSapMessageKey());
+				String lineWithId = lineWithKey.replace(NON_INIT_LAST_MSG_ID_TEMPLATE, last.getSapMessageId());
+				String finalLine = lineWithId.replace(NON_INIT_LAST_FILE_NAME_TEMPLATE, last.getFileName());
+				String finalfinalline = finalLine.replace(NON_INIT_SEQUENCE_ID_TEMPLATE, lastSequenceId);
+				icoLines.set(i, finalfinalline);
 			}
 		}
 	}

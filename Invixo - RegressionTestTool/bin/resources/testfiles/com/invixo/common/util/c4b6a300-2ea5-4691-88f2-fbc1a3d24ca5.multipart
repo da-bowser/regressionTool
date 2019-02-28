@@ -1,0 +1,22 @@
+content-length:3407
+http:POST
+content-type:multipart/related; boundary=SAP_19ddae19-39c8-11e9-9b99-000000554e16_END; type="text/xml"; start="INJECTION_HEADER"
+--null
+Content-ID: INJECTION_HEADER
+Content-Type: text/xml; charset=utf-8
+Content-Disposition: form-data; name="Invixo Injection Header"; filename="dummy"
+
+<SOAP:Envelope xmlns:SOAP='http://schemas.xmlsoap.org/soap/envelope/'><SOAP:Header xmlns:sap='http://sap.com/xi/XI/Message/30'><sap:Main versionMajor='3' versionMinor='1' SOAP:mustUnderstand='1'><sap:MessageClass>ApplicationMessage</sap:MessageClass><sap:ProcessingMode>asynchronous</sap:ProcessingMode><sap:MessageId>c4b6a300-2ea5-4691-88f2-fbc1a3d24ca5</sap:MessageId><sap:TimeSent>2019-02-26T13:12:00Z</sap:TimeSent><sap:Sender><sap:Party agency='http://sap.com/xi/XI' scheme='XIParty'></sap:Party><sap:Service>RTT_Sender</sap:Service></sap:Sender><sap:Receiver><sap:Party agency='http://sap.com/xi/XI' scheme='XIParty'></sap:Party><sap:Service>RTT_Receiver</sap:Service></sap:Receiver><sap:Interface namespace='urn:invixo.com:sandbox:regressionTestTool'>Data_Out_Async</sap:Interface></sap:Main><sap:ReliableMessaging SOAP:mustUnderstand='1'><sap:QualityOfService>ExactlyOnce</sap:QualityOfService></sap:ReliableMessaging><sap:System SOAP:mustUnderstand='1'><sap:Record namespace='http://sap.com/xi/XI/Message/30/general' name='interfaceDeterminationGUID'>a8192416312611e9a130000000554e16</sap:Record><sap:Record namespace='http://sap.com/xi/XI/Message/30/general' name='senderAgreementGUID'>c11276c165523469b96f63fdb45938e9</sap:Record></sap:System><sap:DynamicConfiguration SOAP:mustUnderstand='1'><sap:Record namespace='http://sap.com/xi/XI/Message/30/routing' name='SourceMessageType'>RequestInput</sap:Record><sap:Record namespace='http://sap.com/xi/XI/Message/30/routing' name='InterfaceDeterminationHash'>d265bdc5dda6a6bc8d287a203d93fd5f</sap:Record><sap:Record namespace='http://sap.com/xi/XI/Message/30/routing' name='SourceMessageTypeNS'>urn:invixo.com:sandbox:regressionTestTool</sap:Record><sap:Record namespace='http://sap.com/xi/XI/Message/30/routing' name='InterfaceFromOperation'>Data_Out_Async</sap:Record><sap:Record namespace='http://sap.com/xi/XI/Message/30/general' name='senderAgreementGUID'>c11276c165523469b96f63fdb45938e9</sap:Record></sap:DynamicConfiguration><sap:HopList SOAP:mustUnderstand='1'><sap:Hop timeStamp='2019-02-26T13:12:00Z' wasRead='false'><sap:Engine type='AE'>af.pod.ipod</sap:Engine><sap:Adapter namespace='http://sap.com/xi/XI/System'>XIRA</sap:Adapter><sap:MessageId>c4b6a300-2ea5-4691-88f2-fbc1a3d24ca5</sap:MessageId></sap:Hop></sap:HopList></SOAP:Header><SOAP:Body xmlns:sap='http://sap.com/xi/XI/Message/30'><sap:Manifest xmlns:xlink='http://www.w3.org/1999/xlink'><sap:Payload xlink:type='simple' xlink:href='cid:INJECTION_PAYLOAD'><sap:Name>MainDocument</sap:Name><sap:Description>Main XML document</sap:Description><sap:Type>Application</sap:Type></sap:Payload></sap:Manifest></SOAP:Body></SOAP:Envelope>
+--null
+Content-ID: INJECTION_PAYLOAD
+Content-Type: application/xml; charset=UTF-8
+Content-Disposition: form-data; name="Invixo Injection Header"; filename="dummy"
+
+<urn:RequestInput xmlns:urn='urn:invixo.com:sandbox:regressionTestTool' xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'>
+         <i1>Pffffflain</i1>
+         <i2>xgtgtgtgtgtx</i2>
+         <i3>yy</i3>
+         <i4>zzzzzz</i4>
+         <i5>?</i5>
+      </urn:RequestInput>
+--null--
