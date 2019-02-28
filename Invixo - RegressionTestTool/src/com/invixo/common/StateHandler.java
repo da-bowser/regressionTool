@@ -117,7 +117,6 @@ public class StateHandler {
 			bw.close();	
 
 			logger.writeInfo(LOCATION, SIGNATURE, "ICO State persisted to file: " + icoStatePathTarget);
-
 		} catch (IOException e) {
 			String msg = "Error updating state file: " + icoStatePathTarget + ".\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
