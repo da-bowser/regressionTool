@@ -107,8 +107,10 @@ public class XiMessageUtil {
 		                }
 		            }
 		            
-		            // Add element value
-		            dynConfRecord.setValue(eventReader.peek().asCharacters().getData());
+	            	// Add element value
+		            if (eventReader.peek().isCharacters()) {
+			            dynConfRecord.setValue(eventReader.peek().asCharacters().getData());
+					}
 		            
 		            // Add Dynamic Configuration Record to header
 		            header.getDynamicConfList().add(dynConfRecord);

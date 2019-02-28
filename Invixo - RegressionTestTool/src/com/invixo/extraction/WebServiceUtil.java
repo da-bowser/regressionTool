@@ -596,6 +596,11 @@ public class WebServiceUtil {
 				}
 			}
 			
+			// Multiplicity 1:1 - only a single messageKey "self" is returned which has no parent
+			if (successors.size() == 0) {
+				successors.add(messageKey);
+			}
+			
 			return successors;
 		} catch (XMLStreamException e) {
 			String msg = "Error extracting successors from Web Service response.\n" + e.getMessage();

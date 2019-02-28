@@ -269,7 +269,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		
 		// Call common ground
 		ArrayList<Payloads> payloadsLinkList = commonGround(responseMessageKeys, true,  this.internalObjectId);
-
+		
 		// Handle STATE file
 		for (Payloads currentPayloadsLink : payloadsLinkList) {
 			Payload firstPayload = currentPayloadsLink.getFirstPayload();
