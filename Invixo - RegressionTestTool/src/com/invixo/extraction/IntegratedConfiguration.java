@@ -195,9 +195,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				Payload firstPayload = currentPayloadsLink.getFirstPayload();
 				ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
 
-				for (int i=lastPayloads.size()-1; i>=0; i--) {
+				int total = lastPayloads.size()-1;
+				for (int i=total; i>=0; i--) {
 					Payload currentLast = lastPayloads.get(i);
-					StateHandler.nonInitReplaceShitIDetMindste(firstPayload, currentLast, i+"");
+					StateHandler.nonInitReplaceShitIDetMindste(firstPayload, currentLast, (total - i)+"");
 				}
 			}
 		} catch (IllegalStateException|StateException e) {
