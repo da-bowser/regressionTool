@@ -71,6 +71,8 @@ public class StateHandler {
 	public static void storeIcoState() throws StateException {
 		final String SIGNATURE = "storeIcoState()";
 		try {
+			logger.writeDebug(LOCATION, SIGNATURE, "Start persisting ICO lines");
+			
 			// Delete existing state file
 			reset();
 			
@@ -119,6 +121,7 @@ public class StateHandler {
 			bw.close();	
 
 			logger.writeInfo(LOCATION, SIGNATURE, "ICO State persisted to file: " + icoStatePathTarget);
+			logger.writeDebug(LOCATION, SIGNATURE, "Finished persisting ICO lines");
 		} catch (IOException e) {
 			String msg = "Error updating state file: " + icoStatePathTarget + ".\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);

@@ -170,16 +170,19 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	        HashSet<String> uniqueInjectIds = StateHandler.getUniqueInjectIdsFromStateFile();
 			logger.writeInfo(LOCATION, SIGNATURE, "Number of entries (matching ICO) fetched from ICO State file: " + uniqueInjectIds.size());
 
-			HashSet<String> injectKeys = new HashSet<String>();
+			// Get Message Keys related to Inject IDs 
+			HashSet<String> injectIds = new HashSet<String>();
 			for (String injectMessageId : uniqueInjectIds) {
 				String currentMsgKey = WebServiceUtil.lookupMessageKey(injectMessageId, this.getName());
-				injectKeys.add(currentMsgKey);
+				injectIds.add(currentMsgKey);
 			}
+			logger.writeDebug(LOCATION, SIGNATURE, "Number of unique Inject Message Keys to be processed: " + injectIds.size());
 			
 			// Call common
-			ArrayList<Payloads> payloadsLinkList = commonGround(injectKeys, false, this.internalObjectId);
+			ArrayList<Payloads> payloadsLinkList = commonGround(injectIds, false, this.internalObjectId);
 			
 			// Handle STATE file
+			logger.writeDebug(LOCATION, SIGNATURE, "Start building internal STATE list (template replacement)");
 			for (Payloads currentPayloadsLink : payloadsLinkList) {
 				Payload firstPayload = currentPayloadsLink.getFirstPayload();
 				ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
@@ -190,6 +193,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 					StateHandler.nonInitReplaceTemplates(firstPayload, currentLast, (total - i)+"");
 				}
 			}
+			logger.writeDebug(LOCATION, SIGNATURE, "Finished building internal STATE list (template replacement)");
 		} catch (IllegalStateException|StateException e) {
 			String msg = "Error reading Message Id Map file: " + StateHandler.getIcoPath() + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
@@ -199,12 +203,17 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	
 	
 	private ArrayList<Payloads> commonGround(HashSet<String> firstMessageKeys, boolean isInit, int currentIcoCount) throws ExtractorException, HttpException {
+		final String SIGNATURE = "commonGround(HashSet<String>, boolean, int)";
+		
 		// Collect basic FIRST info
 		ArrayList<Payload> firstPayloads = collectBasicFirstInfoForAllKeys(firstMessageKeys, currentIcoCount);
+		logger.writeInfo(LOCATION, SIGNATURE, "FIRST: basic info collected. Number of FIRST payloads: " + firstPayloads.size());
 		
 		// Add basic LAST info
 		ArrayList<Payloads> payloadsLinkList = new ArrayList<Payloads>();
 		for (Payload firstPayload : firstPayloads) {
+			logger.writeInfo(LOCATION, SIGNATURE, "LAST: start finding basic info for current FIRST key: " + firstPayload.getSapMessageKey());
+			
 			// Add current FIRST to combined list of FIRST and related LAST messages
 			Payloads currentPayloadsLink = new Payloads();
 			currentPayloadsLink.setFirstPayload(firstPayload);
@@ -212,6 +221,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Get successors (children) of current FIRST message
 			byte[] successorResponse = WebServiceUtil.lookupSuccessors(firstPayload.getSapMessageId(), this.getName());
 			ArrayList<String> successorsList = WebServiceUtil.extractSuccessors(successorResponse, this.getReceiverInterface());
+			logger.writeInfo(LOCATION, SIGNATURE, "Number of successors found: " + successorsList.size());
 			
 			// Add successors to current FIRST
 			for (String messageKey : successorsList) {
@@ -223,6 +233,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				currentPayloadsLink.getLastPayloadList().add(lastPayload);
 			}
 			payloadsLinkList.add(currentPayloadsLink);
+			logger.writeInfo(LOCATION, SIGNATURE, "Number of LAST keys found: " + currentPayloadsLink.getLastPayloadList().size());
+			logger.writeInfo(LOCATION, SIGNATURE, "Finished finding basic info for LAST keys for FIRST key: " + firstPayload.getSapMessageKey());
 		}
 		 
 		// Persist payload (FIRST and/or LAST)
@@ -248,7 +260,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		// Lookup Messages in SAP PO and extract MessageInfo from response
 		MessageInfo msgInfo = WebServiceUtil.lookupMessages(this);
 		
-		// Set MessageKeys from web Service response
+		// Get MessageKeys from web Service response
 		HashSet<String> responseMessageKeys = msgInfo.getObjectKeys();
 		logger.writeDebug(LOCATION, SIGNATURE, "Number of MessageKeys contained in Web Service response: " + responseMessageKeys.size());
 		
@@ -256,6 +268,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		ArrayList<Payloads> payloadsLinkList = commonGround(responseMessageKeys, true,  this.internalObjectId);
 		
 		// Handle STATE file
+		logger.writeDebug(LOCATION, SIGNATURE, "Start building internal STATE list (template replacement)");
 		for (Payloads currentPayloadsLink : payloadsLinkList) {
 			Payload firstPayload = currentPayloadsLink.getFirstPayload();
 			ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
@@ -266,19 +279,26 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				StateHandler.addEntryToInternalList(currentIcoLine);
 			}
 		}
+		logger.writeDebug(LOCATION, SIGNATURE, "Finished building internal STATE list (template replacement)");
 	}
 	
 	
 	private void storePayloads(ArrayList<Payloads> payloadsLinkList, boolean isInit) throws ExtractorException {
+		final String SIGNATURE = "storePayloads(ArrayList<Payloads>, boolean)";
+		logger.writeDebug(LOCATION, SIGNATURE, "Start persisting payloads to file system");
+		logger.writeDebug(LOCATION, SIGNATURE, "Number of FIRST payloads to lookup and persist: " + payloadsLinkList.size());
+		
 		for (Payloads currentPayloadsLink : payloadsLinkList) {
 			Payload firstPayload = currentPayloadsLink.getFirstPayload();
 			ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
 			persist(firstPayload, true);
+			logger.writeDebug(LOCATION, SIGNATURE, "Number of LAST payloads to lookup and persist for current FIRST payload: " + lastPayloads.size());
 			
 			for (Payload lastPaylad : lastPayloads) {
 				persist(lastPaylad, false);
 			}
 		}
+		logger.writeDebug(LOCATION, SIGNATURE, "Finished persisting payloads to file system");
 	}
 	
 

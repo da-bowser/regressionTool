@@ -16,7 +16,6 @@ class MessageInfo {
 		this.objectKeys = objectKeys;
 	}
 
-
 	public HashMap<String, String> getSplitMessageIds() {
 		return splitMessageIds;
 	}
