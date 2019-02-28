@@ -266,80 +266,77 @@ public class ReportWriter {
 		
 		// Add structure: ExtractReport | IntegratedConfiguration | MessageKeys | Overview
 		addMessageKeysLocalOverview(xmlWriter, ico);
-
-		// Build MessageKey list
-		ArrayList<MessageKey> keys = ico.getMessageKeys();
-		for (MessageKey key : keys) {
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List
-			xmlWriter.writeStartElement(XML_PREFIX, "List", XML_NS);
-
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | TechnicalError
-			xmlWriter.writeStartElement(XML_PREFIX, "TechnicalError", XML_NS);
-			if (key.getEx() != null) {
-				StringWriter sw = new StringWriter();
-				key.getEx().printStackTrace(new PrintWriter(sw));
-				xmlWriter.writeCData(sw.toString());
-			}
-			xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads
+		xmlWriter.writeStartElement(XML_PREFIX, "Payloads", XML_NS);
+		
+		for (Payloads linkedList : ico.getPayloadsLinkList()) {
+			Payload firstPayload = linkedList.getFirstPayload();
 			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload
-			xmlWriter.writeStartElement(XML_PREFIX, "FirstPayload", XML_NS);
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First
+			xmlWriter.writeStartElement(XML_PREFIX, "First", XML_NS);
 			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload | PayloadStatus
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First | PayloadStatus
 			xmlWriter.writeStartElement(XML_PREFIX, "PayloadStatus", XML_NS);
-			xmlWriter.writeCharacters(key.getPayloadFirst().getPayloadFoundStatus().toString());
-			xmlWriter.writeEndElement();	
-
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload | Key
+			xmlWriter.writeCharacters(firstPayload.getPayloadFoundStatus().toString());
+			xmlWriter.writeEndElement();
+			
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First | Key
 			xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);
-			xmlWriter.writeCharacters(key.getPayloadFirst().getSapMessageKey());
+			xmlWriter.writeCharacters(firstPayload.getSapMessageKey());
 			xmlWriter.writeEndElement();
 
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload | Path
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First | Path
 			xmlWriter.writeStartElement(XML_PREFIX, "Path", XML_NS);
 			xmlWriter.writeCharacters(ico.getFilePathFirstPayloads());
 			xmlWriter.writeEndElement();
 
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload | FileName
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First | FileName
 			xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);
-			xmlWriter.writeCharacters(key.getPayloadFirst().getFileName());
+			xmlWriter.writeCharacters(firstPayload.getFileName());
 			xmlWriter.writeEndElement();
 			
-			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | List | FirstPayload
-			xmlWriter.writeEndElement();	
+			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList
+			xmlWriter.writeStartElement(XML_PREFIX, "LastList", XML_NS);
 			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload
-			xmlWriter.writeStartElement(XML_PREFIX, "LastPayload", XML_NS);
-			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload | PayloadStatus
-			xmlWriter.writeStartElement(XML_PREFIX, "PayloadStatus", XML_NS);
-			xmlWriter.writeCharacters(key.getPayloadLast().getPayloadFoundStatus().toString());
-			xmlWriter.writeEndElement();	
+			for (Payload lastPayload : linkedList.getLastPayloadList()) {
+				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last
+				xmlWriter.writeStartElement(XML_PREFIX, "Last", XML_NS);
+				
+				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last | PayloadStatus
+				xmlWriter.writeStartElement(XML_PREFIX, "PayloadStatus", XML_NS);
+				xmlWriter.writeCharacters(lastPayload.getPayloadFoundStatus().toString());
+				xmlWriter.writeEndElement();
+				
+				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last | Key
+				xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);
+				xmlWriter.writeCharacters(lastPayload.getSapMessageKey().toString());
+				xmlWriter.writeEndElement();
+				
+				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last | Path
+				xmlWriter.writeStartElement(XML_PREFIX, "Path", XML_NS);
+				xmlWriter.writeCharacters(ico.getFilePathFirstPayloads());
+				xmlWriter.writeEndElement();
 
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload | Key
-			xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);
-			xmlWriter.writeCharacters(key.getPayloadLast().getSapMessageKey());
-			xmlWriter.writeEndElement();
-
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload | Path
-			xmlWriter.writeStartElement(XML_PREFIX, "Path", XML_NS);
-			xmlWriter.writeCharacters(ico.getFilePathLastPayloads());
-			xmlWriter.writeEndElement();
-
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload | FileName
-			xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);
-			if (Payload.STATUS.FOUND.equals(key.getPayloadLast().getPayloadFoundStatus())) {
-				xmlWriter.writeCharacters(key.getPayloadLast().getFileName());
+				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last | FileName
+				xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);
+				xmlWriter.writeCharacters(lastPayload.getFileName());
+				xmlWriter.writeEndElement();
+				
+				// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last
+				xmlWriter.writeEndElement();	
 			}
-			xmlWriter.writeEndElement();
 			
-			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | List | LastPayload
+			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList
 			xmlWriter.writeEndElement();	
-
-			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | List
-			xmlWriter.writeEndElement();
+			
+			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First
+			xmlWriter.writeEndElement();				
 		}
 
+		// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads
+		xmlWriter.writeEndElement();
+		
 		// Close element: ExtractReport | IntegratedConfiguration | MessageKeys
 		xmlWriter.writeEndElement();
 	}
@@ -415,7 +412,7 @@ public class ReportWriter {
 		int keysPayloadsCreated = 0;
 		HashSet<String> messageKeysFirst = new HashSet<String>();
 		HashSet<String> messageKeysLast = new HashSet<String>();
-		
+				
 		// Calc status
 		for (Payloads linkedList : ico.getPayloadsLinkList()) {
 			Payload firstPayload = linkedList.getFirstPayload();
@@ -494,13 +491,13 @@ public class ReportWriter {
 		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview
 		xmlWriter.writeStartElement(XML_PREFIX, "Overview", XML_NS);
 
-		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | Max
-		xmlWriter.writeStartElement(XML_PREFIX, "Max", XML_NS);
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | MaxFirstPayloads
+		xmlWriter.writeStartElement(XML_PREFIX, "MaxFirstPayloads", XML_NS);
 		xmlWriter.writeCharacters("" + ico.getMaxMessages());
 		xmlWriter.writeEndElement();				
 		
-		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | Actual
-		xmlWriter.writeStartElement(XML_PREFIX, "Actual", XML_NS);
+		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | ActualFirstPayloads
+		xmlWriter.writeStartElement(XML_PREFIX, "ActualFirstPayloads", XML_NS);
 		xmlWriter.writeCharacters("" + keysTotal);
 		xmlWriter.writeEndElement();
 

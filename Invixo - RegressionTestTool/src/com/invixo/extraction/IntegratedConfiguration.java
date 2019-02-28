@@ -38,7 +38,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *====================================================================================*/
 	private ArrayList<MessageKey> messageKeys = new ArrayList<MessageKey>();		// List of FIRST MessageKeys created/processed
 	private ArrayList<String> multiMapFirstMsgKeys = new ArrayList<String>();		// List of MessageKeys processed for MultiMapping interfaces
-	private ArrayList<Payloads> payloadsLinkList = null;
+	private ArrayList<Payloads> payloadsLinkList = new ArrayList<Payloads>();
 	
 
 
