@@ -199,5 +199,11 @@ public class Payload {
 			throw new PayloadException(msg);
 		}
 	}
+
+	
+	public String getSequenceIdFromMessageKey() {
+		String[] parts = this.sapMessageKey.split("\\\\");
+		return parts[4];
+	}
 	
 }

@@ -99,41 +99,41 @@ public class MessageKey {
 	}
 	
 	
-	void storeState(String injectMessageId, Payload first, Payload last) throws ExtractorException {
-		final String SIGNATURE = "storeState(String, Payload, Payload)";
-		try {
-			boolean isInitMode = Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT);
-			
-			if (isInitMode) {
-				// Persist message: FIRST
-				first.persistMessage(this.ico.getFilePathFirstPayloads());
-			}
-			
-			// Persist message: LAST
-			last.persistMessage(this.ico.getFilePathLastPayloads());
-			
-			// Build and add new State entry line
-			if (isInitMode) {
-				// Extract: Init
-				String newEntry = StateHandler.createExtractEntry(this.ico.getName(), first, last, ++sequenceCounter);
-				StateHandler.addEntryToInternalList(newEntry);
-			} else {
-				// Extract: Non-init
-				StateHandler.addNonInitMessageInfoToInternalList(
-									injectMessageId, 
-									last.getSapMessageKey(), 
-									last.getSapMessageId(), 
-									last.getFileName(),
-									++sequenceCounter);
-			}
-		} catch (PayloadException e) {
-			String msg = "Error persisting payload for MessageKey!\n" + e;
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			ExtractorException ex = new ExtractorException(msg);
-			this.ex = ex;
-			throw ex;
-		} 
-	}
+//	void storeState(String injectMessageId, Payload first, Payload last) throws ExtractorException {
+//		final String SIGNATURE = "storeState(String, Payload, Payload)";
+//		try {
+//			boolean isInitMode = Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT);
+//			
+//			if (isInitMode) {
+//				// Persist message: FIRST
+//				first.persistMessage(this.ico.getFilePathFirstPayloads());
+//			}
+//			
+//			// Persist message: LAST
+//			last.persistMessage(this.ico.getFilePathLastPayloads());
+//			
+//			// Build and add new State entry line
+//			if (isInitMode) {
+//				// Extract: Init
+//				String newEntry = StateHandler.createExtractEntry(this.ico.getName(), first, last, ++sequenceCounter);
+//				StateHandler.addEntryToInternalList(newEntry);
+//			} else {
+//				// Extract: Non-init
+//				StateHandler.addNonInitMessageInfoToInternalList(
+//									injectMessageId, 
+//									last.getSapMessageKey(), 
+//									last.getSapMessageId(), 
+//									last.getFileName(),
+//									++sequenceCounter);
+//			}
+//		} catch (PayloadException e) {
+//			String msg = "Error persisting payload for MessageKey!\n" + e;
+//			logger.writeError(LOCATION, SIGNATURE, msg);
+//			ExtractorException ex = new ExtractorException(msg);
+//			this.ex = ex;
+//			throw ex;
+//		} 
+//	}
 	
 	
 	/**

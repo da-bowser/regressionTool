@@ -155,11 +155,11 @@ public class StateHandler {
 	 * @param last
 	 * @return
 	 */
-	public static String createExtractEntry(String icoName, Payload first, Payload last, int initSequenceNumber) {
+	public static String createExtractEntry(String icoName, Payload first, Payload last, String initSequenceNumber) {
 		return createEntry(	icoName, 
 							first, 
 							last, 
-							"" + initSequenceNumber,
+							initSequenceNumber,
 							INJECT_FIRST_MSG_ID_TEMPLATE, 
 							NON_INIT_LAST_MSG_KEY_TEMPLATE,
 							NON_INIT_LAST_MSG_ID_TEMPLATE,

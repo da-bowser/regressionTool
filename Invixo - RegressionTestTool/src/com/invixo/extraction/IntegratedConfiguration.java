@@ -195,9 +195,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				Payload firstPayload = currentPayloadsLink.getFirstPayload();
 				ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
 
-				for (int i=0; i < lastPayloads.size(); i++) {
-					Payload currentLast = lastPayloads.get(i);
-					StateHandler.nonInitReplaceShitIDetMindste(firstPayload, currentLast, ""+i);
+				for (Payload currentLastPayload : lastPayloads) {
+					StateHandler.nonInitReplaceShitIDetMindste(firstPayload, currentLastPayload, currentLastPayload.getSequenceIdFromMessageKey());
 				}
 			}
 		} catch (IllegalStateException|StateException e) {
@@ -277,7 +276,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 
 			for (int i=0; i < lastPayloads.size(); i++) {
 				Payload currentLast = lastPayloads.get(i);
-				String currentIcoLine = StateHandler.createExtractEntry(this.getName(), firstPayload, currentLast, i);
+				String currentIcoLine = StateHandler.createExtractEntry(this.getName(), firstPayload, currentLast, currentLast.getSequenceIdFromMessageKey());
 				StateHandler.addEntryToInternalList(currentIcoLine);
 			}
 		}
