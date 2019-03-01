@@ -85,7 +85,8 @@ public class HttpHandler {
 	 */
 	public static byte[] get(String endpoint) throws HttpException {
 		final String SIGNATURE = "get(String)";
-		long timeStart = 0;
+		long timeStart = -1;
+		long timeEnd = -1;
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Endpoint: " + endpoint);
 
@@ -98,6 +99,8 @@ public class HttpHandler {
 			// Do the GET
 			timeStart = Util.getTime();
 			try (final CloseableHttpResponse response = httpclient.execute(httpGet)) {
+				timeEnd = Util.getTime();
+				
 				// Handle HTTP response
 				InputStream positiveResponseContent = processHttpResponse(response);
 
@@ -111,7 +114,9 @@ public class HttpHandler {
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new HttpException(ex);
 		} finally {
-			long timeEnd = Util.getTime();
+			if (timeEnd == -1) {
+				timeEnd = Util.getTime();
+			}
 			Double timeTaken = Util.measureTimeTaken(timeStart, timeEnd);
 			logger.writeDebug(LOCATION, SIGNATURE, "Web Service call (request to response) time taken (seconds): " + timeTaken);
 		}
@@ -150,11 +155,16 @@ public class HttpHandler {
 	 */
 	public static byte[] post(HttpPost httpPost) throws HttpException {
 		final String SIGNATURE = "post(HttpPost)";
+		long timeStart = -1;
+		long timeEnd = -1;
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Initiate HTTP post (plain)...");
 			
 			// Send http post request
+			timeStart = Util.getTime();
 			try (final CloseableHttpResponse response = httpclient.execute(httpPost)) {
+				timeEnd = Util.getTime();
+				
 				// Handle HTTP response
 				InputStream positiveResponseContent = processHttpResponse(response);
 				
@@ -167,6 +177,12 @@ public class HttpHandler {
 			String ex = "Technical error executing HTTP Post call.\n" + sw.toString();
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new HttpException(ex);
+		} finally {
+			if (timeEnd == -1) {
+				timeEnd = Util.getTime();
+			}
+			Double timeTaken = Util.measureTimeTaken(timeStart, timeEnd);
+			logger.writeDebug(LOCATION, SIGNATURE, "Web Service call (request to response) time taken (seconds): " + timeTaken);
 		}
 	}
 	
