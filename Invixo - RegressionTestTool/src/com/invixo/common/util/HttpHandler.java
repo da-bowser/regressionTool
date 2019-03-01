@@ -85,6 +85,7 @@ public class HttpHandler {
 	 */
 	public static byte[] get(String endpoint) throws HttpException {
 		final String SIGNATURE = "get(String)";
+		long timeStart = 0;
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "Endpoint: " + endpoint);
 
@@ -95,6 +96,7 @@ public class HttpHandler {
 			httpGet.addHeader("Authorization", basicAuthHeaderValue);
 
 			// Do the GET
+			timeStart = Util.getTime();
 			try (final CloseableHttpResponse response = httpclient.execute(httpGet)) {
 				// Handle HTTP response
 				InputStream positiveResponseContent = processHttpResponse(response);
@@ -108,6 +110,10 @@ public class HttpHandler {
 			String ex = "Technical error executing HTTP Get call.\n" + sw.toString();
 			logger.writeError(LOCATION, SIGNATURE, ex);
 			throw new HttpException(ex);
+		} finally {
+			long timeEnd = Util.getTime();
+			Double timeTaken = Util.measureTimeTaken(timeStart, timeEnd);
+			logger.writeDebug(LOCATION, SIGNATURE, "Web Service call (request to response) time taken (seconds): " + timeTaken);
 		}
 	}
 	

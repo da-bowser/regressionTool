@@ -299,9 +299,14 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		for (Payloads currentPayloadsLink : payloadsLinkList) {
 			Payload firstPayload = currentPayloadsLink.getFirstPayload();
 			ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
-			persist(firstPayload, true);
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of LAST payloads to lookup and persist for current FIRST payload: " + lastPayloads.size());
 			
+			// Persist FIRST
+			if (Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT)) {
+				persist(firstPayload, true);				
+			}
+
+			// Persist LAST
 			for (Payload lastPaylad : lastPayloads) {
 				persist(lastPaylad, false);
 			}

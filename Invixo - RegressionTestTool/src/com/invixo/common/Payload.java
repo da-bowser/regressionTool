@@ -48,12 +48,12 @@ public class Payload {
 
 	
 	public String getSapMessageId() {
-		return sapMessageId;
+		return this.sapMessageId;
 	}
 
 	
 	public Multipart getXiMultipart() {
-		return xiMultipart;
+		return this.xiMultipart;
 	}
 
 	
@@ -77,7 +77,7 @@ public class Payload {
 
 	
 	public BodyPart getXiHeader() {
-		return xiHeader;
+		return this.xiHeader;
 	}
 
 	
@@ -97,7 +97,7 @@ public class Payload {
 
 	
 	public BodyPart getXiPayload() {
-		return xiPayload;
+		return this.xiPayload;
 	}
 
 	
@@ -109,7 +109,7 @@ public class Payload {
 			
 			this.xiPayload = bp;			
 		} catch (MessagingException e) {
-			String msg = "Error extrac SAP XI Header from MultiPart message\n" + e;
+			String msg = "Error extracting SAP XI Header from MultiPart message\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new PayloadException(msg);
 		}
