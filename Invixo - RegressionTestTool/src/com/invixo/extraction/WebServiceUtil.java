@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -125,6 +126,28 @@ public class WebServiceUtil {
 		final String SIGNATURE = "lookupSuccessors(String)";
 		ArrayList<String> messageIdList = new ArrayList<String>();
 		messageIdList.add(messageId);
+		
+		// Create request for GetMessagesWithSuccessors
+		byte[] requestBytes = createRequestGetMessagesWithSuccessors(messageIdList);
+		logger.writeDebug(LOCATION, SIGNATURE, "GetMessagesWithSuccessors request created");
+		
+		// Write request to file system if debug for this is enabled (property)
+		if (GlobalParameters.DEBUG) {
+			String file = FileStructure.getDebugFileName("GetMessagesWithSuccessors", true, icoName, "xml");
+			Util.writeFileToFileSystem(file, requestBytes);
+			logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessagesWithSuccessors request message to be sent to SAP PO is stored here: " + file);
+		}
+					
+		// Call web service (GetMessagesWithSuccessors)
+		byte[] responseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
+		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessagesWithSuccessors) called");	
+		
+		return responseBytes;
+	}
+	
+	
+	static byte[] lookupSuccessorsBatch(ArrayList<String> messageIdList, String icoName) throws HttpException {
+		final String SIGNATURE = "lookupSuccessorsBatch(String)";
 		
 		// Create request for GetMessagesWithSuccessors
 		byte[] requestBytes = createRequestGetMessagesWithSuccessors(messageIdList);
@@ -507,6 +530,82 @@ public class WebServiceUtil {
 			// Multiplicity 1:1 - only a single messageKey "self" is returned which has no parent
 			if (successors.size() == 0) {
 				successors.add(messageKey);
+			}
+			
+			return successors;
+		} catch (XMLStreamException e) {
+			String msg = "Error extracting successors from Web Service response.\n" + e.getMessage();
+			logger.writeError(LOCATION, SIGNATURE, msg);
+			throw new ExtractorException(msg);
+		}
+	}
+	
+	
+	/**
+	 * Extract successors message keys from Web Service response.
+	 * @param responseBytes					XML to extract data from 
+	 * @param senderInterface
+	 * @param receiverInterface
+	 * @return								Map of <MsgKey, Parent MsgId>
+	 * @throws ExtractorException
+	 */
+	static HashMap<String, String> extractSuccessorsBatch(byte[] responseBytes, String senderInterface, String receiverInterface) throws ExtractorException {
+		final String SIGNATURE = "extractSuccessorsBatch(byte[], String, String)";
+		try {
+			HashMap<String, String> successors = new HashMap<String, String>();
+	        String parentId = null;
+	        String messageKey = null;
+	        boolean receiverInterfaceElementFound = false;
+	        boolean matchingReceiverInterfaceNameFound = false;
+	        
+			XMLInputFactory factory = XMLInputFactory.newInstance();
+			XMLEventReader eventReader = factory.createXMLEventReader(new ByteArrayInputStream(responseBytes));
+
+			while (eventReader.hasNext()) {
+				XMLEvent event = eventReader.nextEvent();
+
+				switch (event.getEventType()) {
+				case XMLStreamConstants.START_ELEMENT:
+					String currentElementName = event.asStartElement().getName().getLocalPart();
+
+					if ("messageKey".equals(currentElementName)) {
+						messageKey = eventReader.peek().asCharacters().getData();
+						
+					} else if ("parentID".equals(currentElementName)) {
+						parentId = eventReader.peek().asCharacters().getData();
+
+			    	} else if ("receiverInterface".equals(currentElementName)) {
+			    		// We found the correct element
+			    		receiverInterfaceElementFound = true;
+			    		
+			    	} else if("name".equals(currentElementName) && eventReader.peek().isCharacters() && receiverInterfaceElementFound) {
+			    		String name = eventReader.peek().asCharacters().getData();
+	
+			    		// REASON: In case of message split we get all interfaces in the response payload
+			    		// we only want the ones matching the Outbound or Inbound interfaces of the current ICO being processed.
+			    		// Both outbound and inbound is required to track a FIRST message id to its related LAST messages which
+			    		// is needed in a batch situation where multiple FIRST message ids are sent in the request.
+			    		if ((name.equals(receiverInterface) || name.equals(senderInterface)) && receiverInterfaceElementFound) {
+			    			// We found a match we want to add to our "splitMessageIds" map
+			    			matchingReceiverInterfaceNameFound = true;
+			    			
+			    			// We are no longer interested in more data before next iteration
+							receiverInterfaceElementFound = false;
+						}
+			    	}
+					break;
+					
+				case XMLStreamConstants.END_ELEMENT:
+					String currentEndElementName = event.asEndElement().getName().getLocalPart();
+					
+					if ("AdapterFrameworkData".equals(currentEndElementName) && matchingReceiverInterfaceNameFound) {
+						successors.put(messageKey, parentId);	
+				        messageKey = null;
+				        parentId = null;
+				        matchingReceiverInterfaceNameFound = false;
+					}
+					break;
+				}
 			}
 			
 			return successors;

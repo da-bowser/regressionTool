@@ -92,6 +92,51 @@ class WebServiceUtilTest {
 	
 	
 	@Test
+	@DisplayName("Verify extracted data from GetMessagesWithSuccessors response when batching")
+	void extractDataFromSuccessorsResponseWhenBatching() {
+		try {
+			// Get path: web service response (GetMessagesWithSuccessors)
+			String response = "../../../resources/testfiles/com/invixo/extraction/GetMessagesWithSuccessors_BatchResponse.xml";
+			InputStream wsResponse = this.getClass().getResourceAsStream(response);
+			
+			// Prepare variables
+			String receiverInterface = "SHP_OBDLV_CHANGE.SHP_OBDLV_CHANGE01";
+			ArrayList<String> requestMsgIds = new ArrayList<String>();
+			requestMsgIds.add("14b78098-3a00-11e9-9945-0000273d8d22");
+			requestMsgIds.add("17b72adb-3a00-11e9-8560-0000273d8d23");
+			requestMsgIds.add("11b882c6-3a00-11e9-8d1b-0000273d8d23");
+			requestMsgIds.add("b82d5ee1-3a00-11e9-8f6f-0000273d8d23");
+			
+			
+			
+			// Get data to be checked (map<message id, parent id>)
+			HashMap<String, String> data = null;
+//			WebServiceUtil.extractSuccessorsBatch(wsResponse.readAllBytes());
+				
+			// Build expected result
+			HashMap<String, String> expectedResult = new HashMap<String, String>();
+			expectedResult.put("bb0bc4dc-3a00-11e9-bba5-0000273d8d23\\OUTBOUND\\658345251\\EOIO\\1\\", "14b78098-3a00-11e9-9945-0000273d8d22");
+			expectedResult.put("14b78098-3a00-11e9-9945-0000273d8d22", "");
+			expectedResult.put("14b78098-3a00-11e9-9945-0000273d8d22", "");
+			expectedResult.put("14b78098-3a00-11e9-9945-0000273d8d22", "");
+			expectedResult.put("14b78098-3a00-11e9-9945-0000273d8d22", "");
+			expectedResult.put("14b78098-3a00-11e9-9945-0000273d8d22", "");
+			expectedResult.put("14b78098-3a00-11e9-9945-0000273d8d22", "");
+			expectedResult.put("14b78098-3a00-11e9-9945-0000273d8d22", "");
+			expectedResult.put("14b78098-3a00-11e9-9945-0000273d8d22", "");
+			expectedResult.put("14b78098-3a00-11e9-9945-0000273d8d22", "");
+			
+			//TODO
+			
+			// Check
+			assertEquals(expectedResult, data);
+		} catch (Exception e) {
+			fail("It aint cooking chef! " + e);
+		}
+	}
+	
+	
+	@Test
 	@DisplayName("Verify extractMessageInfo extracts data properly")
 	void checkExtractMessageInfo() {
 		try {

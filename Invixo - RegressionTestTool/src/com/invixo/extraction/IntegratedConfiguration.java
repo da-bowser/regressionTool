@@ -7,7 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import com.invixo.common.GeneralException;
@@ -18,6 +20,7 @@ import com.invixo.common.PayloadException;
 import com.invixo.common.StateException;
 import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
+import com.invixo.common.util.PropertyAccessor;
 import com.invixo.common.util.Util;
 import com.invixo.common.util.HttpException;
 import com.invixo.consistency.FileStructure;
@@ -30,6 +33,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 *====================================================================================*/
 	private static Logger logger = Logger.getInstance();
 	private static final String LOCATION = IntegratedConfiguration.class.getName();
+	private static final int BATCH_SIZE = Integer.parseInt(PropertyAccessor.getProperty("BATCH_SIZE"));
 
 	
 	
@@ -215,12 +219,26 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		int firstPaylodsTotal = firstPayloads.size();
 		logger.writeInfo(LOCATION, SIGNATURE, "FIRST: basic info collected. Number of FIRST payloads: " + firstPaylodsTotal);
 		
+		// Test stuff
+//		ArrayList<Payloads> payloadsLinkList = lastHandlingOriginal(firstPayloads);
+		ArrayList<Payloads> payloadsLinkList = lastPlayground(firstPayloads);
+		 
+		// Persist payload (FIRST and/or LAST)
+		storePayloads(payloadsLinkList, isInit);
+		
+		return payloadsLinkList;
+	}
+	
+	
+	private ArrayList<Payloads> lastHandlingOriginal(ArrayList<Payload> firstPayloads) throws HttpException, ExtractorException {
+		final String SIGNATURE = "lastHandlingOriginal(ArrayList<Payload>)";
+		
 		// Add basic LAST info
 		int firstCounter = 0;
 		ArrayList<Payloads> payloadsLinkList = new ArrayList<Payloads>();
 		for (Payload firstPayload : firstPayloads) {
 			firstCounter++;
-			logger.writeInfo(LOCATION, SIGNATURE, "Find basic LAST info for FIRST entry ["+ firstCounter + "/" + firstPaylodsTotal + "]. Referenced FIRST key: " + firstPayload.getSapMessageKey());
+			logger.writeInfo(LOCATION, SIGNATURE, "Find basic LAST info for FIRST entry ["+ firstCounter + "/" + firstPayloads.size() + "]. Referenced FIRST key: " + firstPayload.getSapMessageKey());
 			
 			// Add current FIRST to combined list of FIRST and related LAST messages
 			Payloads currentPayloadsLink = new Payloads();
@@ -244,11 +262,144 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			logger.writeInfo(LOCATION, SIGNATURE, "Number of LAST keys found: " + currentPayloadsLink.getLastPayloadList().size());
 			logger.writeInfo(LOCATION, SIGNATURE, "Finished finding basic info for LAST keys for FIRST key: " + firstPayload.getSapMessageKey());
 		}
-		 
-		// Persist payload (FIRST and/or LAST)
-		storePayloads(payloadsLinkList, isInit);
-		
 		return payloadsLinkList;
+	}
+		
+	
+	private ArrayList<Payloads> lastPlayground(ArrayList<Payload> firstPayloads) throws HttpException, ExtractorException {
+		final String SIGNATURE = "lastPlayground(ArrayList<Payload>)";
+		int payloadsTotal = firstPayloads.size();
+		int batchesTotal = getBatchCount(payloadsTotal, BATCH_SIZE);
+		logger.writeDebug(LOCATION, SIGNATURE, "Total number of FIRST to be processed: " + payloadsTotal);
+		logger.writeDebug(LOCATION, SIGNATURE, "Number of batches required: " + batchesTotal);
+		
+		ArrayList<Payloads> payloadsLinkListTotal = new ArrayList<Payloads>();
+		ArrayList<Payload> currentBatch = new ArrayList<Payload>();
+		int counter = 0;
+		
+		for (Payload currentFirst : firstPayloads) {
+        	// Add current entry to batch
+        	currentBatch.add(currentFirst);
+			
+			// Process batches if max batch size is reached
+        	if (currentBatch.size() >= BATCH_SIZE) {
+        		counter++;
+        		logger.writeDebug(LOCATION, SIGNATURE, "Process batch [" + counter + "/" + batchesTotal + "]...");
+        		payloadsLinkListTotal.addAll(lastPlaygroundBatch(currentBatch));
+        		currentBatch.clear();
+        	}
+		}
+		
+		// Process remaining/leftover maps
+    	logger.writeDebug(LOCATION, SIGNATURE, "Process batch [" + batchesTotal + "/" + batchesTotal + "] (leftovers)");
+    	if (currentBatch.size() > 0) {
+    		payloadsLinkListTotal.addAll(lastPlaygroundBatch(currentBatch));        		
+    	}
+    	
+    	return payloadsLinkListTotal;
+	}
+	
+	
+	public static int getBatchCount(double maxMessages, double batchSize) {
+		double batches = Math.ceil( maxMessages / batchSize );
+		return (int) batches;	
+	}
+	
+	
+	private ArrayList<Payloads> lastPlaygroundBatch(ArrayList<Payload> firstPayloads) throws HttpException, ExtractorException {
+		final String SIGNATURE = "lastPlaygroundBatch(ArrayList<Payload>)";
+		logger.writeInfo(LOCATION, SIGNATURE, "Batch of FIRST to be processed. Batch size: " + firstPayloads.size());
+		
+		// Get successors (children) of current FIRST message
+		byte[] successorResponse = WebServiceUtil.lookupSuccessorsBatch(getMessageIdsFromList(firstPayloads), this.getName());
+		HashMap<String, String> rawResponseMap = WebServiceUtil.extractSuccessorsBatch(successorResponse, this.getSenderInterface(), this.getReceiverInterface());
+		
+		// Divide raw response info into LAST messages referring to proper FIRST message 
+		ArrayList<Payloads> payloadsLinkList = new ArrayList<Payloads>();
+		for (Payload firstPayload : firstPayloads) {
+			Payloads currentPayloads = getLastMessagesForFirstEntry(rawResponseMap, firstPayload);
+			payloadsLinkList.add(currentPayloads);
+		}
+
+		return payloadsLinkList;
+	}
+		
+	
+	/**
+	 * Get LAST payloads for FIRST payload based on extracted data WS response of service GetMessagesWithSuccessors 
+	 * @param rawResponseMap
+	 * @param firstPayload
+	 * @return
+	 */
+	static Payloads getLastMessagesForFirstEntry(HashMap<String, String> rawResponseMap, Payload firstPayload) {
+		String currentFirstMsgId = firstPayload.getSapMessageId(); 
+		
+		// Find all records in WS response with a Parent value matching the FIRST message id
+		HashMap<String, String> parentMap = new HashMap<String, String>();
+		for (Entry<String, String> entry : rawResponseMap.entrySet()) {
+			String currentMsgKey = entry.getKey();
+			String currentMsgId = Util.extractMessageIdFromKey(currentMsgKey);
+			String currentParentId = entry.getValue();
+			
+			if (currentFirstMsgId.equals(currentParentId)) {
+				parentMap.put(currentMsgId, currentMsgKey);
+			}
+		}
+		
+		// Find successor (LAST) messages
+		ArrayList<Payload> currentLastList = new ArrayList<Payload>();
+		if (parentMap.size() == 1) {
+			Entry<String, String> parentEntry = parentMap.entrySet().iterator().next();
+			String parentMessageId = parentEntry.getKey();
+			
+			// Collect all messages that refers to parent
+			ArrayList<String> matchList = new ArrayList<String>();
+			for (Entry<String, String> entry : rawResponseMap.entrySet()) {
+				String currentMsgKey = entry.getKey();
+				String currentParentId = entry.getValue();
+				
+				if (parentMessageId.equals(currentParentId)) {
+					matchList.add(currentMsgKey);
+				}
+			}
+			
+			// Handle LAST messages according to number of matches found
+			if (matchList.size() == 0) {
+				// No matches. This means the message itself was a LAST message
+				Payload lastPayload = new Payload();
+				lastPayload.setSapMessageKey(parentEntry.getValue());
+				currentLastList.add(lastPayload);
+			} else {
+				// More than 1 match (all matches are LAST messages)
+				for (String currentMessageKey : matchList) {
+					Payload lastPayload = new Payload();
+					lastPayload.setSapMessageKey(currentMessageKey);
+					currentLastList.add(lastPayload);						
+				}
+			}
+		} else {
+			// More than 1 parent message. All of these is a LAST message
+			for (Entry<String, String> parentEntry : parentMap.entrySet()) {
+				Payload lastPayload = new Payload();
+				lastPayload.setSapMessageKey(parentEntry.getValue());
+				currentLastList.add(lastPayload);
+			}
+		}
+
+		// Create and add coupling between first and last payloads
+		Payloads currentPayloads = new Payloads();
+		currentPayloads.setFirstPayload(firstPayload);
+		currentPayloads.setLastPayloadList(currentLastList);
+		return currentPayloads;
+	}
+	
+	
+	private ArrayList<String> getMessageIdsFromList(ArrayList<Payload> payloads) {
+		ArrayList<String> messageIds = new ArrayList<String>();
+		for (Payload payload : payloads) {
+			messageIds.add(payload.getSapMessageId());
+		}
+		return messageIds;
 	}
 
 
