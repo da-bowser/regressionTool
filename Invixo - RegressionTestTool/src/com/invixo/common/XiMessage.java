@@ -204,9 +204,9 @@ public class XiMessage {
 	}
 
 	
-	public String getSequenceIdFromMessageKey() {
+	public int getSequenceIdFromMessageKey() {
 		String[] parts = this.sapMessageKey.split("\\\\");
-		return parts[4];
+		return Integer.parseInt(parts[4]);
 	}
 	
 	

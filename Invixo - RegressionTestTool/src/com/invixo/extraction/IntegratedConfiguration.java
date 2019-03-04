@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -196,10 +198,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				XiMessage firstPayload = currentPayloadsLink.getFirstPayload();
 				ArrayList<XiMessage> lastPayloads = currentPayloadsLink.getLastPayloadList();
 
+				// Sort Last Payloads
+				sortLastMessagesBySequenceId(lastPayloads);
+				
 				int total = lastPayloads.size()-1;
 				for (int i=total; i>=0; i--) {
 					XiMessage currentLast = lastPayloads.get(i);
-					StateHandler.nonInitReplaceTemplates(firstPayload, currentLast, (total - i)+"");
+					StateHandler.nonInitReplaceTemplates(firstPayload, currentLast, (i)+"");
 				}
 			}
 			logger.writeDebug(LOCATION, SIGNATURE, "Finished building internal STATE list (template replacement)");
@@ -369,12 +374,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				XiMessage lastPayload = new XiMessage();
 				lastPayload.setSapMessageKey(parentEntry.getValue());
 				currentLastList.add(lastPayload);
-				System.out.println("Case 1: " + firstPayload.getSapMessageKey());
+
 				// FIRST message: correct version used to fetch payloads
 				switchPayloadVersions(firstPayload);
 			} else {
 				// More than 1 match (all matches are LAST messages)
-				System.out.println("Case 2: " + firstPayload.getSapMessageKey());
 				for (String currentMessageKey : matchList) {
 					XiMessage lastPayload = new XiMessage();
 					lastPayload.setSapMessageKey(currentMessageKey);
@@ -383,7 +387,6 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			}
 		} else {
 			// More than 1 parent message. All of these is a LAST message
-			System.out.println("Case 3: " + firstPayload.getSapMessageKey());
 			for (Entry<String, String> parentEntry : parentMap.entrySet()) {
 				XiMessage lastPayload = new XiMessage();
 				lastPayload.setSapMessageKey(parentEntry.getValue());
@@ -446,6 +449,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			XiMessage firstPayload = currentPayloadsLink.getFirstPayload();
 			ArrayList<XiMessage> lastPayloads = currentPayloadsLink.getLastPayloadList();
 
+			// Sort Last Payloads
+			sortLastMessagesBySequenceId(lastPayloads);
+			
+			// Write to temp (internal) storage
 			for (int i=0; i < lastPayloads.size(); i++) {
 				XiMessage currentLast = lastPayloads.get(i);
 				String currentIcoLine = StateHandler.createExtractEntry(this.getName(), firstPayload, currentLast, i+"");
@@ -453,6 +460,17 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			}
 		}
 		logger.writeDebug(LOCATION, SIGNATURE, "Finished building internal STATE list (template replacement)");
+	}
+	
+	
+	private void sortLastMessagesBySequenceId(ArrayList<XiMessage> lastPayloads) {
+		Collections.sort(lastPayloads, new Comparator<XiMessage>() {
+		    @Override
+		    public int compare(XiMessage msg1, XiMessage msg2) {
+		    	int seq1 = msg1.getSequenceIdFromMessageKey();
+		    	int seq2 = msg2.getSequenceIdFromMessageKey(); 
+		        return Integer.compare(seq1, seq2);
+		    }});
 	}
 	
 	

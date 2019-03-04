@@ -702,9 +702,9 @@ public class WebServiceUtil {
 			xmlWriter.writeEndElement();
 			
 			// Create element: Envelope | Body | getMessageList | filter | qualityOfService
-			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "qualityOfService", XML_NS_URN1_NS);
-			xmlWriter.writeCharacters(ico.getQualityOfService());
-			xmlWriter.writeEndElement();
+//			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "qualityOfService", XML_NS_URN1_NS);
+//			xmlWriter.writeCharacters(ico.getQualityOfService());
+//			xmlWriter.writeEndElement();
 			
 			// Create element: Envelope | Body | getMessageList | filter | receiverName
 			xmlWriter.writeStartElement(XML_NS_URN1_PREFIX, "receiverName", XML_NS_URN1_NS);

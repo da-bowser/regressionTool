@@ -1,5 +1,6 @@
 package com.invixo.common;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -72,4 +73,14 @@ public class IntegratedConfigurationMainTest {
 		}
 	}
 	
+
+	@Test
+	@DisplayName("Test QueueId generation")
+	void testQueueIdGeneration() {
+		String queueId = IntegratedConfigurationMain.generateQueueId();
+		
+		// Check: various
+		assertTrue("QueueId max length (16) exceeded", queueId.length() <= 16);
+	}
+
 }

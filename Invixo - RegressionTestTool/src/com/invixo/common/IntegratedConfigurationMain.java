@@ -35,7 +35,7 @@ public class IntegratedConfigurationMain {
 	private String name = null;
 	private boolean active = false;
 	private String qualityOfService = null;
-	private String queueId = "_" + System.nanoTime();
+	private String queueId = generateQueueId();
 	private String fromTime = null;
 	private String toTime = null;
 	private int maxMessages = 0;
@@ -429,6 +429,13 @@ public class IntegratedConfigurationMain {
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new RuntimeException(msg);
 		}
+	}
+	
+	
+	static String generateQueueId() {
+		String result	= "_" 
+						+ ("" + System.nanoTime()).substring(1);
+		return result;
 	}
 
 
