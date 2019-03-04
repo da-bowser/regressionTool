@@ -169,7 +169,7 @@ public class XiMessage {
 	 * @throws XiMessageException
 	 */
 	public void extractPayloadFromSystem(boolean isFirst) throws XiMessageException {
-		final String SIGNATURE = "extractPayload(String, boolean)";
+		final String SIGNATURE = "extractPayload(boolean)";
 		try {	
 			// Lookup SAP XI Message
 			int version = isFirst ? this.versionFirst : this.versionLast;

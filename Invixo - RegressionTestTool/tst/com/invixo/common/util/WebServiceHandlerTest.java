@@ -13,8 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-import javax.mail.Multipart;
-
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.BeforeAll;
@@ -147,13 +145,9 @@ class WebServiceHandlerTest {
 			// Build inject SAP XI Header - PREPARE # Create GetMessageList request
 			IntegratedConfiguration ico = new IntegratedConfiguration(icoOverviewList.get(0), pathSystemMapping, "PRD", "TST");
 
-			// Build dummy XI Header
-			Multipart firstMultipart = XiMessageUtil.createMultiPartMessage(getFilecontent("c4b6a300-2ea5-4691-88f2-fbc1a3d24ca5.multipart"));
-			XiHeader firstXiHeader = XiMessageUtil.deserializeXiHeader(firstMultipart);
-			
 			// Build inject SAP XI Header
 			InjectionRequest ir = new InjectionRequest();
-			String xiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(ico, ir.getMessageId(), firstXiHeader);
+			String xiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(ico, ir.getMessageId());
 			
 			// Perform test
 			HttpPost httpPost = HttpHandler.buildMultipartHttpPostRequest(endpoint, xiHeader.getBytes(), payload);

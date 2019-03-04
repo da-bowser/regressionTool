@@ -67,7 +67,7 @@ public class WebServiceUtil {
 	 * @throws ExtractorException
 	 */
 	static String lookupMessageKey(String messageId, String icoName) throws HttpException, ExtractorException {
-		final String SIGNATURE = "lookupMessageKey(String)";
+		final String SIGNATURE = "lookupMessageKey(String, String)";
 		
 		// Create "GetMessagesByIDs" request
 		byte[] getMessageByIdsRequestBytes = createRequestGetMessagesByIDs(messageId);
@@ -121,32 +121,8 @@ public class WebServiceUtil {
 	}
 
 	
-	static byte[] lookupSuccessors(String messageId, String icoName) throws HttpException {
-		final String SIGNATURE = "lookupSuccessors(String)";
-		ArrayList<String> messageIdList = new ArrayList<String>();
-		messageIdList.add(messageId);
-		
-		// Create request for GetMessagesWithSuccessors
-		byte[] requestBytes = createRequestGetMessagesWithSuccessors(messageIdList);
-		logger.writeDebug(LOCATION, SIGNATURE, "GetMessagesWithSuccessors request created");
-		
-		// Write request to file system if debug for this is enabled (property)
-		if (GlobalParameters.DEBUG) {
-			String file = FileStructure.getDebugFileName("GetMessagesWithSuccessors", true, icoName, "xml");
-			Util.writeFileToFileSystem(file, requestBytes);
-			logger.writeDebug(LOCATION, SIGNATURE, "<debug enabled> GetMessagesWithSuccessors request message to be sent to SAP PO is stored here: " + file);
-		}
-					
-		// Call web service (GetMessagesWithSuccessors)
-		byte[] responseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
-		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessagesWithSuccessors) called");	
-		
-		return responseBytes;
-	}
-	
-	
 	static byte[] lookupSuccessorsBatch(ArrayList<String> messageIdList, String icoName) throws HttpException {
-		final String SIGNATURE = "lookupSuccessorsBatch(String)";
+		final String SIGNATURE = "lookupSuccessorsBatch(ArrayList<String>, String)";
 		
 		// Create request for GetMessagesWithSuccessors
 		byte[] requestBytes = createRequestGetMessagesWithSuccessors(messageIdList);
@@ -454,91 +430,7 @@ public class WebServiceUtil {
 			throw new ExtractorException(msg);
 		}
 	}
-	
-	
-	/**
-	 * Extract successors message keys from Web Service response
-	 * @param responseBytes					XML to extract data from 
-	 * @param receiverInterfaceName			Only extract message info from integrated configurations having this receiver interface name
-	 * @return
-	 * @throws ExtractorException
-	 */
-	static ArrayList<String> extractSuccessors(byte[] responseBytes, String receiverInterfaceName) throws ExtractorException {
-		final String SIGNATURE = "extractSuccessors(byte[], String)";
-		try {
-	        ArrayList<String> successors = new ArrayList<String>();
-	        boolean hasParent = false;
-	        String messageKey = null;
-	        boolean receiverInterfaceElementFound = false;
-	        boolean matchingReceiverInterfaceNameFound = false;
-	        
-			XMLInputFactory factory = XMLInputFactory.newInstance();
-			XMLEventReader eventReader = factory.createXMLEventReader(new ByteArrayInputStream(responseBytes));
-
-			while (eventReader.hasNext()) {
-				XMLEvent event = eventReader.nextEvent();
-
-				switch (event.getEventType()) {
-				case XMLStreamConstants.START_ELEMENT:
-					String currentElementName = event.asStartElement().getName().getLocalPart();
-
-					if ("parentID".equals(currentElementName)) {
-						hasParent = true;
-						
-					} else if ("messageKey".equals(currentElementName)) {
-						messageKey = eventReader.peek().asCharacters().getData();
-												
-			    	} else if ("receiverInterface".equals(currentElementName)) {
-			    		// We found the correct element
-			    		receiverInterfaceElementFound = true;
-			    		
-			    	} else if("name".equals(currentElementName) && eventReader.peek().isCharacters() && receiverInterfaceElementFound) {
-			    		String name = eventReader.peek().asCharacters().getData();
-
-			    		// REASON: In case of message split we get all interfaces in the response payload
-			    		// we only want the ones matching the receiverInterfaceName of the current ICO being processed
-			    		if (name.equals(receiverInterfaceName) && receiverInterfaceElementFound) {
-			    			// We found a match we want to add to our "splitMessageIds" map
-			    			matchingReceiverInterfaceNameFound = true;
-			    			
-			    			// We are no longer interested in more data before next iteration
-							receiverInterfaceElementFound = false;
-						}
-			    	}
-					break;
-					
-				case XMLStreamConstants.END_ELEMENT:
-					String currentEndElementName = event.asEndElement().getName().getLocalPart();
-					
-					if ("AdapterFrameworkData".equals(currentEndElementName) && matchingReceiverInterfaceNameFound) {
-						if (hasParent == true) {
-							successors.add(messageKey);
-						} else {
-							// Do nothing	
-						}
-						
-						// Reset for next iteration
-				        hasParent = false;
-				        receiverInterfaceElementFound = false;
-				        matchingReceiverInterfaceNameFound = false;
-					}
-					break;
-				}
-			}
-			
-			// Multiplicity 1:1 - only a single messageKey "self" is returned which has no parent
-			if (successors.size() == 0) {
-				successors.add(messageKey);
-			}
-			
-			return successors;
-		} catch (XMLStreamException e) {
-			String msg = "Error extracting successors from Web Service response.\n" + e.getMessage();
-			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new ExtractorException(msg);
-		}
-	}
-	
+		
 	
 	/**
 	 * Extract successors message keys from Web Service response.

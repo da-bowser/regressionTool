@@ -15,8 +15,7 @@ import com.invixo.common.XiMessage;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.IntegratedConfiguration;
-import com.invixo.extraction.MessageKey;
-import com.invixo.extraction.Payloads;
+import com.invixo.extraction.XiMessages;
 import com.invixo.main.GlobalParameters;
 
 public class ReportWriter {
@@ -82,10 +81,10 @@ public class ReportWriter {
 		HashSet<String> messageKeysLast = new HashSet<String>();
 		
 		// Calc status
-		for (Payloads linkedList : ico.getPayloadsLinkList()) {
-			XiMessage firstPayload = linkedList.getFirstPayload();
+		for (XiMessages linkedList : ico.getPayloadsLinkList()) {
+			XiMessage firstPayload = linkedList.getFirstMessage();
 			
-			for (XiMessage lastPayload : linkedList.getLastPayloadList()) {
+			for (XiMessage lastPayload : linkedList.getLastMessageList()) {
 				// Add to messageKeys
 				messageKeysFirst.add(firstPayload.getSapMessageKey());
 				messageKeysLast.add(lastPayload.getSapMessageKey());
@@ -270,8 +269,8 @@ public class ReportWriter {
 		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads
 		xmlWriter.writeStartElement(XML_PREFIX, "Payloads", XML_NS);
 		
-		for (Payloads linkedList : ico.getPayloadsLinkList()) {
-			XiMessage firstPayload = linkedList.getFirstPayload();
+		for (XiMessages linkedList : ico.getPayloadsLinkList()) {
+			XiMessage firstPayload = linkedList.getFirstMessage();
 			
 			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First
 			xmlWriter.writeStartElement(XML_PREFIX, "First", XML_NS);
@@ -299,7 +298,7 @@ public class ReportWriter {
 			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList
 			xmlWriter.writeStartElement(XML_PREFIX, "LastList", XML_NS);
 			
-			for (XiMessage lastPayload : linkedList.getLastPayloadList()) {
+			for (XiMessage lastPayload : linkedList.getLastMessageList()) {
 				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last
 				xmlWriter.writeStartElement(XML_PREFIX, "Last", XML_NS);
 				
@@ -414,10 +413,10 @@ public class ReportWriter {
 		HashSet<String> messageKeysLast = new HashSet<String>();
 				
 		// Calc status
-		for (Payloads linkedList : ico.getPayloadsLinkList()) {
-			XiMessage firstPayload = linkedList.getFirstPayload();
+		for (XiMessages linkedList : ico.getPayloadsLinkList()) {
+			XiMessage firstPayload = linkedList.getFirstMessage();
 			
-			for (XiMessage lastPayload : linkedList.getLastPayloadList()) {
+			for (XiMessage lastPayload : linkedList.getLastMessageList()) {
 				// Add to messageKeys
 				messageKeysFirst.add(firstPayload.getSapMessageKey());
 				messageKeysLast.add(lastPayload.getSapMessageKey());

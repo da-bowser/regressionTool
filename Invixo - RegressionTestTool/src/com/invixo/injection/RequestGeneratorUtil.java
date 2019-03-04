@@ -23,7 +23,7 @@ public class RequestGeneratorUtil {
 	private static final String TARGET_SAP_NS_PREFIX	= "sap";
 	
 	
-	static String generateSoapXiHeaderPart(IntegratedConfiguration ico, String messageId) throws InjectionPayloadException {
+	public static String generateSoapXiHeaderPart(IntegratedConfiguration ico, String messageId) throws InjectionPayloadException {
 		final String SIGNATURE = "generateSoapXiHeaderPart(IntegratedConfiguration, InjectionRequest)";
 		try {
 			StringWriter stringWriter = new StringWriter();
