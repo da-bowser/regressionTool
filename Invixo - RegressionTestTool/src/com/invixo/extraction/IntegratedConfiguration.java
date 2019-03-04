@@ -284,8 +284,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		
 		// Divide raw response info into LAST messages referring to proper FIRST message 
 		ArrayList<XiMessages> payloadsLinkList = new ArrayList<XiMessages>();
-		for (XiMessage firstPayload : firstXiMessages) {
-			XiMessages currentPayloads = getLastMessagesForFirstEntry(rawResponseMap, firstPayload);
+		for (XiMessage firstXiMessage : firstXiMessages) {
+			XiMessages currentPayloads = getLastMessagesForFirstEntry(rawResponseMap, firstXiMessage);
 			payloadsLinkList.add(currentPayloads);
 		}
 
