@@ -159,7 +159,7 @@ public class StateHandler {
 	 * @param initSequenceNumber
 	 * @return
 	 */
-	public static String createExtractEntry(String icoName, Payload first, Payload last, String initSequenceNumber) {
+	public static String createExtractEntry(String icoName, XiMessage first, XiMessage last, String initSequenceNumber) {
 		return createEntry(	icoName, 
 							first, 
 							last, 
@@ -187,8 +187,8 @@ public class StateHandler {
 	 * @return
 	 */
 	private static String createEntry(	String icoName, 
-										Payload first, 
-										Payload last, 
+										XiMessage first, 
+										XiMessage last, 
 										String initInternalSequenceId,
 										String injectFirstMsgId, 
 										String nonInitLastMsgKey, 
@@ -368,7 +368,7 @@ public class StateHandler {
 	}
 
 
-	public static void nonInitReplaceTemplates(Payload first, Payload last, String lastSequenceId) throws StateException {
+	public static void nonInitReplaceTemplates(XiMessage first, XiMessage last, String lastSequenceId) throws StateException {
 		List<String> icoLines = readIcoStateLinesFromFile();
 		
 		for (int i=0; i<icoLines.size(); i++) {

@@ -151,11 +151,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			byte[] payload = XiMessageUtil.getPayloadBytesFromMultiPartMessage(firstMultipart);
 			logger.writeInfo(LOCATION, SIGNATURE, "Payload size (MB): " + Util.convertBytesToMegaBytes(payload.length));
 			
-			// Get XI Header from FIRST multipart
-			XiHeader firstXiHeader = XiMessageUtil.deserializeXiHeader(firstMultipart);
-			
 			// Generate SOAP XI Header
-			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(this, ir.getMessageId(), firstXiHeader);
+			String soapXiHeader = RequestGeneratorUtil.generateSoapXiHeaderPart(this, ir.getMessageId());
 			
 			// Build Request to be sent via Web Service call
 			HttpPost webServiceRequest = HttpHandler.buildMultipartHttpPostRequest(ENDPOINT, soapXiHeader.getBytes(GlobalParameters.ENCODING), payload); 
@@ -169,6 +166,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain  {
 			
 			// Call SAP PO Web Service (using XI protocol)
 			HttpHandler.post(webServiceRequest);
+			
+			// Get XI Header from FIRST multipart
+			XiHeader firstXiHeader = XiMessageUtil.deserializeXiHeader(firstMultipart);
 			
 			// Add new entry to internal list of lines to be updated after injection
 			StateHandler.addInjectEntry(firstXiHeader.getMessageId(), ir.getMessageId());

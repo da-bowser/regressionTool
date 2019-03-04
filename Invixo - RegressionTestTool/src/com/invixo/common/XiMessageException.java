@@ -1,9 +1,9 @@
 package com.invixo.common;
 
-public class PayloadException extends Exception {
+public class XiMessageException extends Exception {
 	private static final long serialVersionUID = -200840751847925674L;
 
-	PayloadException(String message) {
+	XiMessageException(String message) {
         super(message);
     }
     

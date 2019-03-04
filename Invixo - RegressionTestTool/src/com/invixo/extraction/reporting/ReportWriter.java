@@ -11,7 +11,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import com.invixo.common.Payload;
+import com.invixo.common.XiMessage;
 import com.invixo.common.util.Util;
 import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.IntegratedConfiguration;
@@ -83,9 +83,9 @@ public class ReportWriter {
 		
 		// Calc status
 		for (Payloads linkedList : ico.getPayloadsLinkList()) {
-			Payload firstPayload = linkedList.getFirstPayload();
+			XiMessage firstPayload = linkedList.getFirstPayload();
 			
-			for (Payload lastPayload : linkedList.getLastPayloadList()) {
+			for (XiMessage lastPayload : linkedList.getLastPayloadList()) {
 				// Add to messageKeys
 				messageKeysFirst.add(firstPayload.getSapMessageKey());
 				messageKeysLast.add(lastPayload.getSapMessageKey());
@@ -93,12 +93,12 @@ public class ReportWriter {
 				// Check: only FIRST payloads is enabled
 				if (fetchPayloadFirst && !fetchPayloadLast) {
 					// Check: No technical error and FIRST payload was found
-					if (Payload.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus())) {
 						this.countMsgKeyOk++;
 					}
 					
 					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
-					if (Payload.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
 						this.countMsgVersionFirstNopayload++;
 					}
 				}
@@ -106,12 +106,12 @@ public class ReportWriter {
 				// Check: only LAST payloads is enabled
 				if (!fetchPayloadFirst && fetchPayloadLast) {
 					// Check: No technical error and LAST payload was found
-					if (Payload.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						this.countMsgKeyOk++;
 					}
 					
 					// Check: No exception occurred, but LAST XI message was not returned by Web Service
-					if (Payload.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						this.countMsgVersionLastNopayload++;
 					}
 				}
@@ -119,24 +119,24 @@ public class ReportWriter {
 				// Check: FIRST and LAST payloads is enabled
 				if (fetchPayloadFirst && fetchPayloadLast) {
 					// Check: No technical error, but either FIRST or LAST payload is missing
-					if (	Payload.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus()) 
-						|| 	Payload.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (	XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus()) 
+						|| 	XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						this.countMsgKeyTechOkButNoPayload++;
 					} 
 
 					// Check: No technical error and FIRST or LAST payload was found
-					if (	Payload.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus()) 
-						&& 	Payload.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (	XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus()) 
+						&& 	XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						this.countMsgKeyOk++;
 					}
 					
 					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
-					if (Payload.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
 						this.countMsgVersionFirstNopayload++;	
 					} 
 
 					// Check: No exception occurred, but LAST XI message was not returned by Web Service
-					if (Payload.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						this.countMsgVersionLastNopayload++;
 					}
 				}
@@ -271,7 +271,7 @@ public class ReportWriter {
 		xmlWriter.writeStartElement(XML_PREFIX, "Payloads", XML_NS);
 		
 		for (Payloads linkedList : ico.getPayloadsLinkList()) {
-			Payload firstPayload = linkedList.getFirstPayload();
+			XiMessage firstPayload = linkedList.getFirstPayload();
 			
 			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First
 			xmlWriter.writeStartElement(XML_PREFIX, "First", XML_NS);
@@ -299,7 +299,7 @@ public class ReportWriter {
 			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList
 			xmlWriter.writeStartElement(XML_PREFIX, "LastList", XML_NS);
 			
-			for (Payload lastPayload : linkedList.getLastPayloadList()) {
+			for (XiMessage lastPayload : linkedList.getLastPayloadList()) {
 				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last
 				xmlWriter.writeStartElement(XML_PREFIX, "Last", XML_NS);
 				
@@ -415,9 +415,9 @@ public class ReportWriter {
 				
 		// Calc status
 		for (Payloads linkedList : ico.getPayloadsLinkList()) {
-			Payload firstPayload = linkedList.getFirstPayload();
+			XiMessage firstPayload = linkedList.getFirstPayload();
 			
-			for (Payload lastPayload : linkedList.getLastPayloadList()) {
+			for (XiMessage lastPayload : linkedList.getLastPayloadList()) {
 				// Add to messageKeys
 				messageKeysFirst.add(firstPayload.getSapMessageKey());
 				messageKeysLast.add(lastPayload.getSapMessageKey());
@@ -425,17 +425,17 @@ public class ReportWriter {
 				// Check: only FIRST payloads is enabled
 				if (fetchPayloadFirst && !fetchPayloadLast) {
 					// Check: No technical error, FIRST payload is missing
-					if (Payload.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
 						keysTechOk++;
 					} 
 
 					// Check: No technical error and FIRST payload was found
-					if (Payload.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus())) {
 						keysOk++;
 					}
 					
 					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
-					if (Payload.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
 						keysNoFirstPayload++;
 					}
 				}
@@ -443,17 +443,17 @@ public class ReportWriter {
 				// Check: only LAST payloads is enabled
 				if (!fetchPayloadFirst && fetchPayloadLast) {
 					// Check: No technical error, LAST payload is missing
-					if (Payload.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						keysTechOk++;
 					} 
 
 					// Check: No technical error and LAST payload was found
-					if (Payload.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						keysOk++;
 					}
 					
 					// Check: No exception occurred, but LAST XI message was not returned by Web Service
-					if (Payload.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						keysNoLastPayload++;
 					}
 				}
@@ -461,24 +461,24 @@ public class ReportWriter {
 				// Check: FIRST and LAST payloads is enabled
 				if (fetchPayloadFirst && fetchPayloadLast) {
 					// Check: No technical error, but either FIRST or LAST payload is missing
-					if (	Payload.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus()) 
-						|| 	Payload.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (	XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus()) 
+						|| 	XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						keysTechOk++;
 					} 
 
 					// Check: No technical error and FIRST or LAST payload was found
-					if (	Payload.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus()) 
-						&& 	Payload.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (	XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus()) 
+						&& 	XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						keysOk++;
 					}
 					
 					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
-					if (Payload.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
 						keysNoFirstPayload++;	
 					} 
 
 					// Check: No exception occurred, but LAST XI message was not returned by Web Service
-					if (Payload.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+					if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
 						keysNoLastPayload++;
 					}
 				}	

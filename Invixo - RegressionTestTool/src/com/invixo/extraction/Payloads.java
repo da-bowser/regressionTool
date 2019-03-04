@@ -2,24 +2,24 @@ package com.invixo.extraction;
 
 import java.util.ArrayList;
 
-import com.invixo.common.Payload;
+import com.invixo.common.XiMessage;
 
 public class Payloads {
-	private Payload firstPayload = null;
-	private ArrayList<Payload> lastPayloadList = new ArrayList<Payload>();
+	private XiMessage firstPayload = null;
+	private ArrayList<XiMessage> lastPayloadList = new ArrayList<XiMessage>();
 	
 	
-	public Payload getFirstPayload() {
+	public XiMessage getFirstPayload() {
 		return firstPayload;
 	}
-	public void setFirstPayload(Payload firstPayload) {
+	public void setFirstPayload(XiMessage firstPayload) {
 		this.firstPayload = firstPayload;
 	}
 	
-	public ArrayList<Payload> getLastPayloadList() {
+	public ArrayList<XiMessage> getLastPayloadList() {
 		return lastPayloadList;
 	}
-	public void setLastPayloadList(ArrayList<Payload> lastPayloadList) {
+	public void setLastPayloadList(ArrayList<XiMessage> lastPayloadList) {
 		this.lastPayloadList = lastPayloadList;
 	}
 	

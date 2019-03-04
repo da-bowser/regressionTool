@@ -2,8 +2,8 @@ package com.invixo.extraction;
 
 import com.invixo.common.util.Logger;
 import com.invixo.common.util.Util;
-import com.invixo.common.Payload;
-import com.invixo.common.PayloadException;
+import com.invixo.common.XiMessage;
+import com.invixo.common.XiMessageException;
 import com.invixo.common.util.HttpException;
 import com.invixo.main.GlobalParameters;
 
@@ -14,8 +14,8 @@ public class MessageKey {
 	private String sapMessageKey = null;			// SAP Message Key from Web Service response of GetMessageList
 	private String sapMessageId = null;				// SAP Message Id 
 	private IntegratedConfiguration ico	= null;		// Integrated Configuration
-	private Payload payloadFirst = new Payload(); 	// FIRST payload
-	private Payload payloadLast = new Payload();	// LAST payload
+	private XiMessage payloadFirst = new XiMessage(); 	// FIRST payload
+	private XiMessage payloadLast = new XiMessage();	// LAST payload
 	private Exception ex = null;					// Error details
 
 		
@@ -56,12 +56,12 @@ public class MessageKey {
 	}
 		
 	
-	public Payload getPayloadFirst() {
+	public XiMessage getPayloadFirst() {
 		return payloadFirst;
 	}
 
 	
-	public Payload getPayloadLast() {
+	public XiMessage getPayloadLast() {
 		return payloadLast;
 	}
 	
@@ -73,9 +73,9 @@ public class MessageKey {
 	 * @param messageId
 	 * @return
 	 * @throws ExtractorException
-	 * @throws PayloadException
+	 * @throws XiMessageException
 	 */
-	private Payload processMessageKeyMultiMapping(String messageId) throws ExtractorException, PayloadException {
+	private XiMessage processMessageKeyMultiMapping(String messageId) throws ExtractorException, XiMessageException {
 		final String SIGNATURE = "processMessageKeyMultiMapping(String)";
 		try {
 			logger.writeDebug(LOCATION, SIGNATURE, "MessageKey [FIRST] MultiMapping processing start");
@@ -91,14 +91,14 @@ public class MessageKey {
 			
 			// Many of the Message IDs returned by GetMessageList response may have the same parent.
 			// We are only interested in extracting data for the parent once.
-			Payload payload = null;
+			XiMessage payload = null;
 			if (ico.getMultiMapFirstMsgKeys().contains(messageKey)) {
 				// MessageKey already processed and FIRST message details already found.
 				// Do nothing
 				logger.writeDebug(LOCATION, SIGNATURE, "Skip looking up FIRST msg, since previously found for current message key: " + messageKey);
 			} else {
 				// Fetch FIRST payload using the original FIRST messageKey
-				payload = new Payload();
+				payload = new XiMessage();
 				payload.setSapMessageKey(messageKey);
 
 				// Add current, processed MessageKey to complete list of unique, previously found, FIRST payloads
@@ -123,25 +123,25 @@ public class MessageKey {
 	 * Get basic FIRST message info (Message Key and Message Id)
 	 * @param key
 	 * @return
-	 * @throws PayloadException
+	 * @throws XiMessageException
 	 * @throws ExtractorException 
 	 */
-	Payload getBasicFirstInfo(String key) throws ExtractorException {
+	XiMessage getBasicFirstInfo(String key) throws ExtractorException {
 		final String SIGNATURE = "getBasicFirstInfo(String)";
 		try {
-			Payload payload = null;
+			XiMessage payload = null;
 			// Process according to multiplicity
 			if (this.ico.isUsingMultiMapping()) {
 				// Fetch payload: FIRST for multimapping interface (1:n multiplicity)
 				payload = this.processMessageKeyMultiMapping(Util.extractMessageIdFromKey(key));
 			} else {
 				// Fetch payload: FIRST for non-multimapping interface (1:1 multiplicity)	
-				payload = new Payload();
+				payload = new XiMessage();
 				payload.setSapMessageKey(key);
 			}
 			
 			return payload;
-		} catch (PayloadException e) {
+		} catch (XiMessageException e) {
 			String msg = "Error finding basic FIRST info for key: " + key + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);

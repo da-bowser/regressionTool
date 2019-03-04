@@ -140,14 +140,10 @@ public class IcoOverviewDeserializer {
 			    	} else if ("Receiver".equals(currentEndElementName)) {
 			    		fetchReceiverData = false;
 			    	
-			    	} else if ("IntegratedConfiguration".equals(currentEndElementName)) {
-			    		if (isActive && (currentExtract.isUsingMultiMapping() && currentExtract.getQualityOfService().equals("EO"))) {
-			    			logger.writeInfo(LOCATION, SIGNATURE, "Combination of multimapping and QoS EO is not supported!" + "\nICO skipped: " + currentExtract.getName());
-						} else if (isActive) {
-			    			// ICO is active/enabled for processing, so add it
-				    		icoExtracts.add(currentExtract);
-				    		isActive = false;
-			    		}
+			    	} else if (isActive && "IntegratedConfiguration".equals(currentEndElementName)) {
+		    			// ICO is active/enabled for processing, so add it
+			    		icoExtracts.add(currentExtract);
+			    		isActive = false;
 			    	}
 			    	break;
 			    }

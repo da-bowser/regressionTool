@@ -15,8 +15,8 @@ import java.util.stream.Stream;
 import com.invixo.common.GeneralException;
 import com.invixo.common.IcoOverviewInstance;
 import com.invixo.common.IntegratedConfigurationMain;
-import com.invixo.common.Payload;
-import com.invixo.common.PayloadException;
+import com.invixo.common.XiMessage;
+import com.invixo.common.XiMessageException;
 import com.invixo.common.StateException;
 import com.invixo.common.StateHandler;
 import com.invixo.common.util.Logger;
@@ -193,12 +193,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Handle STATE file
 			logger.writeDebug(LOCATION, SIGNATURE, "Start building internal STATE list (template replacement)");
 			for (Payloads currentPayloadsLink : payloadsLinkList) {
-				Payload firstPayload = currentPayloadsLink.getFirstPayload();
-				ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
+				XiMessage firstPayload = currentPayloadsLink.getFirstPayload();
+				ArrayList<XiMessage> lastPayloads = currentPayloadsLink.getLastPayloadList();
 
 				int total = lastPayloads.size()-1;
 				for (int i=total; i>=0; i--) {
-					Payload currentLast = lastPayloads.get(i);
+					XiMessage currentLast = lastPayloads.get(i);
 					StateHandler.nonInitReplaceTemplates(firstPayload, currentLast, (total - i)+"");
 				}
 			}
@@ -215,7 +215,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		final String SIGNATURE = "commonGround(HashSet<String>, boolean, int)";
 		
 		// Collect basic FIRST info
-		ArrayList<Payload> firstPayloads = collectBasicFirstInfoForAllKeys(firstMessageKeys, currentIcoCount);
+		ArrayList<XiMessage> firstPayloads = collectBasicFirstInfoForAllKeys(firstMessageKeys, currentIcoCount);
 		int firstPaylodsTotal = firstPayloads.size();
 		logger.writeInfo(LOCATION, SIGNATURE, "FIRST: basic info collected. Number of FIRST payloads: " + firstPaylodsTotal);
 		
@@ -230,13 +230,13 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 	
 	
-	private ArrayList<Payloads> lastHandlingOriginal(ArrayList<Payload> firstPayloads) throws HttpException, ExtractorException {
+	private ArrayList<Payloads> lastHandlingOriginal(ArrayList<XiMessage> firstPayloads) throws HttpException, ExtractorException {
 		final String SIGNATURE = "lastHandlingOriginal(ArrayList<Payload>)";
 		
 		// Add basic LAST info
 		int firstCounter = 0;
 		ArrayList<Payloads> payloadsLinkList = new ArrayList<Payloads>();
-		for (Payload firstPayload : firstPayloads) {
+		for (XiMessage firstPayload : firstPayloads) {
 			firstCounter++;
 			logger.writeInfo(LOCATION, SIGNATURE, "Find basic LAST info for FIRST entry ["+ firstCounter + "/" + firstPayloads.size() + "]. Referenced FIRST key: " + firstPayload.getSapMessageKey());
 			
@@ -252,7 +252,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Add successors to current FIRST
 			for (String messageKey : successorsList) {
 				// Create LAST basic info
-				Payload lastPayload = new Payload();
+				XiMessage lastPayload = new XiMessage();
 				lastPayload.setSapMessageKey(messageKey);
 
 				// Add current LAST payload to current FIRST payload
@@ -266,7 +266,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 		
 	
-	private ArrayList<Payloads> lastPlayground(ArrayList<Payload> firstPayloads) throws HttpException, ExtractorException {
+	private ArrayList<Payloads> lastPlayground(ArrayList<XiMessage> firstPayloads) throws HttpException, ExtractorException {
 		final String SIGNATURE = "lastPlayground(ArrayList<Payload>)";
 		int payloadsTotal = firstPayloads.size();
 		int batchesTotal = getBatchCount(payloadsTotal, BATCH_SIZE);
@@ -274,10 +274,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		logger.writeDebug(LOCATION, SIGNATURE, "Number of batches required: " + batchesTotal);
 		
 		ArrayList<Payloads> payloadsLinkListTotal = new ArrayList<Payloads>();
-		ArrayList<Payload> currentBatch = new ArrayList<Payload>();
+		ArrayList<XiMessage> currentBatch = new ArrayList<XiMessage>();
 		int counter = 0;
 		
-		for (Payload currentFirst : firstPayloads) {
+		for (XiMessage currentFirst : firstPayloads) {
         	// Add current entry to batch
         	currentBatch.add(currentFirst);
 			
@@ -306,7 +306,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 	
 	
-	private ArrayList<Payloads> lastPlaygroundBatch(ArrayList<Payload> firstPayloads) throws HttpException, ExtractorException {
+	private ArrayList<Payloads> lastPlaygroundBatch(ArrayList<XiMessage> firstPayloads) throws HttpException, ExtractorException {
 		final String SIGNATURE = "lastPlaygroundBatch(ArrayList<Payload>)";
 		logger.writeInfo(LOCATION, SIGNATURE, "Batch of FIRST to be processed. Batch size: " + firstPayloads.size());
 		
@@ -316,7 +316,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		
 		// Divide raw response info into LAST messages referring to proper FIRST message 
 		ArrayList<Payloads> payloadsLinkList = new ArrayList<Payloads>();
-		for (Payload firstPayload : firstPayloads) {
+		for (XiMessage firstPayload : firstPayloads) {
 			Payloads currentPayloads = getLastMessagesForFirstEntry(rawResponseMap, firstPayload);
 			payloadsLinkList.add(currentPayloads);
 		}
@@ -331,7 +331,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @param firstPayload
 	 * @return
 	 */
-	static Payloads getLastMessagesForFirstEntry(HashMap<String, String> rawResponseMap, Payload firstPayload) {
+	static Payloads getLastMessagesForFirstEntry(HashMap<String, String> rawResponseMap, XiMessage firstPayload) {
 		String currentFirstMsgId = firstPayload.getSapMessageId(); 
 		
 		// Find all records in WS response with a Parent value matching the FIRST message id
@@ -347,7 +347,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		}
 		
 		// Find successor (LAST) messages
-		ArrayList<Payload> currentLastList = new ArrayList<Payload>();
+		ArrayList<XiMessage> currentLastList = new ArrayList<XiMessage>();
 		if (parentMap.size() == 1) {
 			Entry<String, String> parentEntry = parentMap.entrySet().iterator().next();
 			String parentMessageId = parentEntry.getKey();
@@ -366,23 +366,31 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			// Handle LAST messages according to number of matches found
 			if (matchList.size() == 0) {
 				// No matches. This means the message itself was a LAST message
-				Payload lastPayload = new Payload();
+				XiMessage lastPayload = new XiMessage();
 				lastPayload.setSapMessageKey(parentEntry.getValue());
 				currentLastList.add(lastPayload);
+				System.out.println("Case 1: " + firstPayload.getSapMessageKey());
+				// FIRST message: correct version used to fetch payloads
+				switchPayloadVersions(firstPayload);
 			} else {
 				// More than 1 match (all matches are LAST messages)
+				System.out.println("Case 2: " + firstPayload.getSapMessageKey());
 				for (String currentMessageKey : matchList) {
-					Payload lastPayload = new Payload();
+					XiMessage lastPayload = new XiMessage();
 					lastPayload.setSapMessageKey(currentMessageKey);
-					currentLastList.add(lastPayload);						
+					currentLastList.add(lastPayload);
 				}
 			}
 		} else {
 			// More than 1 parent message. All of these is a LAST message
+			System.out.println("Case 3: " + firstPayload.getSapMessageKey());
 			for (Entry<String, String> parentEntry : parentMap.entrySet()) {
-				Payload lastPayload = new Payload();
+				XiMessage lastPayload = new XiMessage();
 				lastPayload.setSapMessageKey(parentEntry.getValue());
 				currentLastList.add(lastPayload);
+				
+				// FIRST message: correct version used to fetch payloads
+				switchPayloadVersions(firstPayload);
 			}
 		}
 
@@ -394,9 +402,15 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 	
 	
-	private ArrayList<String> getMessageIdsFromList(ArrayList<Payload> payloads) {
+	private static void switchPayloadVersions(XiMessage message) {
+		message.setVersionFirst(-1);	// Correct unusual behavior. Version -1 contains before mapping.
+		message.setVersionLast(0);		// Correct unusual behavior. Version 0 contains after mapping.
+	}
+	
+	
+	private ArrayList<String> getMessageIdsFromList(ArrayList<XiMessage> payloads) {
 		ArrayList<String> messageIds = new ArrayList<String>();
-		for (Payload payload : payloads) {
+		for (XiMessage payload : payloads) {
 			messageIds.add(payload.getSapMessageId());
 		}
 		return messageIds;
@@ -429,11 +443,11 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		// Handle STATE file
 		logger.writeDebug(LOCATION, SIGNATURE, "Start building internal STATE list (template replacement)");
 		for (Payloads currentPayloadsLink : payloadsLinkList) {
-			Payload firstPayload = currentPayloadsLink.getFirstPayload();
-			ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
+			XiMessage firstPayload = currentPayloadsLink.getFirstPayload();
+			ArrayList<XiMessage> lastPayloads = currentPayloadsLink.getLastPayloadList();
 
 			for (int i=0; i < lastPayloads.size(); i++) {
-				Payload currentLast = lastPayloads.get(i);
+				XiMessage currentLast = lastPayloads.get(i);
 				String currentIcoLine = StateHandler.createExtractEntry(this.getName(), firstPayload, currentLast, i+"");
 				StateHandler.addEntryToInternalList(currentIcoLine);
 			}
@@ -448,8 +462,8 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		logger.writeDebug(LOCATION, SIGNATURE, "Number of FIRST payloads to lookup and persist: " + payloadsLinkList.size());
 		
 		for (Payloads currentPayloadsLink : payloadsLinkList) {
-			Payload firstPayload = currentPayloadsLink.getFirstPayload();
-			ArrayList<Payload> lastPayloads = currentPayloadsLink.getLastPayloadList();
+			XiMessage firstPayload = currentPayloadsLink.getFirstPayload();
+			ArrayList<XiMessage> lastPayloads = currentPayloadsLink.getLastPayloadList();
 			logger.writeDebug(LOCATION, SIGNATURE, "Number of LAST payloads to lookup and persist for current FIRST payload: " + lastPayloads.size());
 			
 			// Persist FIRST
@@ -458,7 +472,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			}
 
 			// Persist LAST
-			for (Payload lastPaylad : lastPayloads) {
+			for (XiMessage lastPaylad : lastPayloads) {
 				persist(lastPaylad, false);
 			}
 		}
@@ -466,7 +480,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 	
 
-	private void persist(Payload payload, boolean isFirst)  throws ExtractorException {
+	private void persist(XiMessage payload, boolean isFirst)  throws ExtractorException {
 		final String SIGNATURE = "persist(Payload, boolean)";
 		try {
 			// Lookup Payload in SAP system (sets internal variables)
@@ -481,7 +495,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			
 			// Clear payload so we do not carry around large objects
 			payload.clearPayload();
-		} catch (PayloadException e) {
+		} catch (XiMessageException e) {
 			String msg = "Error during persist of payload: " + payload.getSapMessageKey() + ". " + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);
@@ -496,16 +510,16 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @return
 	 * @throws ExtractorException
 	 */
-	private ArrayList<Payload> collectBasicFirstInfoForAllKeys(HashSet<String> messageKeys, int internalObjectId) throws ExtractorException {
+	private ArrayList<XiMessage> collectBasicFirstInfoForAllKeys(HashSet<String> messageKeys, int internalObjectId) throws ExtractorException {
 		final String SIGNATURE = "collectBasicFirstInfoForAllKeys(HashSet<String>, int)";
 		
 		// For each MessageKey fetch payloads (first and/or last)
-		ArrayList<Payload> firstPayloads = new ArrayList<Payload>();
+		ArrayList<XiMessage> firstPayloads = new ArrayList<XiMessage>();
 		int counter = 1;
 		for (String key : messageKeys) {
 			// Process a single Message Key
 			logger.writeInfo(LOCATION, SIGNATURE, "-----> [ICO " + internalObjectId + "], [MSG KEY " + counter + "] MessageKey processing started for key: " + key);
-			Payload firstPayload = this.processMessageKeySingle(key);
+			XiMessage firstPayload = this.processMessageKeySingle(key);
 			
 			// Only add FIRST payload if it was new (this related to MultiMapping handling
 			// where many LAST keys (which is what is contained in @messageKeys for a multimap) can have the same parent (FIRST).
@@ -527,14 +541,14 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * Get FIRST payload for single MessageKey
 	 * @param key
 	 */
-	private Payload processMessageKeySingle(String key) throws ExtractorException {
+	private XiMessage processMessageKeySingle(String key) throws ExtractorException {
 		// Create a new MessageKey object
 		MessageKey msgKey = new MessageKey(this, key);
 			
 		// Attach a reference to newly created MessageKey object to this ICO
 		this.messageKeys.add(msgKey);
 						
-		Payload payloadFirst = msgKey.getBasicFirstInfo(key);
+		XiMessage payloadFirst = msgKey.getBasicFirstInfo(key);
 		return payloadFirst;
 	}
 	

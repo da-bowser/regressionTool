@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.invixo.common.Payload;
+import com.invixo.common.XiMessage;
 import com.invixo.main.GlobalParameters;
 
 class IntegratedConfigurationTest {
@@ -45,8 +45,8 @@ class IntegratedConfigurationTest {
 			HashMap<String, String> dataMap = WebServiceUtil.extractSuccessorsBatch(wsResponseStream.readAllBytes(), senderInterface, receiverInterface);
 						
 			// Get Last Messages:
-			String firstMsgKey = "ddffb25a-38db-11e9-c594-0000273d8d22\\OUTBOUND\\658345250\\EOIO\\1\\";
-			Payload firstPayload = new Payload();
+			String firstMsgKey = "ddffb25a-38db-11e9-c594-0000273d8d22\\OUTBOUND\\658345250\\EOIO\\1\\";		// wrong first
+			XiMessage firstPayload = new XiMessage();
 			firstPayload.setSapMessageKey(firstMsgKey);
 			Payloads payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
 					
@@ -77,7 +77,7 @@ class IntegratedConfigurationTest {
 						
 			// Get Last Messages:
 			String firstMsgKey = "9652fd9c-3901-11e9-bc00-0000273d8d22\\OUTBOUND\\658345250\\EOIO\\3\\";
-			Payload firstPayload = new Payload();
+			XiMessage firstPayload = new XiMessage();
 			firstPayload.setSapMessageKey(firstMsgKey);
 			Payloads payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
 					
@@ -105,7 +105,7 @@ class IntegratedConfigurationTest {
 						
 			// Get Last Messages:
 			String firstMsgKey = "1111ebc7-3932-11e9-8392-0000273d8d22\\OUTBOUND\\0\\EO\\0\\";
-			Payload firstPayload = new Payload();
+			XiMessage firstPayload = new XiMessage();
 			firstPayload.setSapMessageKey(firstMsgKey);
 			Payloads payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
 					
@@ -149,8 +149,8 @@ class IntegratedConfigurationTest {
 			HashMap<String, String> dataMap = WebServiceUtil.extractSuccessorsBatch(wsResponseStream.readAllBytes(), senderInterface, receiverInterface);
 						
 			// Get Last Messages:
-			String firstMsgKey = "e8610cae-3929-11e9-b6ac-0000273d8d22\\OUTBOUND\\0\\EO\\0\\";
-			Payload firstPayload = new Payload();
+			String firstMsgKey = "e8610cae-3929-11e9-b6ac-0000273d8d22\\OUTBOUND\\0\\EO\\0\\";		// correct first
+			XiMessage firstPayload = new XiMessage();
 			firstPayload.setSapMessageKey(firstMsgKey);
 			Payloads payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
 					

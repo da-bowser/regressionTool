@@ -17,9 +17,9 @@ import com.invixo.consistency.FileStructure;
 import com.invixo.extraction.ExtractorException;
 import com.invixo.extraction.WebServiceUtil;
 
-public class Payload {
+public class XiMessage {
 	private static Logger logger = Logger.getInstance();
-	private static final String LOCATION = Payload.class.getName();	
+	private static final String LOCATION = XiMessage.class.getName();	
 	
 	private String sapMessageKey = null;			// SAP Message Key used to get payload
 	private String sapMessageId = null;				// SAP Message Id
@@ -27,13 +27,15 @@ public class Payload {
 	private Multipart xiMultipart = null;			// SAP XI MultiPart message
 	private BodyPart xiHeader = null;				// SAP XI Header
 	private BodyPart xiPayload = null;				// SAP XI Payload
+	private int versionFirst = 0;					// By default, 0 = FIRST payload (before mapping)
+	private int versionLast = -1;					// By default, -1 = LAST payload (after mapping)
 	
 	private STATUS payloadFoundStatus = STATUS.UNKNOWN;
 	
 	public enum STATUS {UNKNOWN, FOUND, NOT_FOUND}; 
 	
 	
-	public Payload() {}
+	public XiMessage() {}
 	
 	
 	public String getSapMessageKey() {
@@ -57,7 +59,7 @@ public class Payload {
 	}
 
 	
-	private void setXiMultipart(byte[] base64EncodedMultiPart) throws PayloadException {
+	private void setXiMultipart(byte[] base64EncodedMultiPart) throws XiMessageException {
 		final String SIGNATURE = "setXiMultipart(byte[])";
 		try {
 			// Decode
@@ -71,7 +73,7 @@ public class Payload {
 		} catch (MessagingException e) {
 			String msg = "Error creating MultiPart message from decoded base64 message\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new PayloadException(msg);
+			throw new XiMessageException(msg);
 		}
 	}
 
@@ -81,7 +83,7 @@ public class Payload {
 	}
 
 	
-	private void setXiHeader(Multipart multiPartMessage) throws PayloadException {
+	private void setXiHeader(Multipart multiPartMessage) throws XiMessageException {
 		final String SIGNATURE = "setXiHeader(Multipart)";
 		try {
 			BodyPart bp = XiMessageUtil.getHeaderFromMultiPartMessage(multiPartMessage);
@@ -91,7 +93,7 @@ public class Payload {
 		} catch (MessagingException e) {
 			String msg = "Error extracting SAP XI Header from MultiPart message\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new PayloadException(msg);
+			throw new XiMessageException(msg);
 		}
 	}
 
@@ -101,7 +103,7 @@ public class Payload {
 	}
 
 	
-	private void setXiPayload(Multipart multiPartMessage) throws PayloadException {
+	private void setXiPayload(Multipart multiPartMessage) throws XiMessageException {
 		final String SIGNATURE = "setXiPayload(Multipart)";
 		try {
 			BodyPart bp = XiMessageUtil.getPayloadFromMultiPartMessage(multiPartMessage);
@@ -111,12 +113,12 @@ public class Payload {
 		} catch (MessagingException e) {
 			String msg = "Error extracting SAP XI Header from MultiPart message\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new PayloadException(msg);
+			throw new XiMessageException(msg);
 		}
 	}
 
 		
-	public void setMultipartBase64Bytes(String multipartBase64Bytes) throws PayloadException {
+	public void setMultipartBase64Bytes(String multipartBase64Bytes) throws XiMessageException {
 		this.setXiMultipart(multipartBase64Bytes.getBytes());
 		
 		// Set SAP XI Header
@@ -136,7 +138,7 @@ public class Payload {
 	}
 	
 	
-	public void persistMessage(String path) throws PayloadException {
+	public void persistMessage(String path) throws XiMessageException {
 		final String SIGNATURE = "persistMessage(String)";
 		String targetPath = null;
 		try {
@@ -146,7 +148,7 @@ public class Payload {
 		} catch (IOException|MessagingException e) {
 			String msg = "Error writing SAP XI MultiPart message to filesystem using path: " + targetPath + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new PayloadException(msg);
+			throw new XiMessageException(msg);
 		}
 	}
 	
@@ -164,39 +166,40 @@ public class Payload {
 	/**
 	 * Extract payload from SAP PO system.
 	 * @param isFirst
-	 * @throws PayloadException
+	 * @throws XiMessageException
 	 */
-	public void extractPayloadFromSystem(boolean isFirst) throws PayloadException {
+	public void extractPayloadFromSystem(boolean isFirst) throws XiMessageException {
 		final String SIGNATURE = "extractPayload(String, boolean)";
 		try {	
 			// Lookup SAP XI Message
-			String base64EncodedMessage = WebServiceUtil.lookupSapXiMessage(this.getSapMessageKey(), isFirst);
+			int version = isFirst ? this.versionFirst : this.versionLast;
+			String base64EncodedMessage = WebServiceUtil.lookupSapXiMessage(this.getSapMessageKey(), version);
 			
 			// Check if payload was found
 			if ("".equals(base64EncodedMessage)) {
 				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains no XI message.");
-				setPayloadFoundStatus(Payload.STATUS.NOT_FOUND);
+				setPayloadFoundStatus(XiMessage.STATUS.NOT_FOUND);
 			} else {
 				logger.writeDebug(LOCATION, SIGNATURE, "Web Service response contains XI message.");
-				setPayloadFoundStatus(Payload.STATUS.FOUND);
+				setPayloadFoundStatus(XiMessage.STATUS.FOUND);
 				setMultipartBase64Bytes(base64EncodedMessage);
 			}
 		} catch (IOException e) {
 			String msg = "Error reading bytes from WebService response.\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new PayloadException(msg);
+			throw new XiMessageException(msg);
 		} catch (ExtractorException e) {
 			String msg = "Error handling XML creation (request) or extraction (response).\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new PayloadException(msg);
-		} catch (PayloadException e) {
+			throw new XiMessageException(msg);
+		} catch (XiMessageException e) {
 			String msg = "Error unwrapping multipart message and getting parts from it.\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new PayloadException(msg);
+			throw new XiMessageException(msg);
 		} catch (HttpException e) {
 			String msg = "Error calling service when fetching payload.\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
-			throw new PayloadException(msg);
+			throw new XiMessageException(msg);
 		}
 	}
 
@@ -211,6 +214,26 @@ public class Payload {
 		this.xiMultipart = null;
 		this.xiHeader = null;
 		this.xiPayload = null;
+	}
+
+
+	public int getVersionFirst() {
+		return versionFirst;
+	}
+
+
+	public void setVersionFirst(int versionFirst) {
+		this.versionFirst = versionFirst;
+	}
+
+
+	public int getVersionLast() {
+		return versionLast;
+	}
+
+
+	public void setVersionLast(int versionLast) {
+		this.versionLast = versionLast;
 	}
 	
 }

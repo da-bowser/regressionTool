@@ -35,17 +35,16 @@ public class WebServiceUtil {
 	/**
 	 * Call service: GetMessageBytesJavaLangStringIntBoolean
 	 * @param messageKey
-	 * @param isFirst
+	 * @param version
 	 * @return
 	 * @throws ExtractorException
 	 * @throws HttpException
 	 * @throws IOException
 	 */
-	public static String lookupSapXiMessage(String messageKey, boolean isFirst) throws ExtractorException, HttpException, IOException {
-		final String SIGNATURE = "lookupSapXiMessage(String, boolean)";
+	public static String lookupSapXiMessage(String messageKey, int version) throws ExtractorException, HttpException, IOException {
+		final String SIGNATURE = "lookupSapXiMessage(String, int)";
 		
 		// Build request payload (service: getMessageBytesJavaLangStringIntBoolean)
-		int version = isFirst ? 0 : -1;		// 0 = FIRST, -1 = LAST
 		InputStream wsRequest = createRequestGetMessageBytesJavaLangStringIntBoolean(messageKey, version);
 		logger.writeDebug(LOCATION, SIGNATURE, "Web Service request payload created for Message Key " + messageKey + " with version " + version);
 		

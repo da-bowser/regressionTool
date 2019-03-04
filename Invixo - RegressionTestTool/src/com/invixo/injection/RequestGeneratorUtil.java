@@ -14,7 +14,6 @@ import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
 import com.invixo.common.util.Logger;
-import com.invixo.common.util.XiHeader;
 import com.invixo.common.util.XmlUtil;
 
 public class RequestGeneratorUtil {
@@ -24,8 +23,8 @@ public class RequestGeneratorUtil {
 	private static final String TARGET_SAP_NS_PREFIX	= "sap";
 	
 	
-	public static String generateSoapXiHeaderPart(IntegratedConfiguration ico, String messageId, XiHeader firstXiHeader) throws InjectionPayloadException {
-		final String SIGNATURE = "generateSoapXiHeaderPart(IntegratedConfiguration, String)";
+	static String generateSoapXiHeaderPart(IntegratedConfiguration ico, String messageId) throws InjectionPayloadException {
+		final String SIGNATURE = "generateSoapXiHeaderPart(IntegratedConfiguration, InjectionRequest)";
 		try {
 			StringWriter stringWriter = new StringWriter();
 			XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
@@ -73,7 +72,7 @@ public class RequestGeneratorUtil {
 			// Create element: Envelope | Header | Main | ProcessingMode
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ProcessingMode");
 			xmlEventWriter.add(startElement);
-			value = xmlEventFactory.createCharacters("BestEffort".equals(firstXiHeader.getQualityOfService())?"synchronous":"asynchronous");
+			value = xmlEventFactory.createCharacters("BE".equals(ico.getQualityOfService())?"synchronous":"asynchronous");
 			xmlEventWriter.add(value);
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "ProcessingMode"));
 	        
@@ -138,9 +137,9 @@ public class RequestGeneratorUtil {
 			startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService");
 			xmlEventWriter.add(startElement);
 			
-			if ("ExactlyOnce".equals(firstXiHeader.getQualityOfService())) {
+			if ("EO".equals(ico.getQualityOfService())) {
 				value = xmlEventFactory.createCharacters("ExactlyOnce");
-			} else if ("BestEffort".equals(firstXiHeader.getQualityOfService())) {
+			} else if ("BE".equals(ico.getQualityOfService())) {
 				value = xmlEventFactory.createCharacters("BestEffort");
 			} else {
 				value = xmlEventFactory.createCharacters("ExactlyOnceInOrder");
@@ -149,7 +148,7 @@ public class RequestGeneratorUtil {
 			xmlEventWriter.add(xmlEventFactory.createEndElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QualityOfService"));
 
 			// Create element: Envelope | Header | Main | ReliableMessaging | QueueId
-	        if ("ExactlyOnceInOrder".equals(firstXiHeader.getQualityOfService())) {
+	        if ("EOIO".equals(ico.getQualityOfService())) {
 				startElement = xmlEventFactory.createStartElement(TARGET_SAP_NS_PREFIX, TARGET_SAP_NS, "QueueId");
 				xmlEventWriter.add(startElement);
 				value = xmlEventFactory.createCharacters(ico.getQueueId());
