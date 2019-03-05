@@ -14,6 +14,34 @@ import com.invixo.common.XiMessage;
 class IntegratedConfigurationTest {
 	
 	@Test
+	@DisplayName("Verify LAST message determination: Message Split (no condition), and no multimapping")
+	void verifyLastMessageDetermination0() {
+		try {
+			// Get WS response
+			String response = "../../../resources/testfiles/com/invixo/extraction/GetMessagesWithSuccessors_BatchResponse2.xml";
+			InputStream wsResponseStream = this.getClass().getResourceAsStream(response);
+
+			// Extract data from WS response
+			String senderInterface = "Data_Out_Async";
+			String receiverInterface = "Data_In_Async";
+			HashMap<String, String> dataMap = WebServiceUtil.extractSuccessorsBatch(wsResponseStream.readAllBytes(), senderInterface, receiverInterface);
+						
+			// Get Last Messages:
+			String firstMsgKey = "5cb97936-bafb-4b30-80ec-d4917dcfc413\\OUTBOUND\\0\\EO\\0\\";
+			XiMessage firstPayload = new XiMessage();
+			firstPayload.setSapMessageKey(firstMsgKey);
+			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
+					
+			// Check
+			assertTrue("Too many LAST messages found", payloads.getLastMessageList().size() == 1);
+			assertEquals("5fd149b0-3f3d-11e9-bc16-000000554e16", payloads.getLastMessageList().get(0).getSapMessageId());
+		} catch (Exception e) {
+			fail("It aint cooking chef! " + e);
+		}
+	}
+	
+	
+	@Test
 	@DisplayName("Verify LAST message determination: No Message Split, and multimapping generates multiple messages")
 	void verifyLastMessageDetermination() {
 		try {

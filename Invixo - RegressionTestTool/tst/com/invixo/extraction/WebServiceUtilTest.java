@@ -92,8 +92,8 @@ class WebServiceUtilTest {
 	
 	
 	@Test
-	@DisplayName("Verify extracted data from GetMessagesWithSuccessors response when batching")
-	void extractDataFromSuccessorsResponseWhenBatching() {
+	@DisplayName("Verify extracted data from GetMessagesWithSuccessors response when batching (1)")
+	void extractDataFromSuccessorsResponseWhenBatching1() {
 		try {
 			// Get path: web service response (GetMessagesWithSuccessors)
 			String response = "../../../resources/testfiles/com/invixo/extraction/GetMessagesWithSuccessors_BatchResponse.xml";
@@ -178,6 +178,36 @@ class WebServiceUtilTest {
 			expectedResult.put("1eb8b571-3a00-11e9-b27e-0000273d8d22\\OUTBOUND\\658345250\\EOIO\\18\\", "14baf4f3-3a00-11e9-ac22-0000273d8d22");
 			expectedResult.put("1e25c8e5-3a00-11e9-b38c-0000273d8d23\\OUTBOUND\\658345251\\EOIO\\15\\", "17ba2672-3a00-11e9-c3a1-0000273d8d23");
 
+			// Check
+			assertEquals(expectedResult, extractMap);
+		} catch (Exception e) {
+			fail("It aint cooking chef! " + e);
+		}
+	}
+	
+	
+	
+	@Test
+	@DisplayName("Verify extracted data from GetMessagesWithSuccessors response when batching (2)")
+	void extractDataFromSuccessorsResponseWhenBatching2() {
+		try {
+			// Get path: web service response (GetMessagesWithSuccessors)
+			String response = "../../../resources/testfiles/com/invixo/extraction/GetMessagesWithSuccessors_BatchResponse2.xml";
+			InputStream wsResponse = this.getClass().getResourceAsStream(response);
+			
+			// Prepare variables
+			String senderInterface = "Data_Out_Async";
+			String receiverInterface = "Data_In_Async";
+					
+			// Get data to be checked (map<message id, parent id>)
+			HashMap<String, String> extractMap = WebServiceUtil.extractSuccessorsBatch(wsResponse.readAllBytes(), senderInterface, receiverInterface);
+				
+			// Build expected result
+			HashMap<String, String> expectedResult = new HashMap<String, String>();
+			expectedResult.put("5fd149b0-3f3d-11e9-bc16-000000554e16\\OUTBOUND\\5590550\\EO\\0\\", "5cb97936-bafb-4b30-80ec-d4917dcfc413");
+			expectedResult.put("07d9adbe-ac9d-447c-8672-9caccfc85a93\\OUTBOUND\\0\\EO\\0\\", null);
+			expectedResult.put("5cb97936-bafb-4b30-80ec-d4917dcfc413\\OUTBOUND\\0\\EO\\0\\", null);
+			
 			// Check
 			assertEquals(expectedResult, extractMap);
 		} catch (Exception e) {

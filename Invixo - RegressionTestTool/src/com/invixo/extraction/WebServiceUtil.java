@@ -459,7 +459,13 @@ public class WebServiceUtil {
 				case XMLStreamConstants.START_ELEMENT:
 					String currentElementName = event.asStartElement().getName().getLocalPart();
 
-					if ("messageKey".equals(currentElementName)) {
+					if ("AdapterFrameworkData".equals(currentElementName)) {
+				        messageKey = null;
+				        parentId = null;
+				        matchingReceiverInterfaceNameFound = false;
+				        receiverInterfaceElementFound = false;
+
+					} else if ("messageKey".equals(currentElementName)) {
 						messageKey = eventReader.peek().asCharacters().getData();
 						
 					} else if ("parentID".equals(currentElementName)) {
@@ -491,9 +497,6 @@ public class WebServiceUtil {
 					
 					if ("AdapterFrameworkData".equals(currentEndElementName) && matchingReceiverInterfaceNameFound) {
 						successors.put(messageKey, parentId);	
-				        messageKey = null;
-				        parentId = null;
-				        matchingReceiverInterfaceNameFound = false;
 					}
 					break;
 				}
