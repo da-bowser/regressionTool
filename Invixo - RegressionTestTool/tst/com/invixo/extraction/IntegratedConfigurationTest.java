@@ -12,9 +12,37 @@ import org.junit.jupiter.api.Test;
 import com.invixo.common.XiMessage;
 
 class IntegratedConfigurationTest {
-		
+
 	@Test
-	@DisplayName("Verify LAST message determination: Message Split (no condition), and no multimapping")
+	@DisplayName("Verify LAST message determination: Message Split (no condition), and no multimapping) example 2")
+	void verifyLastMessageDetermination99() {
+		try {
+			// Get WS response
+			String response = "../../../resources/testfiles/com/invixo/extraction/GetMessagesWithSuccessors_BatchResponse3.xml";
+			InputStream wsResponseStream = this.getClass().getResourceAsStream(response);
+
+			// Extract data from WS response
+			String senderInterface = "Data_Out_MultiMapping_Async";
+			String receiverInterface = "Data_In_Async";
+			HashMap<String, String> dataMap = WebServiceUtil.extractSuccessorsBatch(wsResponseStream.readAllBytes(), senderInterface, receiverInterface);
+						
+			// Get Last Messages:
+			String firstMsgKey = "24829bae-3f53-11e9-88d4-000000554e16\\OUTBOUND\\5590550\\EOIO\\29\\";
+			XiMessage firstPayload = new XiMessage();
+			firstPayload.setSapMessageKey(firstMsgKey);
+			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
+					
+			// Check
+			assertTrue("Too many LAST messages found", payloads.getLastMessageList().size() == 1);
+			assertEquals("24829bae-3f53-11e9-88d4-000000554e16", payloads.getLastMessageList().get(0).getSapMessageId());
+		} catch (Exception e) {
+			fail("It aint cooking chef! " + e);
+		}
+	}
+	
+	
+	@Test
+	@DisplayName("Verify LAST message determination: Message Split (no condition), and no multimapping) example 1")
 	void verifyLastMessageDetermination0() {
 		try {
 			// Get WS response

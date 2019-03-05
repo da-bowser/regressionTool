@@ -467,6 +467,7 @@ public class WebServiceUtil {
 				        matchingReceiverInterfaceNameFound = false;
 				        receiverInterfaceElementFound = false;
 				        hasRoot = false;
+				        currentSenderInterface = null;
 
 					} else if ("messageKey".equals(currentElementName)) {
 						messageKey = eventReader.peek().asCharacters().getData();
@@ -494,8 +495,9 @@ public class WebServiceUtil {
 			    			
 			    			// We are no longer interested in more data before next iteration
 							receiverInterfaceElementFound = false;
-							
-							currentSenderInterface = eventReader.peek().asCharacters().getData();
+
+							// Set interface name
+							currentSenderInterface = eventReader.peek().asCharacters().getData();	// Sender and Receiver interface are always the same in WS response
 						}
 			    	}
 					break;
@@ -508,7 +510,7 @@ public class WebServiceUtil {
 						if (hasRoot && currentSenderInterface.equals(senderInterface)) {
 							// do nothing
 						} else {
-							successors.put(messageKey, parentId);	
+							successors.put(messageKey, parentId);
 						}
 					}
 					break;
