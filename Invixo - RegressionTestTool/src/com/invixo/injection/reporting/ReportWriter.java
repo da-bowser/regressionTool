@@ -59,6 +59,10 @@ public class ReportWriter {
 
 			// Create element: InjectReport
 			xmlWriter.writeStartElement(XML_PREFIX, "InjectReport", XML_NS);
+			String mode = "Inject (2)";
+			xmlWriter.writeAttribute("Mode", mode);
+			xmlWriter.writeAttribute("SourceEnv", GlobalParameters.PARAM_VAL_SOURCE_ENV);
+			xmlWriter.writeAttribute("TargetEnv", GlobalParameters.PARAM_VAL_TARGET_ENV);
 			xmlWriter.writeNamespace(XML_PREFIX, XML_NS);
 
 			// Create element: InjectReport | Header

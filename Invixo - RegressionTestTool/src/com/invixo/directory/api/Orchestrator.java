@@ -330,8 +330,11 @@ public class Orchestrator {
 		// Create combined ico name
 		String icoName = senderPartyId + ico.getSenderComponentId() + "-" + ico.getSenderInterfaceName() + virtualReceiverPartyId + virtualReceiverComponentId + "_to_" + receiverPartyId + r.getComponentId() + "-" + rir.getInterfaceName();
 		
+		// Replace stars (*) with value supported by file system (when creating folders)
+		String icoNameFinal = icoName.replaceAll("\\*", "ALL");
+		
 		// Return name
-		return icoName;
+		return icoNameFinal;
 	}
 
 	

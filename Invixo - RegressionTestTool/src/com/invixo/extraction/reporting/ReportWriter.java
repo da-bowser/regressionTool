@@ -159,6 +159,10 @@ public class ReportWriter {
 
 			// Create element: ExtractReport
 			xmlWriter.writeStartElement(XML_PREFIX, "ExtractReport", XML_NS);
+			String mode = Boolean.parseBoolean(GlobalParameters.PARAM_VAL_EXTRACT_MODE_INIT) ? "Init (1)" : "Non-Init (3)";
+			xmlWriter.writeAttribute("Mode", mode);
+			xmlWriter.writeAttribute("SourceEnv", GlobalParameters.PARAM_VAL_SOURCE_ENV);
+			xmlWriter.writeAttribute("TargetEnv", GlobalParameters.PARAM_VAL_TARGET_ENV);
 			xmlWriter.writeNamespace(XML_PREFIX, XML_NS);
 
 			// Add structure: ExtractReport | IcoOverview
