@@ -14,8 +14,8 @@ class MessageKey {
 	private String sapMessageKey = null;				// SAP Message Key from Web Service response of GetMessageList
 	private String sapMessageId = null;					// SAP Message Id 
 	private IntegratedConfiguration ico	= null;			// Integrated Configuration
-	private XiMessage xiMessageFirst = new XiMessage(); // FIRST payload
-	private XiMessage xiMessageLast = new XiMessage();	// LAST payload
+	private XiMessage xiMessageFirst = new XiMessage(); // FIRST message
+	private XiMessage xiMessageLast = new XiMessage();	// LAST message
 	private Exception ex = null;						// Error details
 
 		
@@ -123,7 +123,6 @@ class MessageKey {
 	 * Get basic FIRST message info (Message Key and Message Id)
 	 * @param key
 	 * @return
-	 * @throws XiMessageException
 	 * @throws ExtractorException 
 	 */
 	XiMessage getBasicFirstInfo(String key) throws ExtractorException {

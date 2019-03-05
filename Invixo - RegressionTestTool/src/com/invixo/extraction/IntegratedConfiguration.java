@@ -204,12 +204,12 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				int total = lastPayloads.size()-1;
 				for (int i=total; i>=0; i--) {
 					XiMessage currentLast = lastPayloads.get(i);
-					StateHandler.nonInitReplaceTemplates(firstPayload, currentLast, (i)+"");
+					StateHandler.nonInitReplaceTemplates(firstPayload, currentLast, i+"");
 				}
 			}
 			logger.writeDebug(LOCATION, SIGNATURE, "Finished building internal STATE list (template replacement)");
 		} catch (IllegalStateException|StateException e) {
-			String msg = "Error reading Message Id Map file: " + StateHandler.getIcoPath() + "\n" + e;
+			String msg = "Error reading State file: " + StateHandler.getIcoPath() + "\n" + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);
 			throw new ExtractorException(msg);			
 		}
@@ -274,6 +274,14 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 	
 	
+	/**
+	 * Collect LAST info for a list of FIRST messages.
+	 * Each FIRST message is assigned a proper list of related LAST messages.
+	 * @param firstXiMessages
+	 * @return
+	 * @throws HttpException
+	 * @throws ExtractorException
+	 */
 	private ArrayList<XiMessages> attachLastMessagesBatch(ArrayList<XiMessage> firstXiMessages) throws HttpException, ExtractorException {
 		final String SIGNATURE = "attachLastMessagesBatch(ArrayList<XiMessage>)";
 		logger.writeInfo(LOCATION, SIGNATURE, "Batch of FIRST to be processed. Batch size: " + firstXiMessages.size());
@@ -282,7 +290,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		byte[] successorResponse = WebServiceUtil.lookupSuccessorsBatch(getMessageIdsFromList(firstXiMessages), this.getName());
 		HashMap<String, String> rawResponseMap = WebServiceUtil.extractSuccessorsBatch(successorResponse, this.getSenderInterface(), this.getReceiverInterface());
 		
-		// Divide raw response info into LAST messages referring to proper FIRST message 
+		// Divide raw response map into LAST messages referring to proper FIRST message 
 		ArrayList<XiMessages> payloadsLinkList = new ArrayList<XiMessages>();
 		for (XiMessage firstXiMessage : firstXiMessages) {
 			XiMessages currentPayloads = getLastMessagesForFirstEntry(rawResponseMap, firstXiMessage);
@@ -294,7 +302,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		
 	
 	/**
-	 * Get LAST payloads for FIRST payload based on extracted data WS response of service GetMessagesWithSuccessors 
+	 * Get LAST messages for a single FIRST message based on extracted data WS response of service GetMessagesWithSuccessors 
 	 * @param rawResponseMap
 	 * @param firstXiMessage
 	 * @return
@@ -374,10 +382,15 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 	
 	
-	private ArrayList<String> getMessageIdsFromList(ArrayList<XiMessage> payloads) {
+	/**
+	 * Collect messageIds from a list of XI Messages
+	 * @param xiMessages
+	 * @return
+	 */
+	private ArrayList<String> getMessageIdsFromList(ArrayList<XiMessage> xiMessages) {
 		ArrayList<String> messageIds = new ArrayList<String>();
-		for (XiMessage payload : payloads) {
-			messageIds.add(payload.getSapMessageId());
+		for (XiMessage currentMessage : xiMessages) {
+			messageIds.add(currentMessage.getSapMessageId());
 		}
 		return messageIds;
 	}
@@ -412,7 +425,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			XiMessage firstPayload = currentXiMessagesLink.getFirstMessage();
 			ArrayList<XiMessage> lastXiMessages = currentXiMessagesLink.getLastMessageList();
 
-			// Sort Last Payloads
+			// Sort Last messages
 			sortLastMessagesBySequenceId(lastXiMessages);
 			
 			// Write to temp (internal) storage
@@ -426,6 +439,10 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 	
 	
+	/**
+	 * Sort a list of XI Messages ascending order based on SAP sequence number
+	 * @param lastXiMessages
+	 */
 	private void sortLastMessagesBySequenceId(ArrayList<XiMessage> lastXiMessages) {
 		Collections.sort(lastXiMessages, new Comparator<XiMessage>() {
 		    @Override

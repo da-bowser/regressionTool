@@ -38,7 +38,6 @@ public class Orchestrator {
 	private static void processSingleIco(IcoOverviewInstance icoInstance) {
 		final String SIGNATURE = "processSingleIco(IcoOverviewInstance)";
 		try {
-
 			// Prepare: ICO
 			IntegratedConfiguration ico = new IntegratedConfiguration(icoInstance);
 			icoExtractList.add(ico);

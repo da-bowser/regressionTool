@@ -332,6 +332,10 @@ public class StateHandler {
 	}
 	
 	
+	/**
+	 * Get path to State file for current ICO
+	 * @return
+	 */
 	public static String getIcoPath() {
 		return icoStatePathSource.toString();
 	}
