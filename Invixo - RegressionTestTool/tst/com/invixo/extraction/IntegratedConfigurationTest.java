@@ -27,7 +27,7 @@ class IntegratedConfigurationTest {
 			HashMap<String, String> dataMap = WebServiceUtil.extractSuccessorsBatch(wsResponseStream.readAllBytes(), senderInterface, receiverInterface);
 						
 			// Get Last Messages:
-			String firstMsgKey = "ddffb25a-38db-11e9-c594-0000273d8d22\\OUTBOUND\\658345250\\EOIO\\1\\";		// wrong first
+			String firstMsgKey = "ddffb25a-38db-11e9-c594-0000273d8d22\\OUTBOUND\\658345250\\EOIO\\1\\";
 			XiMessage firstPayload = new XiMessage();
 			firstPayload.setSapMessageKey(firstMsgKey);
 			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
@@ -131,7 +131,7 @@ class IntegratedConfigurationTest {
 			HashMap<String, String> dataMap = WebServiceUtil.extractSuccessorsBatch(wsResponseStream.readAllBytes(), senderInterface, receiverInterface);
 						
 			// Get Last Messages:
-			String firstMsgKey = "e8610cae-3929-11e9-b6ac-0000273d8d22\\OUTBOUND\\0\\EO\\0\\";		// correct first
+			String firstMsgKey = "e8610cae-3929-11e9-b6ac-0000273d8d22\\OUTBOUND\\0\\EO\\0\\";
 			XiMessage firstPayload = new XiMessage();
 			firstPayload.setSapMessageKey(firstMsgKey);
 			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);

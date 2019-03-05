@@ -102,13 +102,7 @@ class WebServiceUtilTest {
 			// Prepare variables
 			String senderInterface = "oa_PlannerProposal";
 			String receiverInterface = "SHP_OBDLV_CHANGE.SHP_OBDLV_CHANGE01";
-			
-			ArrayList<String> requestMsgIds = new ArrayList<String>();
-			requestMsgIds.add("14b78098-3a00-11e9-9945-0000273d8d22");
-			requestMsgIds.add("17b72adb-3a00-11e9-8560-0000273d8d23");
-			requestMsgIds.add("11b882c6-3a00-11e9-8d1b-0000273d8d23");
-			requestMsgIds.add("b82d5ee1-3a00-11e9-8f6f-0000273d8d23");
-			
+					
 			// Get data to be checked (map<message id, parent id>)
 			HashMap<String, String> extractMap = WebServiceUtil.extractSuccessorsBatch(wsResponse.readAllBytes(), senderInterface, receiverInterface);
 				
