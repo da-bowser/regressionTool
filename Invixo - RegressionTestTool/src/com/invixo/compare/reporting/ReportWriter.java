@@ -59,6 +59,8 @@ public class ReportWriter {
 
 			// Create element: CompareReport
 			xmlWriter.writeStartElement(XML_PREFIX, "CompareReport", XML_NS);
+			xmlWriter.writeAttribute("SourceEnv", GlobalParameters.PARAM_VAL_SOURCE_ENV);
+			xmlWriter.writeAttribute("TargetEnv", GlobalParameters.PARAM_VAL_TARGET_ENV);
 			xmlWriter.writeNamespace(XML_PREFIX, XML_NS);
 
 			// Add structure: CompareReport | IcoOverview

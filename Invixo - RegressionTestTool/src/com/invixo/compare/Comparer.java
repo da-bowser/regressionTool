@@ -1,7 +1,6 @@
 package com.invixo.compare;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,13 +88,17 @@ public class Comparer {
 		
 		try {
 			
-			this.sourceFileSize = Files.size(sourceFile);
+			// Extract payload from source multipart file
+			byte[] sourcePayloadBytes = XiMessageUtil.getPayloadBytesFromMultiPart(Util.readFile(sourceFile.toString()));
+			this.sourceFileSize = sourcePayloadBytes.length;
 			logger.writeDebug(LOCATION, SIGNATURE, "Source file size (bytes): " + this.sourceFileSize);
 			
-			this.compareFileSize = Files.size(compareFile);
+			// Extract payload from compare multipart file
+			byte[] comparePayloadBytes = XiMessageUtil.getPayloadBytesFromMultiPart(Util.readFile(compareFile.toString()));
+			this.compareFileSize = comparePayloadBytes.length;
 			logger.writeDebug(LOCATION, SIGNATURE, "Compare file size (bytes): " + this.compareFileSize);
 			
-		} catch (IOException e) {
+		} catch (IOException | MessagingException e) {
 			// Not critical - just nice to know when reporting so no exception needs to be thrown
 			logger.writeError(LOCATION, SIGNATURE, "Error during determination of file sizes" + "\n" + e.getMessage());
 		}
