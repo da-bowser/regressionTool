@@ -288,6 +288,9 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		
 		// Get successors (children) of current FIRST message
 		byte[] successorResponse = WebServiceUtil.lookupSuccessorsBatch(getMessageIdsFromList(firstXiMessages), this.getName());
+		
+		String test = new String(successorResponse);
+		
 		HashMap<String, String> rawResponseMap = WebServiceUtil.extractSuccessorsBatch(successorResponse, this.getSenderInterface(), this.getReceiverInterface());
 		
 		// Divide raw response map into LAST messages referring to proper FIRST message 

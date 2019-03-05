@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import com.invixo.common.XiMessage;
 
 class IntegratedConfigurationTest {
-	
+		
 	@Test
 	@DisplayName("Verify LAST message determination: Message Split (no condition), and no multimapping")
 	void verifyLastMessageDetermination0() {

@@ -206,7 +206,7 @@ class WebServiceUtilTest {
 			HashMap<String, String> expectedResult = new HashMap<String, String>();
 			expectedResult.put("5fd149b0-3f3d-11e9-bc16-000000554e16\\OUTBOUND\\5590550\\EO\\0\\", "5cb97936-bafb-4b30-80ec-d4917dcfc413");
 			expectedResult.put("07d9adbe-ac9d-447c-8672-9caccfc85a93\\OUTBOUND\\0\\EO\\0\\", null);
-			expectedResult.put("5cb97936-bafb-4b30-80ec-d4917dcfc413\\OUTBOUND\\0\\EO\\0\\", null);
+			expectedResult.put("5cb97936-bafb-4b30-80ec-d4917dcfc413\\OUTBOUND\\0\\EO\\0\\", null);			
 			
 			// Check
 			assertEquals(expectedResult, extractMap);

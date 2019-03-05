@@ -446,8 +446,10 @@ public class WebServiceUtil {
 			HashMap<String, String> successors = new HashMap<String, String>();
 	        String parentId = null;
 	        String messageKey = null;
+	        boolean hasRoot = false;
 	        boolean receiverInterfaceElementFound = false;
 	        boolean matchingReceiverInterfaceNameFound = false;
+	        String currentSenderInterface = null;
 	        
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(new ByteArrayInputStream(responseBytes));
@@ -464,12 +466,16 @@ public class WebServiceUtil {
 				        parentId = null;
 				        matchingReceiverInterfaceNameFound = false;
 				        receiverInterfaceElementFound = false;
+				        hasRoot = false;
 
 					} else if ("messageKey".equals(currentElementName)) {
 						messageKey = eventReader.peek().asCharacters().getData();
 						
 					} else if ("parentID".equals(currentElementName)) {
 						parentId = eventReader.peek().asCharacters().getData();
+
+					} else if ("rootID".equals(currentElementName)) {
+						hasRoot = true;
 
 			    	} else if ("receiverInterface".equals(currentElementName)) {
 			    		// We found the correct element
@@ -488,6 +494,8 @@ public class WebServiceUtil {
 			    			
 			    			// We are no longer interested in more data before next iteration
 							receiverInterfaceElementFound = false;
+							
+							currentSenderInterface = eventReader.peek().asCharacters().getData();
 						}
 			    	}
 					break;
@@ -496,7 +504,12 @@ public class WebServiceUtil {
 					String currentEndElementName = event.asEndElement().getName().getLocalPart();
 					
 					if ("AdapterFrameworkData".equals(currentEndElementName) && matchingReceiverInterfaceNameFound) {
-						successors.put(messageKey, parentId);	
+						
+						if (hasRoot && currentSenderInterface.equals(senderInterface)) {
+							// do nothing
+						} else {
+							successors.put(messageKey, parentId);	
+						}
 					}
 					break;
 				}
