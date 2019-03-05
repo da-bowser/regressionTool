@@ -322,6 +322,25 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			}
 		}
 		
+		// Determine LAST depending on case
+		ArrayList<XiMessage> currentLastList = new ArrayList<XiMessage>();
+		if (parentMap.size() == 0) {
+			// Plain EO without split and/or multimap
+			currentLastList.add(firstXiMessage);			// FIRST = LAST
+		} else {
+			// Split and/or multimap
+			currentLastList = handleSplitAndOrMultimapScenario(rawResponseMap, parentMap, firstXiMessage);
+		}
+
+		// Create and add coupling between first and last payloads
+		XiMessages currentXiMessages = new XiMessages();
+		currentXiMessages.setFirstMessage(firstXiMessage);
+		currentXiMessages.setLastPayloadList(currentLastList);
+		return currentXiMessages;
+	}
+	
+	
+	private static ArrayList<XiMessage> handleSplitAndOrMultimapScenario(HashMap<String, String> rawResponseMap, HashMap<String, String> parentMap, XiMessage firstXiMessage) {
 		// Find successor (LAST) messages
 		ArrayList<XiMessage> currentLastList = new ArrayList<XiMessage>();
 		if (parentMap.size() == 1) {
@@ -367,12 +386,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 				switchPayloadVersions(firstXiMessage);
 			}
 		}
-
-		// Create and add coupling between first and last payloads
-		XiMessages currentXiMessages = new XiMessages();
-		currentXiMessages.setFirstMessage(firstXiMessage);
-		currentXiMessages.setLastPayloadList(currentLastList);
-		return currentXiMessages;
+		return currentLastList;
 	}
 	
 	
