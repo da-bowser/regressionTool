@@ -136,11 +136,7 @@ public class WebServiceUtil {
 		}
 					
 		// Call web service (GetMessagesWithSuccessors)
-		byte[] responseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
-		
-		//TODO remove code line
-		Util.writeFileToFileSystem("c:\\Users\\dhek\\Desktop\\HEJ.xml", responseBytes);
-		
+		byte[] responseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);		
 		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessagesWithSuccessors) called");	
 		
 		return responseBytes;
