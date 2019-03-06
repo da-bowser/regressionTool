@@ -137,6 +137,10 @@ public class WebServiceUtil {
 					
 		// Call web service (GetMessagesWithSuccessors)
 		byte[] responseBytes = HttpHandler.post(ENDPOINT, GlobalParameters.CONTENT_TYPE_TEXT_XML, requestBytes);
+		
+		//TODO remove code line
+		Util.writeFileToFileSystem("c:\\Users\\dhek\\Desktop\\HEJ.xml", responseBytes);
+		
 		logger.writeDebug(LOCATION, SIGNATURE, "Web Service (GetMessagesWithSuccessors) called");	
 		
 		return responseBytes;
@@ -450,6 +454,7 @@ public class WebServiceUtil {
 	        boolean receiverInterfaceElementFound = false;
 	        boolean matchingReceiverInterfaceNameFound = false;
 	        String currentSenderInterface = null;
+	        String status = null;
 	        
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader eventReader = factory.createXMLEventReader(new ByteArrayInputStream(responseBytes));
@@ -468,7 +473,11 @@ public class WebServiceUtil {
 				        receiverInterfaceElementFound = false;
 				        hasRoot = false;
 				        currentSenderInterface = null;
+				        status = null;
 
+					} else if ("status".equals(currentElementName)) {
+						status = eventReader.peek().asCharacters().getData();
+						
 					} else if ("messageKey".equals(currentElementName)) {
 						messageKey = eventReader.peek().asCharacters().getData();
 						
@@ -506,11 +515,16 @@ public class WebServiceUtil {
 					String currentEndElementName = event.asEndElement().getName().getLocalPart();
 					
 					if ("AdapterFrameworkData".equals(currentEndElementName) && matchingReceiverInterfaceNameFound) {
-						
+											
 						if (hasRoot && currentSenderInterface.equals(senderInterface)) {
-							// do nothing
+							// In case of unfinished, positive processing status entries are required at later stage
+							// so we add them and cross our fingers that later code handles everything correct !!!!!!!!!!!!!!!!!! NOT SO NICE
+							// NOT IN FAVOUR OF THIS HORRIBLE CODE. DIS B QUIK "FIX", YES!
+							if (!status.equals("success") && !status.equals("logVersion")) {
+								successors.put(messageKey, parentId + "#" + status);	
+							}
 						} else {
-							successors.put(messageKey, parentId);
+							successors.put(messageKey, parentId + "#" + status);
 						}
 					}
 					break;

@@ -5,6 +5,7 @@ import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,39 @@ import com.invixo.common.XiMessage;
 class IntegratedConfigurationTest {
 
 	@Test
+	@DisplayName("Verify LAST message determination: Status not 'success'")
+	void verifyLastMessageDetermination5() {
+		try {
+			// Get WS response
+			String response = "../../../resources/testfiles/com/invixo/extraction/GetMessagesWithSuccessors_BatchResponseWithUnfinishedStatus.xml";
+			InputStream wsResponseStream = this.getClass().getResourceAsStream(response);
+
+			// Extract data from WS response
+			String senderInterface = "Data_Out_MultiMapping_Async";
+			String receiverInterface = "Data_In_Async";
+			HashMap<String, String> dataMap = WebServiceUtil.extractSuccessorsBatch(wsResponseStream.readAllBytes(), senderInterface, receiverInterface);
+						
+			// Get Last Messages:
+			String firstMsgKey = "5faa68ef-ef1f-4fe0-a0b9-1883d3a7d42d\\OUTBOUND\\0\\EOIO\\0\\";
+			XiMessage firstXiMessage = new XiMessage();
+			firstXiMessage.setSapMessageKey(firstMsgKey);
+			ArrayList<XiMessage> messageList = new ArrayList<XiMessage>();
+			messageList.add(firstXiMessage);
+			ArrayList<XiMessages> linkList = IntegratedConfiguration.linkLastMessagesToFirstMultiple(messageList, dataMap);
+			XiMessages firstLinkEntry = linkList.get(0);	
+			
+			// Check
+			assertTrue("No LAST messages", firstLinkEntry.getLastMessageList().size() == 0);
+			assertTrue("FIRST has exception", firstLinkEntry.getFirstMessage().getEx() != null);
+		} catch (Exception e) {
+			fail("It aint cooking chef! " + e);
+		}
+	}
+	
+	
+	@Test
 	@DisplayName("Verify LAST message determination: Message Split (no condition), and no multimapping) example 2")
-	void verifyLastMessageDetermination99() {
+	void verifyLastMessageDetermination6() {
 		try {
 			// Get WS response
 			String response = "../../../resources/testfiles/com/invixo/extraction/GetMessagesWithSuccessors_BatchResponse3.xml";
@@ -28,9 +60,9 @@ class IntegratedConfigurationTest {
 						
 			// Get Last Messages:
 			String firstMsgKey = "24829bae-3f53-11e9-88d4-000000554e16\\OUTBOUND\\5590550\\EOIO\\29\\";
-			XiMessage firstPayload = new XiMessage();
-			firstPayload.setSapMessageKey(firstMsgKey);
-			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
+			XiMessage firstXiMessage = new XiMessage();
+			firstXiMessage.setSapMessageKey(firstMsgKey);
+			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstXiMessage);
 					
 			// Check
 			assertTrue("Too many LAST messages found", payloads.getLastMessageList().size() == 1);
@@ -43,7 +75,7 @@ class IntegratedConfigurationTest {
 	
 	@Test
 	@DisplayName("Verify LAST message determination: Message Split (no condition), and no multimapping) example 1")
-	void verifyLastMessageDetermination0() {
+	void verifyLastMessageDetermination1() {
 		try {
 			// Get WS response
 			String response = "../../../resources/testfiles/com/invixo/extraction/GetMessagesWithSuccessors_BatchResponse2.xml";
@@ -56,9 +88,9 @@ class IntegratedConfigurationTest {
 						
 			// Get Last Messages:
 			String firstMsgKey = "5cb97936-bafb-4b30-80ec-d4917dcfc413\\OUTBOUND\\0\\EO\\0\\";
-			XiMessage firstPayload = new XiMessage();
-			firstPayload.setSapMessageKey(firstMsgKey);
-			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
+			XiMessage firstXiMessage = new XiMessage();
+			firstXiMessage.setSapMessageKey(firstMsgKey);
+			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstXiMessage);
 					
 			// Check
 			assertTrue("Too many LAST messages found", payloads.getLastMessageList().size() == 1);
@@ -71,7 +103,7 @@ class IntegratedConfigurationTest {
 	
 	@Test
 	@DisplayName("Verify LAST message determination: No Message Split, and multimapping generates multiple messages")
-	void verifyLastMessageDetermination() {
+	void verifyLastMessageDetermination0() {
 		try {
 			// Get WS response
 			String response = "../../../resources/testfiles/com/invixo/extraction/GetMessagesWithSuccessors_BatchResponseLarge.xml";
@@ -84,9 +116,9 @@ class IntegratedConfigurationTest {
 						
 			// Get Last Messages:
 			String firstMsgKey = "ddffb25a-38db-11e9-c594-0000273d8d22\\OUTBOUND\\658345250\\EOIO\\1\\";
-			XiMessage firstPayload = new XiMessage();
-			firstPayload.setSapMessageKey(firstMsgKey);
-			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
+			XiMessage firstXiMessage = new XiMessage();
+			firstXiMessage.setSapMessageKey(firstMsgKey);
+			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstXiMessage);
 					
 			// Check
 			assertTrue(payloads.getLastMessageList().size() == 4);
@@ -115,9 +147,9 @@ class IntegratedConfigurationTest {
 						
 			// Get Last Messages:
 			String firstMsgKey = "9652fd9c-3901-11e9-bc00-0000273d8d22\\OUTBOUND\\658345250\\EOIO\\3\\";
-			XiMessage firstPayload = new XiMessage();
-			firstPayload.setSapMessageKey(firstMsgKey);
-			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
+			XiMessage firstXiMessage = new XiMessage();
+			firstXiMessage.setSapMessageKey(firstMsgKey);
+			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstXiMessage);
 					
 			// Check
 			assertTrue(payloads.getLastMessageList().size() == 1);
@@ -143,9 +175,9 @@ class IntegratedConfigurationTest {
 						
 			// Get Last Messages:
 			String firstMsgKey = "1111ebc7-3932-11e9-8392-0000273d8d22\\OUTBOUND\\0\\EO\\0\\";
-			XiMessage firstPayload = new XiMessage();
-			firstPayload.setSapMessageKey(firstMsgKey);
-			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
+			XiMessage firstXiMessage = new XiMessage();
+			firstXiMessage.setSapMessageKey(firstMsgKey);
+			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstXiMessage);
 					
 			// Check
 			assertTrue(payloads.getLastMessageList().size() == 18);
@@ -188,9 +220,9 @@ class IntegratedConfigurationTest {
 						
 			// Get Last Messages:
 			String firstMsgKey = "e8610cae-3929-11e9-b6ac-0000273d8d22\\OUTBOUND\\0\\EO\\0\\";
-			XiMessage firstPayload = new XiMessage();
-			firstPayload.setSapMessageKey(firstMsgKey);
-			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstPayload);
+			XiMessage firstXiMessage = new XiMessage();
+			firstXiMessage.setSapMessageKey(firstMsgKey);
+			XiMessages payloads = IntegratedConfiguration.getLastMessagesForFirstEntry(dataMap, firstXiMessage);
 					
 			// Check
 			assertTrue(payloads.getLastMessageList().size() == 1);

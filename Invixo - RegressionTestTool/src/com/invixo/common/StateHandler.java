@@ -58,7 +58,7 @@ public class StateHandler {
 			icoStatePathTarget = null;
 			break;
 		default :
-			throw new RuntimeException("Unsuppported sthdtyjdytjdtyj");
+			throw new RuntimeException("Unsuppported operation! Nevar supposed to happen!");
 		}
 		logger.writeDebug(LOCATION, SIGNATURE,  "State source file: " + icoStatePathSource);
 		logger.writeDebug(LOCATION, SIGNATURE,  "State target file: " + icoStatePathTarget);
@@ -389,6 +389,27 @@ public class StateHandler {
 				icoLines.set(i, finalfinalline);
 			}
 		}
+	}
+	
+	
+	public static void nonInitRemoveLines(XiMessage first) throws StateException {
+		List<String> icoLines = readIcoStateLinesFromFile();
+		ArrayList<String> removeLines = new ArrayList<String>();
+		
+		// Correct lines
+		for (int i=0; i<icoLines.size(); i++) {
+			String currentLine = icoLines.get(i);
+			String[] icoLineParts = currentLine.split(SEPARATOR);
+			String currentInjectId = icoLineParts[8];
+
+			
+			if (currentInjectId.equals(first.getSapMessageId())) {
+				removeLines.add(currentLine);
+			}
+		}
+		
+		// Remove lines
+		icoLines.removeAll(removeLines);
 	}
 	
 }

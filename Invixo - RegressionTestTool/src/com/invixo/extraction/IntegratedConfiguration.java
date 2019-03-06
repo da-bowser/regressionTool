@@ -200,11 +200,18 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 
 				// Sort Last Payloads
 				sortLastMessagesBySequenceId(lastPayloads);
-				
-				int total = lastPayloads.size()-1;
-				for (int i=total; i>=0; i--) {
-					XiMessage currentLast = lastPayloads.get(i);
-					StateHandler.nonInitReplaceTemplates(firstPayload, currentLast, i+"");
+
+				// Handle STATE file
+				if (firstPayload.getEx() == null) {
+					// At least 1 LAST message. Do template replacement
+					int total = lastPayloads.size()-1;
+					for (int i=total; i>=0; i--) {
+						XiMessage currentLast = lastPayloads.get(i);
+						StateHandler.nonInitReplaceTemplates(firstPayload, currentLast, i+"");
+					}					
+				} else {
+					// No LAST messages. Remove entries matching FIRST from STATE file
+					StateHandler.nonInitRemoveLines(firstPayload);
 				}
 			}
 			logger.writeDebug(LOCATION, SIGNATURE, "Finished building internal STATE list (template replacement)");
@@ -291,15 +298,32 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		HashMap<String, String> rawResponseMap = WebServiceUtil.extractSuccessorsBatch(successorResponse, this.getSenderInterface(), this.getReceiverInterface());
 		
 		// Divide raw response map into LAST messages referring to proper FIRST message 
-		ArrayList<XiMessages> payloadsLinkList = new ArrayList<XiMessages>();
-		for (XiMessage firstXiMessage : firstXiMessages) {
-			XiMessages currentPayloads = getLastMessagesForFirstEntry(rawResponseMap, firstXiMessage);
-			payloadsLinkList.add(currentPayloads);
-		}
-
+		ArrayList<XiMessages> payloadsLinkList = linkLastMessagesToFirstMultiple(firstXiMessages, rawResponseMap);	
 		return payloadsLinkList;
 	}
 		
+	
+	static ArrayList<XiMessages> linkLastMessagesToFirstMultiple(ArrayList<XiMessage> firstXiMessages, HashMap<String, String> rawResponseMap) {
+		ArrayList<XiMessages> payloadsLinkList = new ArrayList<XiMessages>();
+		for (XiMessage firstXiMessage : firstXiMessages) {
+			XiMessages currentLink = linkLastMessagesToFirstSingle(firstXiMessage, rawResponseMap);
+			payloadsLinkList.add(currentLink);
+		}
+		return payloadsLinkList;
+	}
+	
+	
+	private static XiMessages linkLastMessagesToFirstSingle(XiMessage firstXiMessage, HashMap<String, String> rawResponseMap) {
+		XiMessages currentLink = new XiMessages();
+		currentLink.setFirstMessage(firstXiMessage);
+		try {
+			currentLink = getLastMessagesForFirstEntry(rawResponseMap, firstXiMessage);
+		} catch (InvalidXiMessageState e) {
+			currentLink.getFirstMessage().setEx(e);
+		}
+		return currentLink;
+	}
+	
 	
 	/**
 	 * Get LAST messages for a single FIRST message based on extracted data WS response of service GetMessagesWithSuccessors 
@@ -307,7 +331,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	 * @param firstXiMessage
 	 * @return
 	 */
-	static XiMessages getLastMessagesForFirstEntry(HashMap<String, String> rawResponseMap, XiMessage firstXiMessage) {
+	static XiMessages getLastMessagesForFirstEntry(HashMap<String, String> rawResponseMap, XiMessage firstXiMessage) throws InvalidXiMessageState {
 		String currentFirstMsgId = firstXiMessage.getSapMessageId(); 
 		
 		// Find all records in WS response with a Parent value matching the FIRST message id
@@ -315,9 +339,20 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 		for (Entry<String, String> entry : rawResponseMap.entrySet()) {
 			String currentMsgKey = entry.getKey();
 			String currentMsgId = Util.extractMessageIdFromKey(currentMsgKey);
-			String currentParentId = entry.getValue();
+			String currentParentId = entry.getValue().split("#")[0];
+			String currentStatus = entry.getValue().split("#")[1];
 			
+
+			
+			// Match found
 			if (currentFirstMsgId.equals(currentParentId)) {
+				
+				// Check on system processing status to prevent wrong behavior at later stage
+				if (!currentStatus.equals("success") && !currentStatus.equals("logVersion")) {
+					throw new InvalidXiMessageState("FIRST with unsupported system processing status: " + currentStatus);
+				}
+				
+				
 				parentMap.put(currentMsgId, currentMsgKey);
 			}
 		}
@@ -340,7 +375,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	}
 	
 	
-	private static ArrayList<XiMessage> handleSplitAndOrMultimapScenario(HashMap<String, String> rawResponseMap, HashMap<String, String> parentMap, XiMessage firstXiMessage) {
+	private static ArrayList<XiMessage> handleSplitAndOrMultimapScenario(HashMap<String, String> rawResponseMap, HashMap<String, String> parentMap, XiMessage firstXiMessage) throws InvalidXiMessageState {
 		// Find successor (LAST) messages
 		ArrayList<XiMessage> currentLastList = new ArrayList<XiMessage>();
 		if (parentMap.size() == 1) {
@@ -351,7 +386,7 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			ArrayList<String> matchList = new ArrayList<String>();
 			for (Entry<String, String> entry : rawResponseMap.entrySet()) {
 				String currentMsgKey = entry.getKey();
-				String currentParentId = entry.getValue();
+				String currentParentId = entry.getValue().split("#")[0];
 				
 				if (parentMessageId.equals(currentParentId)) {
 					matchList.add(currentMsgKey);
@@ -439,14 +474,16 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 			XiMessage firstPayload = currentXiMessagesLink.getFirstMessage();
 			ArrayList<XiMessage> lastXiMessages = currentXiMessagesLink.getLastMessageList();
 
-			// Sort Last messages
-			sortLastMessagesBySequenceId(lastXiMessages);
-			
-			// Write to temp (internal) storage
-			for (int i=0; i < lastXiMessages.size(); i++) {
-				XiMessage currentLast = lastXiMessages.get(i);
-				String currentIcoLine = StateHandler.createExtractEntry(this.getName(), firstPayload, currentLast, i+"");
-				StateHandler.addEntryToInternalList(currentIcoLine);
+			if (firstPayload.getEx() == null) {
+				// Sort Last messages
+				sortLastMessagesBySequenceId(lastXiMessages);
+				
+				// Write to temp (internal) storage
+				for (int i=0; i < lastXiMessages.size(); i++) {
+					XiMessage currentLast = lastXiMessages.get(i);
+					String currentIcoLine = StateHandler.createExtractEntry(this.getName(), firstPayload, currentLast, i+"");
+					StateHandler.addEntryToInternalList(currentIcoLine);
+				}
 			}
 		}
 		logger.writeDebug(LOCATION, SIGNATURE, "Finished building internal STATE list (template replacement)");
@@ -495,18 +532,20 @@ public class IntegratedConfiguration extends IntegratedConfigurationMain {
 	private void persist(XiMessage xiMessage, boolean isFirst)  throws ExtractorException {
 		final String SIGNATURE = "persist(XiMessage, boolean)";
 		try {
-			// Lookup Payload in SAP system (sets internal variables)
-			xiMessage.extractPayloadFromSystem(isFirst);
-			
-			// Persist on file system
-			if (isFirst) {
-				xiMessage.persistMessage(this.getFilePathFirstPayloads());	
-			} else {
-				xiMessage.persistMessage(this.getFilePathLastPayloads());
+			if (xiMessage.getEx() == null) {
+				// Lookup Payload in SAP system (sets internal variables)
+				xiMessage.extractPayloadFromSystem(isFirst);
+				
+				// Persist on file system
+				if (isFirst) {
+					xiMessage.persistMessage(this.getFilePathFirstPayloads());	
+				} else {
+					xiMessage.persistMessage(this.getFilePathLastPayloads());
+				}
+				
+				// Clear payload so we do not carry around large objects
+				xiMessage.clearPayload();
 			}
-			
-			// Clear payload so we do not carry around large objects
-			xiMessage.clearPayload();
 		} catch (XiMessageException e) {
 			String msg = "Error during persist of payload: " + xiMessage.getSapMessageKey() + ". " + e;
 			logger.writeError(LOCATION, SIGNATURE, msg);

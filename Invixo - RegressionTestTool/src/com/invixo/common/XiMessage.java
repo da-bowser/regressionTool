@@ -31,8 +31,10 @@ public class XiMessage {
 	private int versionLast = -1;					// By default, -1 = LAST payload (after mapping)
 	
 	private STATUS payloadFoundStatus = STATUS.UNKNOWN;
+	private Exception ex = null;
 	
-	public enum STATUS {UNKNOWN, FOUND, NOT_FOUND}; 
+	public enum STATUS {UNKNOWN, FOUND, NOT_FOUND};
+
 	
 	
 	public XiMessage() {}
@@ -234,6 +236,16 @@ public class XiMessage {
 
 	public void setVersionLast(int versionLast) {
 		this.versionLast = versionLast;
+	}
+
+
+	public Exception getEx() {
+		return ex;
+	}
+
+
+	public void setEx(Exception ex) {
+		this.ex = ex;
 	}
 	
 }

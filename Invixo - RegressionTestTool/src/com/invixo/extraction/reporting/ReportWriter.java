@@ -47,6 +47,7 @@ public class ReportWriter {
 	private int	countMsgPayloadsCreated			= 0;	// Total FIRST and LAST created payloads
 	private int countMsgPayloadsCreatedFirst 	= 0;	// Total FIRST payloads created
 	private int countMsgPayloadsCreatedLast 	= 0;	// Total LAST payloads created	
+	private int countMsgKeyErrorTotal			= 0;	// Total number of errors on XiMessage level (measured on FIRST entries only)
 
 	public ReportWriter(ArrayList<IntegratedConfiguration> icoList) {
 		this.icoList = icoList;
@@ -84,61 +85,66 @@ public class ReportWriter {
 		for (XiMessages linkedList : ico.getPayloadsLinkList()) {
 			XiMessage firstPayload = linkedList.getFirstMessage();
 			
-			for (XiMessage lastPayload : linkedList.getLastMessageList()) {
-				// Add to messageKeys
-				messageKeysFirst.add(firstPayload.getSapMessageKey());
-				messageKeysLast.add(lastPayload.getSapMessageKey());
-				
-				// Check: only FIRST payloads is enabled
-				if (fetchPayloadFirst && !fetchPayloadLast) {
-					// Check: No technical error and FIRST payload was found
-					if (XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus())) {
-						this.countMsgKeyOk++;
+			if (firstPayload.getEx() == null) {
+				for (XiMessage lastPayload : linkedList.getLastMessageList()) {
+					// Add to messageKeys
+					messageKeysFirst.add(firstPayload.getSapMessageKey());
+					messageKeysLast.add(lastPayload.getSapMessageKey());
+					
+					// Check: only FIRST payloads is enabled
+					if (fetchPayloadFirst && !fetchPayloadLast) {
+						// Check: No technical error and FIRST payload was found
+						if (XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+							this.countMsgKeyOk++;
+						}
+						
+						// Check: No exception occurred, but FIRST XI message was not returned by Web Service
+						if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+							this.countMsgVersionFirstNopayload++;
+						}
 					}
 					
-					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
-					if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
-						this.countMsgVersionFirstNopayload++;
-					}
-				}
-				
-				// Check: only LAST payloads is enabled
-				if (!fetchPayloadFirst && fetchPayloadLast) {
-					// Check: No technical error and LAST payload was found
-					if (XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						this.countMsgKeyOk++;
-					}
-					
-					// Check: No exception occurred, but LAST XI message was not returned by Web Service
-					if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						this.countMsgVersionLastNopayload++;
-					}
-				}
-				
-				// Check: FIRST and LAST payloads is enabled
-				if (fetchPayloadFirst && fetchPayloadLast) {
-					// Check: No technical error, but either FIRST or LAST payload is missing
-					if (	XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus()) 
-						|| 	XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						this.countMsgKeyTechOkButNoPayload++;
-					} 
-
-					// Check: No technical error and FIRST or LAST payload was found
-					if (	XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus()) 
-						&& 	XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						this.countMsgKeyOk++;
+					// Check: only LAST payloads is enabled
+					if (!fetchPayloadFirst && fetchPayloadLast) {
+						// Check: No technical error and LAST payload was found
+						if (XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							this.countMsgKeyOk++;
+						}
+						
+						// Check: No exception occurred, but LAST XI message was not returned by Web Service
+						if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							this.countMsgVersionLastNopayload++;
+						}
 					}
 					
-					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
-					if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
-						this.countMsgVersionFirstNopayload++;	
-					} 
-
-					// Check: No exception occurred, but LAST XI message was not returned by Web Service
-					if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						this.countMsgVersionLastNopayload++;
+					// Check: FIRST and LAST payloads is enabled
+					if (fetchPayloadFirst && fetchPayloadLast) {
+						// Check: No technical error, but either FIRST or LAST payload is missing
+						if (	XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus()) 
+							|| 	XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							this.countMsgKeyTechOkButNoPayload++;
+						} 
+	
+						// Check: No technical error and FIRST or LAST payload was found
+						if (	XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus()) 
+							&& 	XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							this.countMsgKeyOk++;
+						}
+						
+						// Check: No exception occurred, but FIRST XI message was not returned by Web Service
+						if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+							this.countMsgVersionFirstNopayload++;	
+						} 
+	
+						// Check: No exception occurred, but LAST XI message was not returned by Web Service
+						if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							this.countMsgVersionLastNopayload++;
+						}
 					}
 				}
+			} else {
+				// An error existed on FIRST message
+				countMsgKeyErrorTotal++;
 			}
 		}
 				
@@ -264,83 +270,92 @@ public class ReportWriter {
 
 
 	private void addMessageKeysStructure(XMLStreamWriter xmlWriter,	IntegratedConfiguration ico) throws XMLStreamException {
-		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys
-		xmlWriter.writeStartElement(XML_PREFIX, "MessageKeys", XML_NS);	
+		// Create element: ExtractReport | IntegratedConfiguration | XiMessages
+		xmlWriter.writeStartElement(XML_PREFIX, "XiMessages", XML_NS);	
 		
-		// Add structure: ExtractReport | IntegratedConfiguration | MessageKeys | Overview
+		// Add structure: ExtractReport | IntegratedConfiguration | XiMessages | Overview
 		addMessageKeysLocalOverview(xmlWriter, ico);
 		
-		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads
-		xmlWriter.writeStartElement(XML_PREFIX, "Payloads", XML_NS);
+		// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink
+		xmlWriter.writeStartElement(XML_PREFIX, "MessageLink", XML_NS);
 		
 		for (XiMessages linkedList : ico.getPayloadsLinkList()) {
 			XiMessage firstPayload = linkedList.getFirstMessage();
 			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First
+			// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | First
 			xmlWriter.writeStartElement(XML_PREFIX, "First", XML_NS);
 			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First | PayloadStatus
+			// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | First | Error
+			xmlWriter.writeStartElement(XML_PREFIX, "Error", XML_NS);
+			if (firstPayload.getEx() != null) {
+				StringWriter sw = new StringWriter();
+				firstPayload.getEx().printStackTrace(new PrintWriter(sw));
+				xmlWriter.writeCData(sw.toString());
+			}
+			xmlWriter.writeEndElement();
+						
+			// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | First | PayloadStatus
 			xmlWriter.writeStartElement(XML_PREFIX, "PayloadStatus", XML_NS);
 			xmlWriter.writeCharacters(firstPayload.getPayloadFoundStatus().toString());
 			xmlWriter.writeEndElement();
-			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First | Key
+						
+			// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | First | Key
 			xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);
 			xmlWriter.writeCharacters(firstPayload.getSapMessageKey());
 			xmlWriter.writeEndElement();
 
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First | Path
+			// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | First | Path
 			xmlWriter.writeStartElement(XML_PREFIX, "Path", XML_NS);
 			xmlWriter.writeCharacters(ico.getFilePathFirstPayloads());
 			xmlWriter.writeEndElement();
 
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First | FileName
+			// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | First | FileName
 			xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);
 			xmlWriter.writeCharacters(firstPayload.getFileName());
 			xmlWriter.writeEndElement();
 			
-			// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList
+			// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | LastList
 			xmlWriter.writeStartElement(XML_PREFIX, "LastList", XML_NS);
 			
 			for (XiMessage lastPayload : linkedList.getLastMessageList()) {
-				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last
+				// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | LastList | Last
 				xmlWriter.writeStartElement(XML_PREFIX, "Last", XML_NS);
 				
-				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last | PayloadStatus
+				// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | LastList | Last | PayloadStatus
 				xmlWriter.writeStartElement(XML_PREFIX, "PayloadStatus", XML_NS);
 				xmlWriter.writeCharacters(lastPayload.getPayloadFoundStatus().toString());
 				xmlWriter.writeEndElement();
 				
-				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last | Key
+				// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | LastList | Last | Key
 				xmlWriter.writeStartElement(XML_PREFIX, "Key", XML_NS);
 				xmlWriter.writeCharacters(lastPayload.getSapMessageKey().toString());
 				xmlWriter.writeEndElement();
 				
-				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last | Path
+				// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | LastList | Last | Path
 				xmlWriter.writeStartElement(XML_PREFIX, "Path", XML_NS);
 				xmlWriter.writeCharacters(ico.getFilePathFirstPayloads());
 				xmlWriter.writeEndElement();
 
-				// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last | FileName
+				// Create element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | LastList | Last | FileName
 				xmlWriter.writeStartElement(XML_PREFIX, "FileName", XML_NS);
 				xmlWriter.writeCharacters(lastPayload.getFileName());
 				xmlWriter.writeEndElement();
 				
-				// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList | Last
+				// Close element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | LastList | Last
 				xmlWriter.writeEndElement();	
 			}
 			
-			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | LastList
+			// Close element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | LastList
 			xmlWriter.writeEndElement();	
 			
-			// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads | First
+			// Close element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink | First
 			xmlWriter.writeEndElement();				
 		}
 
-		// Close element: ExtractReport | IntegratedConfiguration | MessageKeys | Payloads
+		// Close element: ExtractReport | IntegratedConfiguration | XiMessages | MessageLink
 		xmlWriter.writeEndElement();
 		
-		// Close element: ExtractReport | IntegratedConfiguration | MessageKeys
+		// Close element: ExtractReport | IntegratedConfiguration | XiMessages
 		xmlWriter.writeEndElement();
 	}
 
@@ -409,10 +424,12 @@ public class ReportWriter {
 		// Calc overview numbers
 		int keysTotal = ico.getMessageKeys().size();
 		int keysOk = 0;			// No technical errors, both FIRST and LAST was found
+		int keysError = 0;		// Error on FIRST message
 		int keysTechOk = 0;		// No technical errors, but either FIST and/or LAST is missing
 		int keysNoFirstPayload = 0;
 		int keysNoLastPayload = 0;
 		int keysPayloadsCreated = 0;
+			
 		HashSet<String> messageKeysFirst = new HashSet<String>();
 		HashSet<String> messageKeysLast = new HashSet<String>();
 				
@@ -420,72 +437,76 @@ public class ReportWriter {
 		for (XiMessages linkedList : ico.getPayloadsLinkList()) {
 			XiMessage firstPayload = linkedList.getFirstMessage();
 			
-			for (XiMessage lastPayload : linkedList.getLastMessageList()) {
-				// Add to messageKeys
-				messageKeysFirst.add(firstPayload.getSapMessageKey());
-				messageKeysLast.add(lastPayload.getSapMessageKey());
+			if (firstPayload.getEx() == null) {
+				for (XiMessage lastPayload : linkedList.getLastMessageList()) {
+					// Add to messageKeys
+					messageKeysFirst.add(firstPayload.getSapMessageKey());
+					messageKeysLast.add(lastPayload.getSapMessageKey());
 
-				// Check: only FIRST payloads is enabled
-				if (fetchPayloadFirst && !fetchPayloadLast) {
-					// Check: No technical error, FIRST payload is missing
-					if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
-						keysTechOk++;
-					} 
+					// Check: only FIRST payloads is enabled
+					if (fetchPayloadFirst && !fetchPayloadLast) {
+						// Check: No technical error, FIRST payload is missing
+						if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+							keysTechOk++;
+						} 
 
-					// Check: No technical error and FIRST payload was found
-					if (XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus())) {
-						keysOk++;
+						// Check: No technical error and FIRST payload was found
+						if (XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+							keysOk++;
+						}
+						
+						// Check: No exception occurred, but FIRST XI message was not returned by Web Service
+						if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+							keysNoFirstPayload++;
+						}
 					}
 					
-					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
-					if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
-						keysNoFirstPayload++;
+					// Check: only LAST payloads is enabled
+					if (!fetchPayloadFirst && fetchPayloadLast) {
+						// Check: No technical error, LAST payload is missing
+						if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							keysTechOk++;
+						} 
+
+						// Check: No technical error and LAST payload was found
+						if (XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							keysOk++;
+						}
+						
+						// Check: No exception occurred, but LAST XI message was not returned by Web Service
+						if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							keysNoLastPayload++;
+						}
 					}
+					
+					// Check: FIRST and LAST payloads is enabled
+					if (fetchPayloadFirst && fetchPayloadLast) {
+						// Check: No technical error, but either FIRST or LAST payload is missing
+						if (	XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus()) 
+							|| 	XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							keysTechOk++;
+						} 
+
+						// Check: No technical error and FIRST or LAST payload was found
+						if (	XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus()) 
+							&& 	XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							keysOk++;
+						}
+						
+						// Check: No exception occurred, but FIRST XI message was not returned by Web Service
+						if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
+							keysNoFirstPayload++;	
+						} 
+
+						// Check: No exception occurred, but LAST XI message was not returned by Web Service
+						if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
+							keysNoLastPayload++;
+						}
+					}	
 				}
-				
-				// Check: only LAST payloads is enabled
-				if (!fetchPayloadFirst && fetchPayloadLast) {
-					// Check: No technical error, LAST payload is missing
-					if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						keysTechOk++;
-					} 
-
-					// Check: No technical error and LAST payload was found
-					if (XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						keysOk++;
-					}
-					
-					// Check: No exception occurred, but LAST XI message was not returned by Web Service
-					if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						keysNoLastPayload++;
-					}
-				}
-				
-				// Check: FIRST and LAST payloads is enabled
-				if (fetchPayloadFirst && fetchPayloadLast) {
-					// Check: No technical error, but either FIRST or LAST payload is missing
-					if (	XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus()) 
-						|| 	XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						keysTechOk++;
-					} 
-
-					// Check: No technical error and FIRST or LAST payload was found
-					if (	XiMessage.STATUS.FOUND.equals(firstPayload.getPayloadFoundStatus()) 
-						&& 	XiMessage.STATUS.FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						keysOk++;
-					}
-					
-					// Check: No exception occurred, but FIRST XI message was not returned by Web Service
-					if (XiMessage.STATUS.NOT_FOUND.equals(firstPayload.getPayloadFoundStatus())) {
-						keysNoFirstPayload++;	
-					} 
-
-					// Check: No exception occurred, but LAST XI message was not returned by Web Service
-					if (XiMessage.STATUS.NOT_FOUND.equals(lastPayload.getPayloadFoundStatus())) {
-						keysNoLastPayload++;
-					}
-				}	
-			} 
+			} else {
+				keysError++;
+			}
 		}	
 		
 		// Set local counter
@@ -502,6 +523,11 @@ public class ReportWriter {
 		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | ActualFirstPayloads
 		xmlWriter.writeStartElement(XML_PREFIX, "ActualFirstPayloads", XML_NS);
 		xmlWriter.writeCharacters("" + keysTotal);
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | XiMessagesOverview | FirstMessagesInError
+		xmlWriter.writeStartElement(XML_PREFIX, "FirstMessagesInError", XML_NS);
+		xmlWriter.writeCharacters("" + keysError);
 		xmlWriter.writeEndElement();
 
 		// Create element: ExtractReport | IntegratedConfiguration | MessageKeys | Overview | SuccessAllPayloadsFound
@@ -545,50 +571,55 @@ public class ReportWriter {
 	
 	
 	private void addMessageKeysGlobalOverview(XMLStreamWriter xmlWriter) throws XMLStreamException {
-		// Create element: ExtractReport | MessageKeysOverview
-		xmlWriter.writeStartElement(XML_PREFIX, "MessageKeysOverview", XML_NS);
+		// Create element: ExtractReport | XiMessagesOverview
+		xmlWriter.writeStartElement(XML_PREFIX, "XiMessagesOverview", XML_NS);
 		
-		// Create element: ExtractReport | MessageKeysOverview | Total
+		// Create element: ExtractReport | XiMessagesOverview | Total
 		xmlWriter.writeStartElement(XML_PREFIX, "Total", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgKeyTotal);
 		xmlWriter.writeEndElement();
 
-		// Create element: ExtractReport | MessageKeysOverview | SuccessAllPayloadsFound
+		// Create element: ExtractReport | XiMessagesOverview | TotalErrors
+		xmlWriter.writeStartElement(XML_PREFIX, "TotalErrors", XML_NS);
+		xmlWriter.writeCharacters("" + this.countMsgKeyErrorTotal);
+		xmlWriter.writeEndElement();
+		
+		// Create element: ExtractReport | XiMessagesOverview | SuccessAllPayloadsFound
 		xmlWriter.writeStartElement(XML_PREFIX, "SuccessAllPayloadsFound", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgKeyOk);
 		xmlWriter.writeEndElement();	
 		
-		// Create element: ExtractReport | MessageKeysOverview | SuccessNotAllPayloadsFound
+		// Create element: ExtractReport | XiMessagesOverview | SuccessNotAllPayloadsFound
 		xmlWriter.writeStartElement(XML_PREFIX, "SuccessNotAllPayloadsFound", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgKeyTechOkButNoPayload);
 		xmlWriter.writeEndElement();
 		
-		// Create element: ExtractReport | MessageKeysOverview | FirstPayloadMissing
+		// Create element: ExtractReport | XiMessagesOverview | FirstPayloadMissing
 		xmlWriter.writeStartElement(XML_PREFIX, "FirstPayloadMissing", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgVersionFirstNopayload);
 		xmlWriter.writeEndElement();
 		
-		// Create element: ExtractReport | MessageKeysOverview | LastPayloadMissing
+		// Create element: ExtractReport | XiMessagesOverview | LastPayloadMissing
 		xmlWriter.writeStartElement(XML_PREFIX, "LastPayloadMissing", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgVersionLastNopayload);
 		xmlWriter.writeEndElement();
 		
-		// Create element: ExtractReport | MessageKeysOverview | PayloadsFilesCreatedTotal
+		// Create element: ExtractReport | XiMessagesOverview | PayloadsFilesCreatedTotal
 		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotal", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgPayloadsCreated);
 		xmlWriter.writeEndElement();
 		
-		// Create element: ExtractReport | MessageKeysOverview | PayloadsFilesCreatedTotalFirst
+		// Create element: ExtractReport | XiMessagesOverview | PayloadsFilesCreatedTotalFirst
 		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotalFirst", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgPayloadsCreatedFirst);
 		xmlWriter.writeEndElement();
 				
-		// Create element: ExtractReport | MessageKeysOverview | PayloadsFilesCreatedTotalLast
+		// Create element: ExtractReport | XiMessagesOverview | PayloadsFilesCreatedTotalLast
 		xmlWriter.writeStartElement(XML_PREFIX, "PayloadsFilesCreatedTotalLast", XML_NS);
 		xmlWriter.writeCharacters("" + this.countMsgPayloadsCreatedLast);
 		xmlWriter.writeEndElement();
 				
-		// Close element: ExtractReport | MessageKeysOverview
+		// Close element: ExtractReport | XiMessagesOverview
 		xmlWriter.writeEndElement();
 	}
 }
